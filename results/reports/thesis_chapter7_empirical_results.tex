@@ -1,0 +1,320 @@
+\chapter{ 7: Empirical Results
+
+\section{7.1. Data & Sample
+
+This section provides a brief recap of the data and methodology used in the empirical analysis.
+
+#\section{Universe
+
+The analysis covers \textbf{7 European markets\textbf{: Germany (DE), France (FR), Italy (IT), Spain (ES), Sweden (SE), United Kingdom (UK), and Switzerland (CH). After data cleaning and quality filters, the final sample consists of \textbf{219 stocks\textbf{ with complete return data.
+
+#\section{Period
+
+The analysis period spans \textbf{2020-12-01 to 2025-12-01\textbf{, using \textbf{monthly\textbf{ return frequency. This provides \textbf{59 months of returns\textbf{ (60 months of prices) for each stock, covering a period that includes:
+- Post-COVID recovery (2021)
+- Interest rate hikes and inflation concerns (2022)
+- Economic recovery and policy normalization (2023-2025)
+
+#\section{Market Proxies
+
+For each country, beta is estimated against the \textbf{MSCI country index\textbf{ (accessed via iShares ETFs), not the local stock exchange index. This choice is motivated by:
+- Broader market coverage (includes mid-caps)
+- Consistent methodology across countries
+- Empirically superior explanatory power
+
+The market proxies used are:
+- Germany: MSCI Germany (via EWG)
+- France: MSCI France (via EWQ)
+- Italy: MSCI Italy (via EWI)
+- Spain: MSCI Spain (via EWP)
+- Sweden: MSCI Sweden (via EWD)
+- United Kingdom: MSCI UK (via EWU)
+- Switzerland: MSCI Switzerland (via EWL)
+
+#\section{Risk-Free Rate
+
+The risk-free rate is the \textbf{3-month government bond yield\textbf{ for each country:
+- \textbf{Eurozone countries\textbf{ (Germany, France, Italy, Spain): German 3-month Bund (EUR)
+- \textbf{Sweden\textbf{: Swedish 3-month government bond (SEK)
+- \textbf{United Kingdom\textbf{: UK 3-month Treasury Bill (GBP)
+- \textbf{Switzerland\textbf{: Swiss 3-month government bond (CHF)
+
+All rates are converted from annual percentage to monthly percentage for consistency with monthly return frequency.
+
+#\section{Excess Returns
+
+All returns are calculated as \textbf{simple (arithmetic) percentages\textbf{, not logarithmic returns. The excess return calculation follows:
+
+\textbf{Stock excess return:\textbf{
+$$E_{i,t} = R_{i,t} - R_{f,t}$$
+
+\textbf{Market excess return:\textbf{
+$$E_{m,t} = R_{m,t} - R_{f,t}$$
+
+Where $R_{i,t}$ is the simple monthly return of stock $i$ in month $t$, $R_{m,t}$ is the MSCI country index return, and $R_{f,t}$ is the risk-free rate.
+
+See Table~\ref{tab:6 for a summary of descriptive statistics by country.
+
+---
+
+\section{7.2. Time-Series CAPM Results
+
+This section addresses the question: \textbf{"Does the market explain each individual stock over time?"\textbf{
+
+#\section{Method
+
+For each stock $i$, we estimate the time-series CAPM regression:
+
+$$R_{i,t} - R_{f,t} = \alpha_i + \beta_i (R_{m,t} - R_{f,t}) + \varepsilon_{i,t}$$
+
+where:
+- $R_{i,t} - R_{f,t}$ is the excess return of stock $i$ in month $t$
+- $R_{m,t} - R_{f,t}$ is the excess return of the market (MSCI country index) in month $t$
+- $\beta_i$ is the market beta (sensitivity to market movements)
+- $\alpha_i$ is the intercept (abnormal return)
+- $\varepsilon_{i,t}$ is the error term
+
+\textbf{Estimation:\textbf{ Each regression uses \textbf{59 monthly observations\textbf{ (January 2021 to November 2025), estimated via Ordinary Least Squares (OLS).
+
+#\section{Key Aggregate Statistics
+
+The time-series regressions yield the following aggregate results:
+
+- \textbf{Valid stocks:\textbf{ 219 (out of 249 total)
+- \textbf{Average beta:\textbf{ 0.688
+- \textbf{Median beta:\textbf{ 0.646
+- \textbf{Average R²:\textbf{ 0.235
+- \textbf{Average alpha:\textbf{ 0.144%
+
+#\section{Results by Country
+
+Table~\ref{tab:1 presents the CAPM time-series summary by country. Key findings:
+
+- \textbf{Beta values\textbf{ are economically reasonable, with median betas ranging from approximately 0.53 to 0.67 across countries. Most stocks have betas below 1.0, as expected for many European large-cap stocks that are less volatile than their respective market indices.
+
+- \textbf{R² values\textbf{ average approximately 0.24, indicating that the market factor explains approximately 23.5% of return variation on average. This represents a \textbf{non-trivial but limited\textbf{ explanatory power.
+
+- \textbf{Significant betas\textbf{ (p < 0.05) represent approximately 95.9% of the sample, indicating that for most stocks, beta is statistically distinguishable from zero.
+
+#\section{Distribution of Betas and R²
+
+Figure~\ref{fig:1 shows the distribution of betas by country. The distributions are centered around 0.6-0.7, with relatively few extreme values (after removing outliers). Figure~\ref{fig:2 shows the distribution of R² values, confirming that while CAPM explains a meaningful portion of return variation, a substantial fraction (approximately 0.76) remains unexplained by market risk alone.
+
+#\section{Interpretation
+
+\textbf{In time series, the CAPM is partially useful:\textbf{ The market factor explains some risk, but not all. The average R² of 0.235 suggests that:
+
+1. \textbf{Market risk matters:\textbf{ Beta captures a meaningful portion of stock return variation, confirming that market movements are an important driver of individual stock returns.
+
+2. \textbf{Idiosyncratic risk dominates:\textbf{ Approximately 0.76 of return variation is unexplained by the market, indicating that firm-specific factors, sector effects, and other non-market drivers play a substantial role.
+
+3. \textbf{Betas are plausible:\textbf{ The median beta of 0.646 is consistent with expectations for developed European markets, where large-cap stocks typically exhibit moderate market sensitivity.
+
+4. \textbf{Positive alphas:\textbf{ The average alpha of 0.144% suggests that stocks, on average, earn returns slightly higher than what CAPM predicts based on their beta alone.
+
+---
+
+\section{7.3. Cross-Sectional Pricing Test – Fama-MacBeth
+
+This section addresses the \textbf{core CAPM question\textbf{: \textbf{"Do higher betas earn higher average returns?"\textbf{
+
+#\section{Method
+
+We employ the \textbf{Fama-MacBeth (1973) two-pass regression\textbf{ methodology:
+
+\textbf{Pass 1 (Time-Series):\textbf{ Estimate $\beta_i$ for each stock $i$ from time-series regressions (as in Section 7.2).
+
+\textbf{Pass 2 (Cross-Sectional):\textbf{ For each month $t$, run a cross-sectional regression:
+
+$$R_{i,t} = \gamma_{0,t} + \gamma_{1,t} \beta_i + u_{i,t}$$
+
+where:
+- $R_{i,t}$ is the return of stock $i$ in month $t$
+- $\beta_i$ is the beta estimated in Pass 1
+- $\gamma_{1,t}$ is the \textbf{market price of risk\textbf{ in month $t$ (the reward for bearing beta risk)
+- $\gamma_{0,t}$ is the intercept in month $t$ (the return on a zero-beta portfolio)
+
+We then \textbf{average\textbf{ $\gamma_0$ and $\gamma_1$ across all 59 months and compute Fama-MacBeth standard errors and t-statistics.
+
+#\section{Core Results
+
+Table~\ref{tab:2 presents the Fama-MacBeth test results. The key findings are:
+
+- \textbf{Average $\gamma_1$ (market price of risk):\textbf{ -0.9662
+  - \textbf{t-statistic:\textbf{ -1.199
+  - \textbf{p-value:\textbf{ 0.2356
+  - \textbf{Interpretation:\textbf{ NOT statistically significant at conventional levels (5% or 10%)
+
+- \textbf{Average $\gamma_0$ (intercept):\textbf{ 1.5385%
+  - \textbf{t-statistic:\textbf{ 4.444
+  - \textbf{p-value:\textbf{ 0.000040
+  - \textbf{Interpretation:\textbf{ HIGHLY statistically significant (p < 0.0001)
+
+#\section{Interpretation
+
+\textbf{CAPM Prediction:\textbf{
+- $\gamma_1 > 0$ and statistically significant → Higher beta stocks should earn higher returns
+- $\gamma_0 \approx 0$ (if risk-free rate is correctly specified) → No abnormal return for zero-beta assets
+
+\textbf{Our Results:\textbf{
+- \textbf{$\gamma_1$ is negative and insignificant\textbf{ → Beta is \textbf{not rewarded\textbf{ in the cross-section. Higher beta stocks do not earn higher average returns than lower beta stocks.
+
+- \textbf{$\gamma_0$ is strongly positive and significant\textbf{ → Even a zero-beta asset earns a positive excess return (approximately 1.54% per month), suggesting that the zero-beta rate exceeds the risk-free rate.
+
+\textbf{Conclusion:\textbf{ This is a \textbf{rejection of the CAPM in the cross-section\textbf{, despite time-series betas being sensible and statistically significant. The model fails its main prediction: that beta should explain cross-sectional variation in expected returns.
+
+Figure~\ref{fig:3 shows the time series of $\gamma_{1,t}$ (monthly market price of risk). The values bounce around zero with no clear positive trend, providing visual confirmation that beta is not consistently priced across months.
+
+---
+
+\section{7.4. Robustness & Extensions
+
+This section demonstrates that the CAPM rejection is robust across different specifications, subperiods, and sample selections.
+
+#\section{7.4.1. Subperiod Tests
+
+To examine whether the results are driven by specific market conditions, we split the sample into two subperiods:
+
+- \textbf{Period A:\textbf{ January 2021 – December 2022 (24 months)
+- \textbf{Period B:\textbf{ January 2023 – November 2025 (35 months)
+
+Table~\ref{tab:3 presents the Fama-MacBeth results for each subperiod.
+
+\textbf{Period A (2021-2022):\textbf{
+- $\gamma_1 = -1.7935$ (t = -1.361, not significant)
+- This period includes post-COVID reopening volatility and the initial phase of interest rate hikes.
+
+\textbf{Period B (2023-2025):\textbf{
+- $\gamma_1 = -0.3989$ (t = -0.391, not significant)
+- This period includes economic recovery and policy normalization.
+
+\textbf{Interpretation:\textbf{ In \textbf{both subperiods\textbf{, beta is not priced. The CAPM rejection is \textbf{not driven by just one abnormal year\textbf{ but appears to be a persistent feature of the data across different market regimes.
+
+#\section{7.4.2. Country-Level Fama-MacBeth
+
+Table~\ref{tab:4 presents Fama-MacBeth results for each country separately. Key findings:
+
+- \textbf{France:\textbf{ $\gamma_1 = -2.4455$ (t = -1.962) — borderline significant \textbf{negative\textbf{ pricing
+- \textbf{Sweden:\textbf{ $\gamma_1 = -2.4246$ (t = -1.881) — also \textbf{negative\textbf{
+- \textbf{Other countries:\textbf{ Show weak or insignificant relationships
+
+\textbf{Interpretation:\textbf{ In several countries (notably France and Sweden), \textbf{higher beta stocks tend to earn lower average returns\textbf{, the exact opposite of what CAPM predicts. This suggests that:
+- Local factors, sector weights, or risk-aversion patterns may dominate beta effects
+- Market efficiency varies across European markets
+- Country-specific institutional or behavioral factors may be at play
+
+#\section{7.4.3. Beta-Sorted Portfolios
+
+This analysis provides \textbf{the strongest visual evidence\textbf{ of CAPM failure.
+
+We sort all stocks into \textbf{5 portfolios\textbf{ by their estimated beta (P1 = lowest beta, P5 = highest beta) and compute equal-weighted monthly returns for each portfolio.
+
+\textbf{Results (Table~\ref{tab:5):\textbf{
+- Portfolio 1 (lowest beta): Average return = 1.20%, Portfolio beta = 0.360
+- Portfolio 5 (highest beta): Average return = 0.54%, Portfolio beta = 1.102
+
+\textbf{Key Finding:\textbf{ Higher beta portfolios have \textbf{lower\textbf{ average returns, creating a \textbf{negative slope\textbf{ in the beta-return relationship.
+
+\textbf{Figure~\ref{fig:5\textbf{ plots portfolio beta against average return. Under CAPM, we would expect a clear \textbf{upward-sloping line\textbf{. Instead, the relationship is \textbf{flat to slightly negative\textbf{, providing intuitive visual confirmation that beta does not explain cross-sectional return variation.
+
+This is \textbf{extremely strong evidence\textbf{ that supports the Fama-MacBeth rejection of CAPM.
+
+#\section{7.4.4. Clean Sample Test
+
+We remove outliers to ensure results are not driven by a few anomalous stocks:
+- Extreme betas (|$\beta$| > 5)
+- Very low R² (R² < 0.05)
+- Insignificant betas (p-value > 0.10)
+
+After cleaning, we re-run the Fama-MacBeth test. The results confirm the main finding: $\gamma_1$ remains negative and insignificant, demonstrating that the CAPM rejection is \textbf{robust to sample cleaning\textbf{.
+
+---
+
+\section{7.5. Economic Interpretation & Link to Literature
+
+#\section{Why Might CAPM Fail 2021-2025 in Europe?
+
+Several factors may explain the CAPM failure during this period:
+
+\textbf{1. Macro Regime Shifts:\textbf{
+- \textbf{COVID recovery (2021):\textbf{ Unprecedented fiscal and monetary stimulus created sector-specific winners and losers that were not captured by market beta alone.
+- \textbf{Inflation spike (2022):\textbf{ Rapid interest rate hikes by ECB, BoE, SNB, and Riksbank created winners (banks, value stocks) and losers (growth stocks, long-duration assets) based on factors beyond beta.
+- \textbf{Policy normalization (2023-2025):\textbf{ Transition periods often see factor rotations (value vs. growth, cyclical vs. defensive) that beta cannot capture.
+
+\textbf{2. Sector Tilts in European Indices:\textbf{
+European markets have heavy concentrations in:
+- \textbf{Banks and financials\textbf{ (sensitive to interest rates, not just market movements)
+- \textbf{Cyclical industries\textbf{ (automotive, industrials) with earnings cycles driven by macro factors
+- \textbf{Defensive sectors\textbf{ (utilities, consumer staples) that may outperform during volatility
+
+These sector effects create return patterns that are orthogonal to market beta.
+
+\textbf{3. Alternative Drivers of Returns:\textbf{
+
+Instead of beta, returns may be driven by:
+
+- \textbf{Size factor:\textbf{ Small stocks may outperform large stocks (size premium)
+- \textbf{Value factor:\textbf{ Value stocks may outperform growth stocks (value premium)
+- \textbf{Quality factor:\textbf{ High-profitability, low-investment stocks may outperform
+- \textbf{Momentum factor:\textbf{ Recent winners may continue to outperform
+- \textbf{Sector/specific risk:\textbf{ Energy, tech, luxury, financials have distinct risk-return profiles
+- \textbf{ESG and flows:\textbf{ ESG considerations and ETF flows may create return patterns unrelated to beta
+
+#\section{Link to Classic Findings
+
+Our results are \textbf{consistent with\textbf{ the seminal work of Fama & French (1992, 1993):
+
+- \textbf{Fama & French (1992):\textbf{ Found that beta does not explain cross-sectional variation in returns; size and book-to-market (value) do.
+- \textbf{Fama & French (1993):\textbf{ Proposed a three-factor model (market, size, value) that outperforms CAPM.
+
+Our finding that $\gamma_1$ is insignificant aligns with their conclusion that \textbf{beta alone is insufficient\textbf{ to explain expected returns.
+
+More recent literature finds \textbf{mixed evidence\textbf{ for CAPM, especially in:
+- Short samples and turbulent periods (like 2021-2025)
+- International markets where local factors matter
+- Periods of monetary policy shifts
+
+#\section{Implications for Equity Analysis
+
+\textbf{As an equity analyst, relying only on $\beta$ as a risk measure is insufficient.\textbf{ Our results suggest that:
+
+1. \textbf{Multi-factor models are essential:\textbf{ Consider exposures to:
+   - Value vs. growth
+   - Size (small vs. large)
+   - Quality (profitability, investment)
+   - Momentum
+   - Sector factors
+
+2. \textbf{Sector risk matters:\textbf{ Beyond market beta, sector-specific risks (e.g., interest rate sensitivity for banks, commodity exposure for energy) are crucial.
+
+3. \textbf{Balance sheet strength:\textbf{ Financial leverage, liquidity, and credit quality create return patterns not captured by beta.
+
+4. \textbf{Macro sensitivity:\textbf{ Understanding how stocks respond to inflation, interest rates, and currency movements is more important than market beta alone.
+
+5. \textbf{CAPM as a benchmark:\textbf{ While CAPM fails empirically, it remains useful as a \textbf{starting point\textbf{ for cost-of-equity estimation, but should be adjusted for:
+   - Size premiums
+   - Industry-specific risk factors
+   - Company-specific considerations
+
+#\section{Conclusion
+
+This analysis provides \textbf{robust evidence\textbf{ that the Capital Asset Pricing Model fails to explain cross-sectional variation in European stock returns during 2021-2025. The results are consistent across:
+- Time-series regressions (moderate explanatory power, R² ≈ 0.24)
+- Cross-sectional tests (beta not priced, $\gamma_1$ insignificant)
+- Robustness checks (results hold across subperiods, countries, and sample specifications)
+
+These findings support the use of \textbf{multi-factor models\textbf{ (Fama-French, Carhart) that incorporate size, value, profitability, investment, and momentum factors beyond market beta alone.
+
+---
+
+\section{References
+
+Fama, E. F., & French, K. R. (1992). The cross-section of expected stock returns. *Journal of Finance*, 47(2), 427-465.
+
+Fama, E. F., & French, K. R. (1993). Common risk factors in the returns on stocks and bonds. *Journal of Financial Economics*, 33(1), 3-56.
+
+Fama, E. F., & MacBeth, J. D. (1973). Risk, return, and equilibrium: Empirical tests. *Journal of Political Economy*, 81(3), 607-636.
+
+---
+
+\textbf{End of Chapter 7\textbf{

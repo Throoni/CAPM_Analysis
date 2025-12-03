@@ -1,0 +1,270 @@
+country,asset_type,ticker_yf,currency,local_index_name,msci_ticker
+France,index,^FCHI,EUR,CAC 40,^FCHI
+France,stock,AC.PA,EUR,CAC 40,^FCHI
+France,stock,AI.PA,EUR,CAC 40,^FCHI
+France,stock,AIR.PA,EUR,CAC 40,^FCHI
+France,stock,ATO.PA,EUR,CAC 40,^FCHI
+France,stock,BN.PA,EUR,CAC 40,^FCHI
+France,stock,BNP.PA,EUR,CAC 40,^FCHI
+France,stock,CA.PA,EUR,CAC 40,^FCHI
+France,stock,CO.PA,EUR,CAC 40,^FCHI
+France,stock,CS.PA,EUR,CAC 40,^FCHI
+France,stock,DSY.PA,EUR,CAC 40,^FCHI
+France,stock,EL.PA,EUR,CAC 40,^FCHI
+France,stock,EN.PA,EUR,CAC 40,^FCHI
+France,stock,ENGI.PA,EUR,CAC 40,^FCHI
+France,stock,ENX.PA,EUR,CAC 40,^FCHI
+France,stock,ERF.PA,EUR,CAC 40,^FCHI
+France,stock,GET.PA,EUR,CAC 40,^FCHI
+France,stock,HO.PA,EUR,CAC 40,^FCHI
+France,stock,LR.PA,EUR,CAC 40,^FCHI
+France,stock,MC.PA,EUR,CAC 40,^FCHI
+France,stock,ML.PA,EUR,CAC 40,^FCHI
+France,stock,OR.PA,EUR,CAC 40,^FCHI
+France,stock,ORA.PA,EUR,CAC 40,^FCHI
+France,stock,EMEIS.PA,EUR,CAC 40,^FCHI
+France,stock,PUB.PA,EUR,CAC 40,^FCHI
+France,stock,RI.PA,EUR,CAC 40,^FCHI
+France,stock,RMS.PA,EUR,CAC 40,^FCHI
+France,stock,SAF.PA,EUR,CAC 40,^FCHI
+France,stock,SAN.PA,EUR,CAC 40,^FCHI
+France,stock,SK.PA,EUR,CAC 40,^FCHI
+France,stock,SOI.PA,EUR,CAC 40,^FCHI
+France,stock,STLAP.PA,EUR,CAC 40,^FCHI
+France,stock,STM,EUR,CAC 40,^FCHI
+France,stock,SU.PA,EUR,CAC 40,^FCHI
+France,stock,SW.PA,EUR,CAC 40,^FCHI
+France,stock,TEP.PA,EUR,CAC 40,^FCHI
+France,stock,TTE.PA,EUR,CAC 40,^FCHI
+France,stock,URW.PA,EUR,CAC 40,^FCHI
+France,stock,VIE.PA,EUR,CAC 40,^FCHI
+France,stock,WLN.PA,EUR,CAC 40,^FCHI
+Germany,index,^GDAXI,EUR,DAX 40,^GDAXI
+Germany,stock,1COV.DE,EUR,DAX 40,^GDAXI
+Germany,stock,ADS.DE,EUR,DAX 40,^GDAXI
+Germany,stock,AFX.DE,EUR,DAX 40,^GDAXI
+Germany,stock,ALV.DE,EUR,DAX 40,^GDAXI
+Germany,stock,BAYN.DE,EUR,DAX 40,^GDAXI
+Germany,stock,BEI.DE,EUR,DAX 40,^GDAXI
+Germany,stock,BMW.DE,EUR,DAX 40,^GDAXI
+Germany,stock,BNR.DE,EUR,DAX 40,^GDAXI
+Germany,stock,CBK.DE,EUR,DAX 40,^GDAXI
+Germany,stock,CON.DE,EUR,DAX 40,^GDAXI
+Germany,stock,DB1.DE,EUR,DAX 40,^GDAXI
+Germany,stock,DBK.DE,EUR,DAX 40,^GDAXI
+Germany,stock,DHL.DE,EUR,DAX 40,^GDAXI
+Germany,stock,DTE.DE,EUR,DAX 40,^GDAXI
+Germany,stock,ENR.DE,EUR,DAX 40,^GDAXI
+Germany,stock,EOAN.DE,EUR,DAX 40,^GDAXI
+Germany,stock,EVK.DE,EUR,DAX 40,^GDAXI
+Germany,stock,FRE.DE,EUR,DAX 40,^GDAXI
+Germany,stock,HEI.DE,EUR,DAX 40,^GDAXI
+Germany,stock,HEN3.DE,EUR,DAX 40,^GDAXI
+Germany,stock,HFG.DE,EUR,DAX 40,^GDAXI
+Germany,stock,IFX.DE,EUR,DAX 40,^GDAXI
+Germany,stock,LEG.DE,EUR,DAX 40,^GDAXI
+Germany,stock,MRK.DE,EUR,DAX 40,^GDAXI
+Germany,stock,MTX.DE,EUR,DAX 40,^GDAXI
+Germany,stock,MUV2.DE,EUR,DAX 40,^GDAXI
+Germany,stock,PAH3.DE,EUR,DAX 40,^GDAXI
+Germany,stock,PUM.DE,EUR,DAX 40,^GDAXI
+Germany,stock,QIA.DE,EUR,DAX 40,^GDAXI
+Germany,stock,RHM.DE,EUR,DAX 40,^GDAXI
+Germany,stock,RWE.DE,EUR,DAX 40,^GDAXI
+Germany,stock,SAP.DE,EUR,DAX 40,^GDAXI
+Germany,stock,SHL.DE,EUR,DAX 40,^GDAXI
+Germany,stock,SIE.DE,EUR,DAX 40,^GDAXI
+Germany,stock,SRT3.DE,EUR,DAX 40,^GDAXI
+Germany,stock,SY1.DE,EUR,DAX 40,^GDAXI
+Germany,stock,UTDI.DE,EUR,DAX 40,^GDAXI
+Germany,stock,VNA.DE,EUR,DAX 40,^GDAXI
+Germany,stock,VOW3.DE,EUR,DAX 40,^GDAXI
+Germany,stock,ZAL.DE,EUR,DAX 40,^GDAXI
+Italy,index,FTSEMIB.MI,EUR,FTSE MIB 40,FTSEMIB.MI
+Italy,stock,AMP.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,CPR.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,DIA.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,ELN.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,ENEL.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,ENI.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,ERG.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,EXO.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,RACE.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,G.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,HER.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,IG.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,INTES.SAN.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,IP.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,ISP.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,ITM.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,LDO.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,MB.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,MED.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,MONC.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,MS.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,NEXI.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,PRY.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,PSN.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,REC.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,SPM.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,SRG.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,STLAM.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,TIT.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,TOD.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,TRN.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,UCG.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,UNI.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,US.MI,EUR,FTSE MIB 40,^FTSEMIB
+Italy,stock,YKY.MI,EUR,FTSE MIB 40,^FTSEMIB
+Spain,index,^IBEX,EUR,IBEX 35,^IBEX
+Spain,stock,ACS.MC,EUR,IBEX 35,^IBEX
+Spain,stock,ACX.MC,EUR,IBEX 35,^IBEX
+Spain,stock,AMS.MC,EUR,IBEX 35,^IBEX
+Spain,stock,ANA.MC,EUR,IBEX 35,^IBEX
+Spain,stock,APAM.MC,EUR,IBEX 35,^IBEX
+Spain,stock,BBVA.MC,EUR,IBEX 35,^IBEX
+Spain,stock,BKT.MC,EUR,IBEX 35,^IBEX
+Spain,stock,CABK.MC,EUR,IBEX 35,^IBEX
+Spain,stock,CIE.MC,EUR,IBEX 35,^IBEX
+Spain,stock,CLNX.MC,EUR,IBEX 35,^IBEX
+Spain,stock,COL.MC,EUR,IBEX 35,^IBEX
+Spain,stock,ELE.MC,EUR,IBEX 35,^IBEX
+Spain,stock,ENG.MC,EUR,IBEX 35,^IBEX
+Spain,stock,FAE.MC,EUR,IBEX 35,^IBEX
+Spain,stock,FDR.MC,EUR,IBEX 35,^IBEX
+Spain,stock,FER.MC,EUR,IBEX 35,^IBEX
+Spain,stock,GRF.MC,EUR,IBEX 35,^IBEX
+Spain,stock,IAG.MC,EUR,IBEX 35,^IBEX
+Spain,stock,IBE.MC,EUR,IBEX 35,^IBEX
+Spain,stock,IBLA.MC,EUR,IBEX 35,^IBEX
+Spain,stock,IDR.MC,EUR,IBEX 35,^IBEX
+Spain,stock,ITX.MC,EUR,IBEX 35,^IBEX
+Spain,stock,LOG.MC,EUR,IBEX 35,^IBEX
+Spain,stock,MAP.MC,EUR,IBEX 35,^IBEX
+Spain,stock,MRL.MC,EUR,IBEX 35,^IBEX
+Spain,stock,NTGY.MC,EUR,IBEX 35,^IBEX
+Spain,stock,PHM.MC,EUR,IBEX 35,^IBEX
+Spain,stock,RED.MC,EUR,IBEX 35,^IBEX
+Spain,stock,REP.MC,EUR,IBEX 35,^IBEX
+Spain,stock,SAB.MC,EUR,IBEX 35,^IBEX
+Spain,stock,SAN.MC,EUR,IBEX 35,^IBEX
+Spain,stock,SCYR.MC,EUR,IBEX 35,^IBEX
+Spain,stock,SLR.MC,EUR,IBEX 35,^IBEX
+Spain,stock,TEF.MC,EUR,IBEX 35,^IBEX
+Spain,stock,UNI.MC,EUR,IBEX 35,^IBEX
+Spain,stock,VIS.MC,EUR,IBEX 35,^IBEX
+Sweden,index,^OMXSPI,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,ALFA.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,ALIV-SDB.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,ASSA-B.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,ATCO-A.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,ATCO-B.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,AXFO.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,BOL.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,CAST.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,ELUX-B.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,ERIC,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,ESSITY-B.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,EVO.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,GETI-B.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,HEXA-B.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,HM-B.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,INVE-B.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,KINV-B.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,NDA-SE.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,SAND.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,SCA-B.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,SEB-A.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,SHB-A.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,SKF-B.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,SWED-A.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,TEL2-B.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,TELIA.ST,SEK,OMX Stockholm 30,^OMXSPI
+Sweden,stock,VOLV-B.ST,SEK,OMX Stockholm 30,^OMXSPI
+Switzerland,index,^SSMI,CHF,SMI,^SSMI
+Switzerland,stock,ABBN.SW,CHF,SMI,^SSMI
+Switzerland,stock,ATLN.SW,CHF,SMI,^SSMI
+Switzerland,stock,BAER.SW,CHF,SMI,^SSMI
+Switzerland,stock,CFR.SW,CHF,SMI,^SSMI
+Switzerland,stock,GEBN.SW,CHF,SMI,^SSMI
+Switzerland,stock,GIVN.SW,CHF,SMI,^SSMI
+Switzerland,stock,HOLN.SW,CHF,SMI,^SSMI
+Switzerland,stock,LONN.SW,CHF,SMI,^SSMI
+Switzerland,stock,NESN.SW,CHF,SMI,^SSMI
+Switzerland,stock,NOVN.SW,CHF,SMI,^SSMI
+Switzerland,stock,ROG.SW,CHF,SMI,^SSMI
+Switzerland,stock,SCMN.SW,CHF,SMI,^SSMI
+Switzerland,stock,SIKA.SW,CHF,SMI,^SSMI
+Switzerland,stock,SOON.SW,CHF,SMI,^SSMI
+Switzerland,stock,SREN.SW,CHF,SMI,^SSMI
+Switzerland,stock,SWX.SW,CHF,SMI,^SSMI
+Switzerland,stock,UBSG.SW,CHF,SMI,^SSMI
+Switzerland,stock,ZURN.SW,CHF,SMI,^SSMI
+UnitedKingdom,index,^FTSE,GBP,FTSE All-Share,^FTSE
+UnitedKingdom,stock,AAL.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,ABF.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,ADM.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,ANTO.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,AV.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,BA.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,BAB.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,BARC.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,BTRW.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,BLND.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,BP.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,BRBY.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,BT-A.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,BTI.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,CCH.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,CPG.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,CRDA.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,DCC.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,DGE.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,DPLM.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,ENT.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,EXPN.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,FRES.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,GSK.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,HSBA.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,III.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,IMB.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,INF.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,ITRK.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,ITV.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,JD.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,LAND.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,LLOY.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,MKS.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,NG.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,NXT.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,OCDO.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,PHNX.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,PRU.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,PSH.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,PSN.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,PSON.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,SHEL.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,REL.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,RIO.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,RKT.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,RR.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,RS1.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,RTO.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,SBRY.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,SDR.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,SGE.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,SMIN.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,SN.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,SPX.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,SSE.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,STAN.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,STJ.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,SVT.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,TATE.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,TPK.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,TSCO.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,UU.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,VOD.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,WEIR.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,WPP.L,GBP,FTSE All-Share,^FTAS
+UnitedKingdom,stock,WTB.L,GBP,FTSE All-Share,^FTAS

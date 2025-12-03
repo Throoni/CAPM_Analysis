@@ -1,0 +1,8 @@
+country,local_index,ticker_yf,asset_type,company_name,notes
+Germany,DAX 40,SAP.DE,stock,SAP SE,Example DAX constituent
+Germany,DAX 40,SIE.DE,stock,Siemens AG,Example DAX constituent
+France,CAC 40,OR.PA,stock,L'Oréal SA,Example CAC constituent
+France,CAC 40,MC.PA,stock,LVMH Moët Hennessy Louis Vuitton,Example CAC constituent
+Germany,DAX 40,^GDAXI,index,DAX Index,Index proxy example
+France,CAC 40,^FCHI,index,CAC 40 Index,Index proxy example
+

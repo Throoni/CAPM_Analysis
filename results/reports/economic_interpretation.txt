@@ -1,0 +1,109 @@
+
+================================================================================
+ECONOMIC INTERPRETATION OF CAPM RESULTS
+European Stock Markets, 2021-2025
+================================================================================
+
+1. DOES BETA EXPLAIN RETURNS IN TIME SERIES?
+--------------------------------------------------------------------------------
+
+Time-series regressions show moderate explanatory power:
+- Average R²: 0.210 (beta explains approximately 21.0% of return variation)
+- Median beta: 0.605 (plausible for developed European markets)
+- Average alpha: 4.028% (slightly positive, suggesting CAPM under-predicts returns)
+
+Interpretation:
+The time-series regressions indicate that market beta has moderate explanatory power
+for individual stock returns. The average R² of 0.210 suggests that while beta
+captures a meaningful portion of return variation, a substantial fraction (0.790)
+remains unexplained by market risk alone. The positive average alpha suggests that
+stocks, on average, earn returns higher than what CAPM predicts based on their beta.
+
+
+2. DOES BETA EXPLAIN RETURNS CROSS-SECTIONALLY?
+--------------------------------------------------------------------------------
+
+Fama-MacBeth cross-sectional test results:
+- Average market price of risk (gamma_1): -0.9662
+- t-statistic: -1.199
+- p-value: 0.2356
+- Intercept (gamma_0): 1.5385 (t=4.444)
+
+Interpretation:
+The Fama-MacBeth test REJECTS the CAPM's main prediction. The market price of risk
+(gamma_1) is -0.9662, which is NOT statistically
+significant. This indicates that beta does NOT explain cross-sectional variation in
+returns. The positive and significant intercept (gamma_0 = 1.5385) suggests
+that the zero-beta rate exceeds the risk-free rate, further contradicting CAPM predictions.
+
+
+3. WHAT DOES THIS IMPLY?
+--------------------------------------------------------------------------------
+
+The rejection of CAPM has several important implications:
+
+a) CAPM fails its main prediction:
+   Beta alone does not explain why some stocks earn higher returns than others.
+   This is consistent with decades of empirical finance research showing that
+   CAPM is an incomplete model of expected returns.
+
+b) Alternative factors matter:
+   The results are consistent with multi-factor models that include:
+   - Size premium (small stocks outperform large stocks)
+   - Value premium (value stocks outperform growth stocks)
+   - Profitability and investment factors
+   - Momentum factor (recent winners outperform recent losers)
+
+c) Market conditions (2021-2025):
+   The analysis period includes significant market volatility:
+   - 2021: Post-COVID reopening and stimulus effects
+   - 2022: Interest rate hikes and inflation concerns
+   - 2023-2025: Economic recovery and policy normalization
+   
+   These macro conditions may have amplified non-beta drivers of returns,
+   making beta less relevant for explaining cross-sectional variation.
+
+
+4. ARE RESULTS ROBUST?
+--------------------------------------------------------------------------------
+
+Subperiod Analysis:
+- Period A (2021-2022): gamma_1 = -1.7935 (t=-1.361)
+- Period B (2023-2025): gamma_1 = -0.3989 (t=-0.391)
+
+The CAPM rejection is robust across subperiods, indicating that the failure is not
+driven by specific market conditions in any single year.
+
+Country-Level Analysis:
+Beta pricing varies across countries, with some markets showing stronger (or weaker)
+relationships between beta and returns. This heterogeneity reflects differences in
+market efficiency, investor behavior, and institutional factors across European markets.
+
+Clean Sample Analysis:
+After removing outliers (extreme betas, alphas, low R²), the clean sample confirms
+the main result: gamma_1 remains insignificant,
+demonstrating that the CAPM rejection is not driven by a few anomalous stocks.
+
+Beta-Sorted Portfolios:
+The portfolio analysis provides visual evidence of the CAPM failure. If CAPM held,
+we would expect a clear upward-sloping relationship between portfolio beta and
+average return. The actual relationship is weak,
+further confirming that beta does not explain cross-sectional return variation.
+
+
+5. CONCLUSION
+--------------------------------------------------------------------------------
+
+This analysis provides robust evidence that the Capital Asset Pricing Model fails
+to explain cross-sectional variation in European stock returns during 2021-2025.
+The results are consistent with:
+
+1. Time-series: Moderate explanatory power (R² ≈ 0.21)
+2. Cross-section: Beta does not price returns (gamma_1 insignificant)
+3. Robustness: Results hold across subperiods, countries, and sample specifications
+
+These findings support the use of multi-factor models (Fama-French, Carhart) that
+incorporate size, value, profitability, investment, and momentum factors beyond
+market beta alone.
+
+================================================================================
