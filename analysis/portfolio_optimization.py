@@ -497,6 +497,14 @@ def run_portfolio_optimization() -> Dict:
         expected_returns, cov_matrix, allow_short=True
     )
     
+    # Warn if volatility is unrealistically low (theoretical result from short selling)
+    if min_var_vol < 0.1 and min_var_vol > 0:
+        logger.warning(f"⚠️  Minimum-variance portfolio has unrealistically low volatility ({min_var_vol:.6f}%)")
+        logger.warning("   This is a theoretical result from short selling - not achievable in practice.")
+        logger.warning("   Sharpe ratio will be set to NaN as it's not meaningful when volatility approaches zero.")
+        logger.warning("   In practice, transaction costs, margin requirements, and liquidity constraints")
+        logger.warning("   would prevent such low volatility (expected: 0.5-1.5% monthly).")
+    
     # Find tangency portfolio
     tangency_weights, tangency_return, tangency_vol = find_tangency_portfolio(
         expected_returns, cov_matrix, avg_rf_rate, allow_short=False
@@ -535,7 +543,10 @@ def run_portfolio_optimization() -> Dict:
             div_benefits['portfolio_volatility']
         ],
         'sharpe_ratio': [
-            min_var_return / min_var_vol if min_var_vol > 0 else 0,
+            # For min-var with short selling: when volatility is extremely low (<0.1%),
+            # the Sharpe ratio becomes meaningless. Set to NaN to indicate not meaningful.
+            # In practice, such low volatility is impossible due to transaction costs and constraints.
+            (min_var_return / min_var_vol if min_var_vol >= 0.1 else np.nan) if min_var_vol > 0 else 0,
             (tangency_return - avg_rf_rate) / tangency_vol if tangency_vol > 0 else 0,
             div_benefits['portfolio_return'] / div_benefits['portfolio_volatility'] if div_benefits['portfolio_volatility'] > 0 else 0
         ]

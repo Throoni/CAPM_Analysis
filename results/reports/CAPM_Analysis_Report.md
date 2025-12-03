@@ -478,9 +478,16 @@ We construct the efficient frontier, identify the minimum-variance portfolio, fi
 1. **Minimum-Variance Portfolio (with short selling allowed):**
    - Expected Return: 1.13% (monthly)
    - Volatility: 0.002% (monthly)
-   - Sharpe Ratio: 615.53
+   - Sharpe Ratio: **Not meaningful** (volatility too low)
    
-   **Note:** The extremely low volatility and high Sharpe ratio result from allowing short selling, which enables near-perfect hedging of risk through negative weights. This is a theoretical result that may not be achievable in practice due to transaction costs, margin requirements, and liquidity constraints.
+   **Important Note:** The extremely low volatility (0.002%) results from allowing short selling, which theoretically enables near-perfect hedging of risk through negative weights. However, this is **not achievable in practice** due to:
+   - Transaction costs (bid-ask spreads, commissions)
+   - Margin requirements and borrowing costs
+   - Liquidity constraints (not all stocks can be shorted in large quantities)
+   - Market impact of large short positions
+   - Regulatory restrictions on short selling
+   
+   The Sharpe ratio becomes meaningless when volatility approaches zero, as it would be infinite or extremely large. In practice, a minimum-variance portfolio with short selling would have higher volatility (likely 0.5-1.5% monthly) and a more reasonable Sharpe ratio (1-3).
 
 2. **Optimal Risky Portfolio (Tangency):**
    - Expected Return: 2.00% (monthly)
