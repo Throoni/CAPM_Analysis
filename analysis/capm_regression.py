@@ -83,6 +83,22 @@ def run_capm_regression(
     # Drop rows with missing values
     clean_data = stock_data[[stock_excess_col, market_excess_col]].dropna()
     
+    # Pre-regression data quality checks
+    if len(clean_data) > 0:
+        # Check for extreme returns that might indicate data errors
+        extreme_stock_returns = clean_data[stock_excess_col].abs() > 100  # >100% monthly return
+        extreme_market_returns = clean_data[market_excess_col].abs() > 50  # >50% monthly return
+        
+        if extreme_stock_returns.any():
+            n_extreme = extreme_stock_returns.sum()
+            logger.warning(f"Found {n_extreme} extreme stock returns (>100%) - possible data error")
+            # Optionally filter out extreme returns
+            # clean_data = clean_data[~extreme_stock_returns]
+        
+        if extreme_market_returns.any():
+            n_extreme = extreme_market_returns.sum()
+            logger.warning(f"Found {n_extreme} extreme market returns (>50%) - verify market data")
+    
     if len(clean_data) < 10:  # Need minimum observations for regression
         logger.warning(f"Insufficient data for regression: {len(clean_data)} observations")
         return {
@@ -268,16 +284,22 @@ def validate_regression_results(results_df: pd.DataFrame) -> pd.DataFrame:
         logger.warning(f"⚠️  {insufficient_obs.sum()} stocks have < 59 observations")
         results_df.loc[insufficient_obs, 'is_valid'] = False
     
-    # Check 2: Very low R² (low market dependence)
+    # Check 2: Very low R² (low market dependence or data errors)
+    # Lower threshold to catch potential data errors
+    very_low_r2 = results_df['r_squared'] < 0.01
     low_r2 = results_df['r_squared'] < 0.05
+    if very_low_r2.any():
+        logger.warning(f"⚠️  {very_low_r2.sum()} stocks have R² < 0.01 (likely data errors)")
+        results_df.loc[very_low_r2, 'is_valid'] = False
     if low_r2.any():
         logger.warning(f"⚠️  {low_r2.sum()} stocks have R² < 0.05 (very low market dependence)")
-        results_df.loc[low_r2, 'is_valid'] = False
+        # Don't automatically invalidate, but flag for review
     
     # Check 3: Extreme beta values (possible errors)
-    extreme_beta = (results_df['beta'].abs() > 5) | (results_df['beta'].abs() < -2)
+    # Lower threshold to catch more issues earlier
+    extreme_beta = (results_df['beta'].abs() > 3.0) | (results_df['beta'] < -1.0)
     if extreme_beta.any():
-        logger.warning(f"⚠️  {extreme_beta.sum()} stocks have extreme beta values (|beta| > 5 or < -2)")
+        logger.warning(f"⚠️  {extreme_beta.sum()} stocks have extreme beta values (|beta| > 3.0 or < -1.0)")
         results_df.loc[extreme_beta, 'is_valid'] = False
     
     # Check 4: Statistically insignificant beta (p-value > 0.05)

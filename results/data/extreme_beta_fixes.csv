@@ -1,0 +1,3 @@
+country,ticker,beta_before,method,n_issues,fix_applied
+France,ATO.PA,-54.14481247595579,filter_extreme_months,1,True
+UnitedKingdom,III.L,62.38308699642688,filter_extreme_months,3,True
