@@ -27,6 +27,7 @@ RESULTS_DIR = os.path.join(PROJECT_ROOT, "results")
 RESULTS_PLOTS_DIR = os.path.join(RESULTS_DIR, "plots")
 RESULTS_REPORTS_DIR = os.path.join(RESULTS_DIR, "reports")
 RESULTS_DATA_DIR = os.path.join(RESULTS_DIR, "data")
+RESULTS_TABLES_DIR = os.path.join(RESULTS_DIR, "tables")
 
 # Logs directory
 LOGS_DIR = os.path.join(PROJECT_ROOT, "logs")
@@ -40,6 +41,7 @@ for path in [
     RESULTS_PLOTS_DIR,
     RESULTS_REPORTS_DIR,
     RESULTS_DATA_DIR,
+    RESULTS_TABLES_DIR,
     LOGS_DIR,
 ]:
     os.makedirs(path, exist_ok=True)
