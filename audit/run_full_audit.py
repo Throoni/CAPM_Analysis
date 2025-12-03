@@ -24,6 +24,10 @@ from audit.check_data_leakage import DataLeakageAudit
 from audit.check_assumptions import AssumptionsAudit
 from audit.validate_results import ResultsAudit
 from audit.validate_interpretation import InterpretationAudit
+from audit.validate_market_cap_analysis import MarketCapAnalysisAudit
+from audit.validate_portfolio_optimization import PortfolioOptimizationAudit
+from audit.validate_value_effects import ValueEffectsAudit
+from audit.validate_portfolio_recommendation import PortfolioRecommendationAudit
 
 from analysis.config import PROJECT_ROOT, LOGS_DIR
 
@@ -110,7 +114,11 @@ def generate_audit_report(all_results: dict, output_dir: str = None) -> str:
             'phase4_leakage': 'Phase 4.2: Data Leakage Checks',
             'phase4_assumptions': 'Phase 4.3: Assumption Violations',
             'phase5_results': 'Phase 5: Results Validation Audit',
-            'phase6_interpretation': 'Phase 6: Interpretation & Reporting Audit'
+            'phase6_interpretation': 'Phase 6: Interpretation & Reporting Audit',
+            'phase7_market_cap': 'Phase 7: Market-Cap Weighted Betas Validation',
+            'phase7_portfolio_opt': 'Phase 7: Portfolio Optimization Validation',
+            'phase7_value_effects': 'Phase 7: Value Effects Validation',
+            'phase7_recommendation': 'Phase 7: Portfolio Recommendation Validation'
         }
         
         for phase_key, phase_name in phase_names.items():

@@ -1,0 +1,57 @@
+{
+  "file_name": "returns_panel.csv",
+  "description": "Processed returns panel with stock returns, market returns, risk-free rates, and excess returns",
+  "creation_date": "2025-12-03",
+  "data_source": "Raw price data from Yahoo Finance, processed through returns_processing.py",
+  "processing_steps": [
+    "1. Load raw stock prices from data/raw/prices_stocks_*.csv",
+    "2. Load MSCI index prices from data/raw/prices_indices_msci_*.csv",
+    "3. Convert prices to monthly returns (simple returns, percentage form)",
+    "4. Filter stocks with insufficient observations (<59 months)",
+    "5. Handle missing values (forward fill, limit=2 months)",
+    "6. Align stocks with MSCI index dates",
+    "7. Load risk-free rates from data/raw/riskfree_rate_*.csv",
+    "8. Calculate excess returns: stock_excess_return = stock_return - riskfree_rate, market_excess_return = market_return - riskfree_rate",
+    "9. Create long-format panel with columns: date, country, ticker, stock_return, msci_index_return, riskfree_rate, stock_excess_return, market_excess_return"
+  ],
+  "columns": {
+    "date": "Month-end date (YYYY-MM-DD)",
+    "country": "Country name (France, Germany, Italy, Spain, Sweden, Switzerland, UnitedKingdom)",
+    "ticker": "Stock ticker (e.g., 'ATO.PA')",
+    "stock_return": "Monthly stock return in percentage (%)",
+    "msci_index_return": "Monthly MSCI country index return in percentage (%)",
+    "riskfree_rate": "Monthly risk-free rate in percentage (%)",
+    "stock_excess_return": "Stock excess return = stock_return - riskfree_rate (%)",
+    "market_excess_return": "Market excess return = msci_index_return - riskfree_rate (%)"
+  },
+  "statistics": {
+    "total_rows": 14691,
+    "unique_stocks": 249,
+    "unique_countries": 7,
+    "date_range": {
+      "start": "2021-01-31",
+      "end": "2025-11-30",
+      "months": 59
+    },
+    "countries": {
+      "France": 38,
+      "Germany": 40,
+      "Italy": 27,
+      "Spain": 35,
+      "Sweden": 27,
+      "Switzerland": 16,
+      "UnitedKingdom": 66
+    }
+  },
+  "data_quality": {
+    "missing_data_handling": "Forward fill with limit=2 months, stocks with >10% missing dropped",
+    "filtering_criteria": "Stocks must have >=59 months of data",
+    "extreme_returns_fixed": [
+      "ATO.PA (France): Filtered 2 months with extreme returns (>10,000%)",
+      "III.L (UnitedKingdom): Filtered 6 months with extreme returns (>10,000%)"
+    ]
+  },
+  "version": "2.0",
+  "notes": "This panel is the primary input for all CAPM regressions and cross-sectional analyses."
+}
+

@@ -1,11 +1,44 @@
-pandas
-numpy
-yfinance
-wrds
-fredapi
-requests
-statsmodels
-matplotlib
-seaborn
-scipy
+# CAPM Analysis Project - Python Dependencies
+# ============================================
+# This file lists all Python packages required to run the CAPM analysis.
+# Install with: pip install -r requirements.txt
 
+# ============================================================================
+# Core Data Processing
+# ============================================================================
+pandas>=2.0.0          # Data manipulation and analysis
+numpy>=1.24.0          # Numerical computing
+
+# ============================================================================
+# Statistical Analysis
+# ============================================================================
+statsmodels>=0.14.0    # Statistical modeling (OLS regression, diagnostics)
+scipy>=1.10.0          # Scientific computing (optimization, statistics)
+
+# ============================================================================
+# Data Sources & APIs
+# ============================================================================
+yfinance>=0.2.0        # Yahoo Finance API (stock prices, market data, fundamentals)
+fredapi>=0.5.0         # FRED API client (risk-free rates)
+requests>=2.31.0       # HTTP library (for API calls)
+wrds>=3.1.0            # WRDS database access (optional, for academic users)
+
+# ============================================================================
+# Visualization
+# ============================================================================
+matplotlib>=3.7.0      # Plotting library
+seaborn>=0.12.0        # Statistical visualization
+
+# ============================================================================
+# Optional but Recommended
+# ============================================================================
+# tqdm>=4.65.0         # Progress bars (uncomment if needed)
+# scikit-learn>=1.3.0  # Advanced machine learning (uncomment if needed)
+# cvxpy>=1.3.0         # Convex optimization (alternative to scipy, uncomment if needed)
+
+# ============================================================================
+# Development & Testing (Optional)
+# ============================================================================
+# pytest>=7.4.0        # Testing framework (uncomment if needed)
+# jupyter>=1.0.0        # Jupyter notebooks (uncomment if needed)
+# ipython>=8.12.0       # Enhanced Python shell (uncomment if needed)
