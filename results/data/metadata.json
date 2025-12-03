@@ -34,8 +34,8 @@
     "interpretation": "Beta does not explain cross-sectional variation in returns",
     "recommendation": "Active management with factor-based strategies"
   },
-  "version": "2.0",
+  "version": "2.1",
   "last_updated": "2025-12-03",
-  "notes": "Complete analysis addressing all assignment requirements. Includes market-cap weighted betas, portfolio optimization, value effects, and portfolio recommendations."
+  "notes": "Complete analysis addressing all assignment requirements. Includes market-cap weighted betas, portfolio optimization, value effects, and portfolio recommendations. Note: Minimum-variance portfolio allows short selling (weights can be negative, bounded by [-1, 1]), while tangency portfolio and efficient frontier use long-only constraints (weights bounded by [0, 1])."
 }
 

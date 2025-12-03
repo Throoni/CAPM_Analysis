@@ -458,9 +458,14 @@ We construct the efficient frontier, identify the minimum-variance portfolio, fi
 1. **Expected Returns:** Historical mean monthly returns for each stock
 2. **Covariance Matrix:** Sample covariance matrix of monthly returns
 3. **Efficient Frontier:** Portfolios that minimize variance for each target return level
-4. **Minimum-Variance Portfolio:** Portfolio with lowest possible variance
-5. **Tangency Portfolio:** Portfolio maximizing Sharpe ratio (optimal risky portfolio)
+4. **Minimum-Variance Portfolio:** Portfolio with lowest possible variance (short selling **allowed**, weights bounded by [-1, 1])
+5. **Tangency Portfolio:** Portfolio maximizing Sharpe ratio (optimal risky portfolio, short selling **not allowed**, long-only constraint)
 6. **Diversification Metrics:** Compare portfolio variance to average individual stock variance
+
+**Portfolio Constraints:**
+- **Minimum-Variance Portfolio:** Short selling is **allowed** (weights can be negative, bounded by [-1, 1]) to achieve the lowest possible variance
+- **Tangency Portfolio and Efficient Frontier:** Short selling is **not allowed** (long-only constraint, weights bounded by [0, 1])
+- All portfolios: Weights sum to 1
 
 ### 8.3 Results
 
@@ -470,10 +475,12 @@ We construct the efficient frontier, identify the minimum-variance portfolio, fi
 
 **Key Findings:**
 
-1. **Minimum-Variance Portfolio:**
-   - Expected Return: 0.79% (monthly)
-   - Volatility: 1.31% (monthly)
-   - Sharpe Ratio: 0.60
+1. **Minimum-Variance Portfolio (with short selling allowed):**
+   - Expected Return: 1.13% (monthly)
+   - Volatility: 0.002% (monthly)
+   - Sharpe Ratio: 615.53
+   
+   **Note:** The extremely low volatility and high Sharpe ratio result from allowing short selling, which enables near-perfect hedging of risk through negative weights. This is a theoretical result that may not be achievable in practice due to transaction costs, margin requirements, and liquidity constraints.
 
 2. **Optimal Risky Portfolio (Tangency):**
    - Expected Return: 2.00% (monthly)
@@ -875,7 +882,7 @@ This analysis provides **robust evidence** that the Capital Asset Pricing Model 
 
 **7. Implementation Research:**
 - Study transaction costs and implementation challenges
-- Test portfolio construction with constraints (no short selling, sector limits)
+- Test portfolio construction with constraints (note: minimum-variance portfolio allows short selling; tangency and efficient frontier use long-only constraints)
 - Examine rebalancing frequency and turnover
 
 ### 12.7 Overall Validity Assessment

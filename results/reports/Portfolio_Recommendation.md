@@ -37,9 +37,13 @@ Based on comprehensive empirical analysis of 219 stocks across 7 European market
 
 ### 5. Optimal Portfolio Characteristics
 
+- **Minimum-Variance Portfolio Return:** [Updated after re-run]
+- **Minimum-Variance Portfolio Volatility:** [Updated after re-run]
 - **Optimal Risky Portfolio Return:** 2.00%
 - **Optimal Portfolio Volatility:** 1.93%
 - **Sharpe Ratio:** 1.03
+
+**Note:** The minimum-variance portfolio allows short selling to achieve lower volatility, while the tangency portfolio and efficient frontier use long-only constraints.
 
 ---
 

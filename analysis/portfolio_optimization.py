@@ -492,9 +492,9 @@ def run_portfolio_optimization() -> Dict:
     avg_rf_rate = panel_df['riskfree_rate'].mean()
     logger.info(f"Average risk-free rate: {avg_rf_rate:.4f}% (monthly)")
     
-    # Find minimum-variance portfolio
+    # Find minimum-variance portfolio (short selling allowed)
     min_var_weights, min_var_return, min_var_vol = find_minimum_variance_portfolio(
-        expected_returns, cov_matrix, allow_short=False
+        expected_returns, cov_matrix, allow_short=True
     )
     
     # Find tangency portfolio
