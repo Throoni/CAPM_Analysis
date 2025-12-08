@@ -1,0 +1,209 @@
+{
+  "timestamp": "2025-12-08T23:44:30.319110",
+  "data_sources": {
+    "prices": {
+      "Germany": {
+        "n_stocks": 40,
+        "n_months": 60,
+        "date_range": "2020-12-31 00:00:00 to 2025-11-30 00:00:00",
+        "negative_prices": "0",
+        "zero_prices": "0",
+        "missing_pct": 0.0,
+        "extreme_jumps": "0"
+      },
+      "France": {
+        "n_stocks": 39,
+        "n_months": 60,
+        "date_range": "2020-12-31 00:00:00 to 2025-11-30 00:00:00",
+        "negative_prices": "0",
+        "zero_prices": "0",
+        "missing_pct": 1.282051282051282,
+        "extreme_jumps": "10"
+      },
+      "Italy": {
+        "n_stocks": 29,
+        "n_months": 60,
+        "date_range": "2020-12-31 00:00:00 to 2025-11-30 00:00:00",
+        "negative_prices": "0",
+        "zero_prices": "0",
+        "missing_pct": 4.597701149425287,
+        "extreme_jumps": "2"
+      },
+      "Spain": {
+        "n_stocks": 35,
+        "n_months": 60,
+        "date_range": "2020-12-31 00:00:00 to 2025-11-30 00:00:00",
+        "negative_prices": "0",
+        "zero_prices": "0",
+        "missing_pct": 0.0,
+        "extreme_jumps": "0"
+      },
+      "Sweden": {
+        "n_stocks": 27,
+        "n_months": 60,
+        "date_range": "2020-12-31 00:00:00 to 2025-11-30 00:00:00",
+        "negative_prices": "0",
+        "zero_prices": "0",
+        "missing_pct": 0.0,
+        "extreme_jumps": "0"
+      },
+      "UnitedKingdom": {
+        "n_stocks": 66,
+        "n_months": 60,
+        "date_range": "2020-12-31 00:00:00 to 2025-11-30 00:00:00",
+        "negative_prices": "0",
+        "zero_prices": "0",
+        "missing_pct": 0.15151515151515152,
+        "extreme_jumps": "2"
+      },
+      "Switzerland": {
+        "n_stocks": 16,
+        "n_months": 60,
+        "date_range": "2020-12-31 00:00:00 to 2025-11-30 00:00:00",
+        "negative_prices": "0",
+        "zero_prices": "0",
+        "missing_pct": 0.0,
+        "extreme_jumps": "0"
+      }
+    },
+    "processed_panel": {
+      "total_rows": 14691,
+      "n_stocks": 249,
+      "n_countries": 7,
+      "date_range": "2021-01-31 00:00:00 to 2025-11-30 00:00:00",
+      "missing_data": {
+        "stock_return": "0",
+        "msci_index_return": "0",
+        "riskfree_rate": "0",
+        "stock_excess_return": "0",
+        "market_excess_return": "0"
+      },
+      "extreme_returns": {
+        "stock_returns_>100pct": "0",
+        "market_returns_>50pct": "0"
+      },
+      "return_statistics": {
+        "stock_return_mean": 0.8067702315245078,
+        "stock_return_std": 8.599820967689006,
+        "stock_return_min": -91.40659321795452,
+        "stock_return_max": 81.62556668854457,
+        "market_return_mean": 1.0649063140830572,
+        "market_return_std": 5.409808371155497
+      },
+      "missing_by_country": {
+        "Germany": {
+          "total_rows": 2360,
+          "missing_stock_return": "0",
+          "missing_riskfree": "0",
+          "missing_pct": 0.0
+        },
+        "France": {
+          "total_rows": 2242,
+          "missing_stock_return": "0",
+          "missing_riskfree": "0",
+          "missing_pct": 0.0
+        },
+        "Italy": {
+          "total_rows": 1593,
+          "missing_stock_return": "0",
+          "missing_riskfree": "0",
+          "missing_pct": 0.0
+        },
+        "Spain": {
+          "total_rows": 2065,
+          "missing_stock_return": "0",
+          "missing_riskfree": "0",
+          "missing_pct": 0.0
+        },
+        "Sweden": {
+          "total_rows": 1593,
+          "missing_stock_return": "0",
+          "missing_riskfree": "0",
+          "missing_pct": 0.0
+        },
+        "UnitedKingdom": {
+          "total_rows": 3894,
+          "missing_stock_return": "0",
+          "missing_riskfree": "0",
+          "missing_pct": 0.0
+        },
+        "Switzerland": {
+          "total_rows": 944,
+          "missing_stock_return": "0",
+          "missing_riskfree": "0",
+          "missing_pct": 0.0
+        }
+      }
+    },
+    "riskfree_rates": {
+      "Germany": {
+        "n_months": 60,
+        "date_range": "2020-12-31 00:00:00 to 2025-11-30 00:00:00",
+        "min_rate": -0.0008241666666666,
+        "max_rate": 0.0031725,
+        "mean_rate": 0.0012693055555555407,
+        "missing_count": "0",
+        "missing_pct": 0.0
+      },
+      "France": {
+        "n_months": 60,
+        "date_range": "2020-12-31 00:00:00 to 2025-11-30 00:00:00",
+        "min_rate": -0.0008241666666666,
+        "max_rate": 0.0031725,
+        "mean_rate": 0.0012693055555555407,
+        "missing_count": "0",
+        "missing_pct": 0.0
+      },
+      "Italy": {
+        "n_months": 60,
+        "date_range": "2020-12-31 00:00:00 to 2025-11-30 00:00:00",
+        "min_rate": -0.0008241666666666,
+        "max_rate": 0.0031725,
+        "mean_rate": 0.0012693055555555407,
+        "missing_count": "0",
+        "missing_pct": 0.0
+      },
+      "Spain": {
+        "n_months": 60,
+        "date_range": "2020-12-31 00:00:00 to 2025-11-30 00:00:00",
+        "min_rate": -0.0008241666666666,
+        "max_rate": 0.0031725,
+        "mean_rate": 0.0012693055555555407,
+        "missing_count": "0",
+        "missing_pct": 0.0
+      },
+      "Sweden": {
+        "n_months": 60,
+        "date_range": "2020-12-31 00:00:00 to 2025-11-30 00:00:00",
+        "min_rate": -0.0003574999999999,
+        "max_rate": 0.0033541666666666,
+        "mean_rate": 0.0015630694444444234,
+        "missing_count": "0",
+        "missing_pct": 0.0
+      },
+      "UnitedKingdom": {
+        "n_months": 60,
+        "date_range": "2020-12-31 00:00:00 to 2025-11-30 00:00:00",
+        "min_rate": -4.5e-05,
+        "max_rate": 0.0046091666666666,
+        "mean_rate": 0.002615083333333305,
+        "missing_count": "0",
+        "missing_pct": 0.0
+      },
+      "Switzerland": {
+        "n_months": 60,
+        "date_range": "2020-12-31 00:00:00 to 2025-11-30 00:00:00",
+        "min_rate": -0.0007666666666666,
+        "max_rate": 0.0014583333333333,
+        "mean_rate": 0.00022166666666665835,
+        "missing_count": "0",
+        "missing_pct": 0.0
+      }
+    }
+  },
+  "summary_statistics": {},
+  "missing_data_patterns": {},
+  "extreme_value_flags": {},
+  "data_completeness": {},
+  "recommendations": []
+}

@@ -121,24 +121,26 @@ def run_capm_regression(
     # Add constant term for intercept (alpha)
     X_with_const = sm.add_constant(X)
     
-    # Run OLS regression
+    # Run OLS regression with robust (White) standard errors
+    # This addresses heteroscedasticity which is common in financial data
     try:
         model = sm.OLS(y, X_with_const)
-        results = model.fit()
+        # Use White (1980) robust standard errors (HC0) to account for heteroscedasticity
+        results = model.fit(cov_type='HC0')
         
         # Extract coefficients
         alpha = results.params[0]  # Intercept
         beta = results.params[1]   # Slope
         
-        # Extract standard errors
+        # Extract standard errors (now robust to heteroscedasticity)
         alpha_se = results.bse[0]
         beta_se = results.bse[1]
         
-        # Extract t-statistics
+        # Extract t-statistics (computed using robust standard errors)
         alpha_tstat = results.tvalues[0]
         beta_tstat = results.tvalues[1]
         
-        # Extract p-values
+        # Extract p-values (computed using robust standard errors)
         alpha_pvalue = results.pvalues[0]
         beta_pvalue = results.pvalues[1]
         

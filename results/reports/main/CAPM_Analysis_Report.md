@@ -233,9 +233,14 @@ $$R_{i,t} - R_{f,t} = \alpha_i + \beta_i (R_{m,t} - R_{f,t}) + \varepsilon_{i,t}
 
 **Statistical Methods:**
 - **OLS Regression:** Standard method, unbiased under standard assumptions
-- **Robust Standard Errors (White):** Address heteroscedasticity common in financial data
+- **Robust Standard Errors (White HC0):** Implemented using `cov_type='HC0'` to address heteroscedasticity common in financial data
 - **Fama-MacBeth Standard Errors:** Account for correlation and errors-in-variables
 - **Two-Tailed Tests:** Standard for coefficient testing, p < 0.05 significance level
+
+**Risk-Free Rate Conversion:**
+- **Formula:** $(1 + R_{annual})^{1/12} - 1$ (compounding, not simple division)
+- **Implementation:** All risk-free rate conversions use the compounding formula consistently
+- **Verification:** Unit tests confirm correct implementation
 
 **Why Our Methods Are Appropriate:**
 - All methods are industry-standard in academic finance

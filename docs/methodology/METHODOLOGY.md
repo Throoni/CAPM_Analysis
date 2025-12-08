@@ -145,7 +145,9 @@ CAPM is derived under the following assumptions:
 **Our Implementation:**
 - EUR countries (Germany, France, Italy, Spain): German 3-month Bund
 - Non-EUR: Country-specific 3-month government bonds
-- Monthly conversion: $(1 + R_{annual})^{1/12} - 1$
+- Monthly conversion: $(1 + R_{annual})^{1/12} - 1$ (compounding formula)
+- **Important:** All risk-free rate conversions use compounding consistently
+- **Verification:** Unit tests confirm correct implementation
 
 ### 2.4 Robustness Checks Importance
 
@@ -227,7 +229,8 @@ where:
 **Estimation:**
 - Method: Ordinary Least Squares (OLS)
 - Observations: 59 months per stock
-- Standard errors: Robust (White) standard errors to account for heteroscedasticity
+- Standard errors: Robust (White) standard errors (HC0) to account for heteroscedasticity
+- Implementation: Uses `cov_type='HC0'` in statsmodels OLS fit
 
 **Outputs:**
 - $\beta_i$: Beta estimate

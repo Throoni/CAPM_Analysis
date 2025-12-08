@@ -16,25 +16,9 @@ import pandas as pd
 import numpy as np
 
 from analysis.utils.config import DATA_RAW_DIR, COUNTRIES
+from analysis.data.riskfree_helper import convert_annual_pct_to_monthly_pct
 
 logger = logging.getLogger(__name__)
-
-
-def convert_annual_to_monthly_pct(annual_rate: float) -> float:
-    """
-    Convert annual percentage to monthly percentage.
-    
-    Parameters
-    ----------
-    annual_rate : float
-        Annual percentage rate (e.g., 1.981 for 1.981% annual)
-    
-    Returns
-    -------
-    float
-        Monthly percentage rate (e.g., 0.165 for 0.165% monthly)
-    """
-    return annual_rate / 100.0 / 12.0
 
 
 def process_riskfree_file(
@@ -117,8 +101,9 @@ def process_riskfree_file(
             monthly_series[pd.to_datetime(end_date)] = last_value
             monthly_series = monthly_series.sort_index()
         
-        # Convert annual percentage to monthly percentage
-        monthly_rates = monthly_series.apply(convert_annual_to_monthly_pct)
+        # Convert annual percentage to monthly percentage using compounding formula
+        # This uses the same formula as riskfree_helper.py: (1 + R_annual)^(1/12) - 1
+        monthly_rates = monthly_series.apply(convert_annual_pct_to_monthly_pct)
         
         # Ensure month-end dates
         monthly_rates.index = monthly_rates.index.to_period('M').to_timestamp('M')

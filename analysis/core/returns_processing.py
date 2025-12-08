@@ -87,21 +87,18 @@ def filter_stocks_by_observations(
     
     Note: 60 months of prices = 59 months of returns (first month has no return).
     So we require 59 months of returns for the full period.
-    """
-    """
-    Drop stocks with insufficient observations.
     
     Parameters
     ----------
     returns_df : pd.DataFrame
-        Returns DataFrame
+        Returns DataFrame with dates as index, tickers as columns
     min_observations : int
-        Minimum number of observations required (default: 60)
+        Minimum number of observations required (default: 59)
     
     Returns
     -------
     pd.DataFrame
-        Filtered returns DataFrame
+        Returns DataFrame with stocks having >= min_observations
     """
     if returns_df.empty:
         return returns_df
@@ -129,6 +126,25 @@ def filter_stocks_by_observations(
 
 
 def handle_missing_values(returns_df: pd.DataFrame, max_missing_pct: float = MAX_MISSING_PCT) -> pd.DataFrame:
+    """
+    Handle missing values in returns DataFrame.
+    
+    Strategy:
+    1. Forward fill up to 2 months (handles temporary data gaps)
+    2. Drop stocks with >max_missing_pct missing data after forward fill
+    
+    Parameters
+    ----------
+    returns_df : pd.DataFrame
+        Returns DataFrame with dates as index, tickers as columns
+    max_missing_pct : float
+        Maximum percentage of missing data allowed (default: 0.10 = 10%)
+    
+    Returns
+    -------
+    pd.DataFrame
+        Returns DataFrame with missing values handled
+    """
     """
     Handle missing values in returns data.
     

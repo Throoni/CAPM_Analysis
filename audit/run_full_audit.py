@@ -47,6 +47,7 @@ from audit.validate_edge_cases import EdgeCaseAudit
 from audit.validate_stress_tests import StressTestAudit
 from audit.validate_regression_tests import RegressionTestAudit
 from audit.monitoring import SystemMonitor
+from audit.validate_data_quality_comprehensive import ComprehensiveDataQualityAudit
 
 from analysis.utils.config import PROJECT_ROOT, LOGS_DIR
 
@@ -414,6 +415,11 @@ def run_full_audit():
     logger.info("\nRunning Phase 12.1: Automated Regression Testing...")
     regression_audit = RegressionTestAudit()
     all_results['phase12_regression_tests'] = regression_audit.run_all_checks()
+    
+    # Phase 12.2: Comprehensive Data Quality Audit
+    logger.info("\nRunning Phase 12.2: Comprehensive Data Quality Audit...")
+    data_quality_audit = ComprehensiveDataQualityAudit()
+    all_results['phase12_data_quality'] = data_quality_audit.run_all_checks()
     
     # Phase 12.3: Real-Time Monitoring
     logger.info("\nRunning Phase 12.3: Real-Time Monitoring...")
