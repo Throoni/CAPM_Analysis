@@ -28,8 +28,27 @@ from audit.validate_market_cap_analysis import MarketCapAnalysisAudit
 from audit.validate_portfolio_optimization import PortfolioOptimizationAudit
 from audit.validate_value_effects import ValueEffectsAudit
 from audit.validate_portfolio_recommendation import PortfolioRecommendationAudit
+from audit.validate_code_quality import CodeQualityAudit
+from audit.validate_test_coverage import TestCoverageAudit
+from audit.validate_integration import IntegrationAudit
+from audit.validate_reproducibility import ReproducibilityAudit
+from audit.validate_dependencies import DependencyAudit
+from audit.validate_performance import PerformanceAudit
+from audit.validate_data_lineage import DataLineageAudit
+from audit.validate_cross_validation import CrossValidationAudit
+from audit.validate_out_of_sample import OutOfSampleAudit
+from audit.validate_model_stability import ModelStabilityAudit
+from audit.validate_sensitivity import SensitivityAudit
+from audit.validate_monte_carlo import MonteCarloAudit
+from audit.validate_backtesting import BacktestingAudit
+from audit.validate_documentation import DocumentationAudit
+from audit.validate_error_handling import ErrorHandlingAudit
+from audit.validate_edge_cases import EdgeCaseAudit
+from audit.validate_stress_tests import StressTestAudit
+from audit.validate_regression_tests import RegressionTestAudit
+from audit.monitoring import SystemMonitor
 
-from analysis.config import PROJECT_ROOT, LOGS_DIR
+from analysis.utils.config import PROJECT_ROOT, LOGS_DIR
 
 # Setup logging
 os.makedirs(LOGS_DIR, exist_ok=True)
@@ -118,7 +137,26 @@ def generate_audit_report(all_results: dict, output_dir: str = None) -> str:
             'phase7_market_cap': 'Phase 7: Market-Cap Weighted Betas Validation',
             'phase7_portfolio_opt': 'Phase 7: Portfolio Optimization Validation',
             'phase7_value_effects': 'Phase 7: Value Effects Validation',
-            'phase7_recommendation': 'Phase 7: Portfolio Recommendation Validation'
+            'phase7_recommendation': 'Phase 7: Portfolio Recommendation Validation',
+            'phase8_code_quality': 'Phase 8.1: Code Quality & Static Analysis',
+            'phase8_test_coverage': 'Phase 8.2: Test Coverage',
+            'phase8_integration': 'Phase 8.3: Integration Testing',
+            'phase9_performance': 'Phase 9.1: Performance Benchmarking',
+            'phase9_reproducibility': 'Phase 9.2: Computational Reproducibility',
+            'phase9_dependencies': 'Phase 9.4: Dependency Auditing',
+            'phase10_data_lineage': 'Phase 10.1: Data Lineage & Provenance',
+            'phase10_cross_validation': 'Phase 10.2: Cross-Validation Framework',
+            'phase10_out_of_sample': 'Phase 10.3: Out-of-Sample Validation',
+            'phase10_model_stability': 'Phase 10.4: Model Stability Analysis',
+            'phase10_sensitivity': 'Phase 10.5: Sensitivity Analysis',
+            'phase10_monte_carlo': 'Phase 10.6: Monte Carlo Validation',
+            'phase10_backtesting': 'Phase 10.7: Backtesting Framework',
+            'phase11_documentation': 'Phase 11.1: Documentation Completeness',
+            'phase11_error_handling': 'Phase 11.2: Error Handling Validation',
+            'phase11_edge_cases': 'Phase 11.3: Edge Case Testing',
+            'phase11_stress_tests': 'Phase 11.4: Stress Testing',
+            'phase12_regression_tests': 'Phase 12.1: Automated Regression Testing',
+            'phase12_monitoring': 'Phase 12.3: Real-Time Monitoring'
         }
         
         for phase_key, phase_name in phase_names.items():
@@ -261,6 +299,137 @@ def run_full_audit():
     
     interpretation_audit = InterpretationAudit()
     all_results['phase6_interpretation'] = interpretation_audit.run_all_checks()
+    
+    # Phase 8: Code Quality & Testing
+    logger.info("\n" + "="*70)
+    logger.info("STARTING PHASE 8: CODE QUALITY & TESTING")
+    logger.info("="*70)
+    
+    # Phase 8.1: Code Quality
+    logger.info("\nRunning Phase 8.1: Code Quality & Static Analysis...")
+    code_quality_audit = CodeQualityAudit()
+    all_results['phase8_code_quality'] = code_quality_audit.run_all_checks()
+    
+    # Phase 8.2: Test Coverage
+    logger.info("\nRunning Phase 8.2: Test Coverage...")
+    test_coverage_audit = TestCoverageAudit()
+    all_results['phase8_test_coverage'] = test_coverage_audit.run_all_checks()
+    
+    # Phase 8.3: Integration Testing
+    logger.info("\nRunning Phase 8.3: Integration Testing...")
+    integration_audit = IntegrationAudit()
+    all_results['phase8_integration'] = integration_audit.run_all_checks()
+    
+    # Phase 9: Performance & Reproducibility
+    logger.info("\n" + "="*70)
+    logger.info("STARTING PHASE 9: PERFORMANCE & REPRODUCIBILITY")
+    logger.info("="*70)
+    
+    # Phase 9.2: Reproducibility
+    logger.info("\nRunning Phase 9.2: Computational Reproducibility...")
+    reproducibility_audit = ReproducibilityAudit()
+    all_results['phase9_reproducibility'] = reproducibility_audit.run_all_checks()
+    
+    # Phase 9.1: Performance
+    logger.info("\nRunning Phase 9.1: Performance Benchmarking...")
+    performance_audit = PerformanceAudit()
+    all_results['phase9_performance'] = performance_audit.run_all_checks()
+    
+    # Phase 9.4: Dependencies
+    logger.info("\nRunning Phase 9.4: Dependency Auditing...")
+    dependency_audit = DependencyAudit()
+    all_results['phase9_dependencies'] = dependency_audit.run_all_checks()
+    
+    # Phase 10: Advanced Validation
+    logger.info("\n" + "="*70)
+    logger.info("STARTING PHASE 10: ADVANCED VALIDATION")
+    logger.info("="*70)
+    
+    # Phase 10.1: Data Lineage
+    logger.info("\nRunning Phase 10.1: Data Lineage & Provenance...")
+    data_lineage_audit = DataLineageAudit()
+    all_results['phase10_data_lineage'] = data_lineage_audit.run_all_checks()
+    
+    # Phase 10.2: Cross-Validation
+    logger.info("\nRunning Phase 10.2: Cross-Validation Framework...")
+    cv_audit = CrossValidationAudit()
+    all_results['phase10_cross_validation'] = cv_audit.run_all_checks()
+    
+    # Phase 10.3: Out-of-Sample Validation
+    logger.info("\nRunning Phase 10.3: Out-of-Sample Validation...")
+    oos_audit = OutOfSampleAudit()
+    all_results['phase10_out_of_sample'] = oos_audit.run_all_checks()
+    
+    # Phase 10.4: Model Stability
+    logger.info("\nRunning Phase 10.4: Model Stability Analysis...")
+    stability_audit = ModelStabilityAudit()
+    all_results['phase10_model_stability'] = stability_audit.run_all_checks()
+    
+    # Phase 10.5: Sensitivity Analysis
+    logger.info("\nRunning Phase 10.5: Sensitivity Analysis...")
+    sensitivity_audit = SensitivityAudit()
+    all_results['phase10_sensitivity'] = sensitivity_audit.run_all_checks()
+    
+    # Phase 10.6: Monte Carlo Validation
+    logger.info("\nRunning Phase 10.6: Monte Carlo Validation...")
+    mc_audit = MonteCarloAudit()
+    all_results['phase10_monte_carlo'] = mc_audit.run_all_checks()
+    
+    # Phase 10.7: Backtesting Framework
+    logger.info("\nRunning Phase 10.7: Backtesting Framework...")
+    backtesting_audit = BacktestingAudit()
+    all_results['phase10_backtesting'] = backtesting_audit.run_all_checks()
+    
+    # Phase 11: Documentation & Error Handling
+    logger.info("\n" + "="*70)
+    logger.info("STARTING PHASE 11: DOCUMENTATION & ERROR HANDLING")
+    logger.info("="*70)
+    
+    # Phase 11.1: Documentation
+    logger.info("\nRunning Phase 11.1: Documentation Completeness...")
+    documentation_audit = DocumentationAudit()
+    all_results['phase11_documentation'] = documentation_audit.run_all_checks()
+    
+    # Phase 11.2: Error Handling
+    logger.info("\nRunning Phase 11.2: Error Handling Validation...")
+    error_handling_audit = ErrorHandlingAudit()
+    all_results['phase11_error_handling'] = error_handling_audit.run_all_checks()
+    
+    # Phase 11.3: Edge Cases
+    logger.info("\nRunning Phase 11.3: Edge Case Testing...")
+    edge_case_audit = EdgeCaseAudit()
+    all_results['phase11_edge_cases'] = edge_case_audit.run_all_checks()
+    
+    # Phase 11.4: Stress Tests
+    logger.info("\nRunning Phase 11.4: Stress Testing...")
+    stress_test_audit = StressTestAudit()
+    all_results['phase11_stress_tests'] = stress_test_audit.run_all_checks()
+    
+    # Phase 12: Continuous Monitoring
+    logger.info("\n" + "="*70)
+    logger.info("PHASE 12: CONTINUOUS MONITORING")
+    logger.info("="*70)
+    
+    # Phase 12.1: Regression Testing
+    logger.info("\nRunning Phase 12.1: Automated Regression Testing...")
+    regression_audit = RegressionTestAudit()
+    all_results['phase12_regression_tests'] = regression_audit.run_all_checks()
+    
+    # Phase 12.3: Real-Time Monitoring
+    logger.info("\nRunning Phase 12.3: Real-Time Monitoring...")
+    monitor = SystemMonitor()
+    monitoring_summary = monitor.get_monitoring_summary()
+    all_results['phase12_monitoring'] = {
+        'health': monitoring_summary['health'],
+        'performance': monitoring_summary['performance'],
+        'errors': monitoring_summary['errors'],
+        'alerts': monitoring_summary['alerts'],
+        'summary': {
+            'overall_health': monitoring_summary['health']['overall_health'],
+            'total_errors': monitoring_summary['errors']['total_errors'],
+            'critical_alerts': len(monitoring_summary['alerts']['critical'])
+        }
+    }
     
     # Generate report
     logger.info("\n" + "="*70)

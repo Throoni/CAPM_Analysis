@@ -37,6 +37,11 @@ seaborn>=0.12.0        # Statistical visualization
 # cvxpy>=1.3.0         # Convex optimization (alternative to scipy, uncomment if needed)
 
 # ============================================================================
+# Environment & Configuration
+# ============================================================================
+python-dotenv>=1.0.0   # Load environment variables from .env file
+
+# ============================================================================
 # Development & Testing (Optional)
 # ============================================================================
 # pytest>=7.4.0        # Testing framework (uncomment if needed)

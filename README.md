@@ -1,4 +1,9 @@
 # CAPM_Analysis
+
+[![CI](https://github.com/YOUR_USERNAME/CAPM_Analysis/workflows/CI/badge.svg)](https://github.com/YOUR_USERNAME/CAPM_Analysis/actions)
+[![Audit](https://github.com/YOUR_USERNAME/CAPM_Analysis/workflows/Audit/badge.svg)](https://github.com/YOUR_USERNAME/CAPM_Analysis/actions)
+[![Tests](https://img.shields.io/badge/tests-10%2F10%20passing-brightgreen)](tests/)
+
 Empirical CAPM testing across 7 European markets
 
 ## Risk-Free Rate Data Sources
@@ -12,6 +17,46 @@ This project requires actual 3-month government bond yields as risk-free rates. 
 4. **Yahoo Finance** - Limited availability (fallback)
 5. **Placeholder** - Last resort (0.1% monthly)
 
+### Setting Up Credentials (Recommended)
+
+**Option 1: Using .env file (Easiest)**
+
+1. **Copy the example file:**
+   ```bash
+   cp env.example .env
+   ```
+
+2. **Edit `.env` with your credentials:**
+   ```bash
+   # Open .env in your editor
+   nano .env  # or use your preferred editor
+   ```
+
+3. **Fill in your credentials:**
+   ```env
+   FRED_API_KEY=your_fred_api_key_here
+   WRDS_USERNAME=your_wrds_username  # Optional
+   WRDS_PASSWORD=your_wrds_password  # Optional
+   ```
+
+4. **The `.env` file is automatically loaded** - no need to export variables manually!
+
+**Option 2: Environment Variables (Manual)**
+
+Set environment variables directly:
+
+```bash
+export FRED_API_KEY="your_api_key_here"
+export WRDS_USERNAME="your_wrds_username"  # Optional
+export WRDS_PASSWORD="your_wrds_password"  # Optional
+```
+
+Or add to your shell profile (`~/.zshrc` or `~/.bashrc`):
+```bash
+echo 'export FRED_API_KEY="your_api_key_here"' >> ~/.zshrc
+source ~/.zshrc
+```
+
 ### Setting Up FRED API (Recommended)
 
 FRED API is the most reliable source for international government bond yields.
@@ -21,20 +66,11 @@ FRED API is the most reliable source for international government bond yields.
    - Sign in or create a free account
    - Request an API key (instant approval)
 
-2. **Set the API key as environment variable:**
-   ```bash
-   export FRED_API_KEY="your_api_key_here"
-   ```
-   
-   Or add to your shell profile (`~/.zshrc` or `~/.bashrc`):
-   ```bash
-   echo 'export FRED_API_KEY="your_api_key_here"' >> ~/.zshrc
-   source ~/.zshrc
-   ```
+2. **Add to `.env` file or export as environment variable** (see above)
 
 3. **Verify installation:**
    ```bash
-   pip install fredapi
+   pip install fredapi python-dotenv
    python3 -c "from fredapi import Fred; print('FRED API ready')"
    ```
 
@@ -46,7 +82,13 @@ If you still want to try WRDS:
 
 1. **Set up Duo Mobile 2FA** on your WRDS account (required)
 
-2. **Set WRDS credentials as environment variables:**
+2. **Add WRDS credentials to `.env` file:**
+   ```env
+   WRDS_USERNAME=your_wrds_username
+   WRDS_PASSWORD=your_wrds_password
+   ```
+
+   Or set as environment variables:
    ```bash
    export WRDS_USERNAME="your_wrds_username"
    export WRDS_PASSWORD="your_wrds_password"
@@ -63,6 +105,13 @@ If you still want to try WRDS:
      ```
 
 **Limitation:** WRDS connection may fail in automated/non-interactive scripts due to 2FA requirements. FRED API is more reliable for automated use.
+
+### Security Notes
+
+- **Never commit `.env` file** - it's already in `.gitignore`
+- **Share `env.example`** - this template file is safe to commit
+- **Credentials are optional** - the code works without them (uses fallback data sources)
+- **All credentials are loaded from environment variables** - no hardcoded secrets in code
 
 ### Current Status
 

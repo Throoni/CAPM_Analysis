@@ -1,0 +1,86 @@
+name: Automated Audit
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:  # Allow manual triggering
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'analysis/**'
+      - 'audit/**'
+      - 'requirements.txt'
+
+jobs:
+  full-audit:
+    name: Full System Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run full audit
+      run: |
+        python audit/run_full_audit.py
+    
+    - name: Upload audit report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: audit-report
+        path: |
+          audit/audit_report.md
+          logs/*.log
+        retention-days: 30
+    
+    - name: Comment on PR (if PR)
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const report = fs.readFileSync('audit/audit_report.md', 'utf8');
+          const summary = report.split('## Executive Summary')[1]?.split('##')[0] || 'Audit completed';
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `## 🔍 Audit Results\n\n\`\`\`\n${summary}\n\`\`\`\n\n[Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`
+          });
+
+  quick-audit:
+    name: Quick Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run security audit
+      run: |
+        python audit/validate_code_quality.py | grep -E "(CRITICAL|critical|Security|PASS)" || true
+        python audit/validate_code_quality.py
+

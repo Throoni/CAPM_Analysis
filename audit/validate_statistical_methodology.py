@@ -12,13 +12,13 @@ import numpy as np
 from typing import Dict
 import statsmodels.api as sm
 
-from analysis.config import DATA_PROCESSED_DIR, RESULTS_DATA_DIR, RESULTS_REPORTS_DIR
+from analysis.utils.config import DATA_PROCESSED_DIR, RESULTS_DATA_DIR, RESULTS_REPORTS_DIR
 
 # Import run_capm_regression only when needed to avoid seaborn dependency
 def _get_capm_regression_function():
     """Lazy import of run_capm_regression to avoid seaborn dependency."""
     try:
-        from analysis.capm_regression import run_capm_regression
+        from analysis.core.capm_regression import run_capm_regression
         return run_capm_regression
     except ImportError as e:
         logger.warning(f"Could not import run_capm_regression: {e}. Using local implementation.")

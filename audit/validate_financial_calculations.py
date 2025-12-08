@@ -11,8 +11,8 @@ import pandas as pd
 import numpy as np
 from typing import Dict
 
-from analysis.config import DATA_RAW_DIR, DATA_PROCESSED_DIR
-from analysis.returns_processing import prices_to_returns
+from analysis.utils.config import DATA_RAW_DIR, DATA_PROCESSED_DIR
+from analysis.core.returns_processing import prices_to_returns
 
 logger = logging.getLogger(__name__)
 

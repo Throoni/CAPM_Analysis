@@ -12,7 +12,7 @@ import numpy as np
 from typing import Dict, Optional
 
 from analysis.config import DATA_RAW_DIR, COUNTRIES
-from analysis.riskfree_helper import convert_annual_to_monthly_rate, convert_annual_pct_to_monthly_pct
+from analysis.data.riskfree_helper import convert_annual_to_monthly_rate, convert_annual_pct_to_monthly_pct
 
 logger = logging.getLogger(__name__)
 

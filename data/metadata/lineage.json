@@ -1,0 +1,67 @@
+{
+  "metadata": {
+    "created": "2025-12-08T17:31:28.727178",
+    "version": "1.0",
+    "description": "Data lineage tracking for CAPM analysis"
+  },
+  "data_sources": [
+    {
+      "name": "Stock Prices",
+      "source": "Yahoo Finance",
+      "files": [
+        "data/raw/prices_stocks_*.csv"
+      ],
+      "description": "Monthly stock prices from Yahoo Finance"
+    },
+    {
+      "name": "MSCI Indexes",
+      "source": "Yahoo Finance (iShares ETFs)",
+      "files": [
+        "data/raw/prices_indices_msci_*.csv"
+      ],
+      "description": "MSCI country indexes via iShares ETFs"
+    },
+    {
+      "name": "Risk-Free Rates",
+      "source": "FRED/ECB/CSV files",
+      "files": [
+        "data/raw/riskfree_rate_*.csv"
+      ],
+      "description": "3-month government bond yields"
+    }
+  ],
+  "transformations": [
+    {
+      "step": 1,
+      "name": "Returns Processing",
+      "script": "analysis/returns_processing.py",
+      "input": [
+        "data/raw/prices_stocks_*.csv",
+        "data/raw/prices_indices_msci_*.csv"
+      ],
+      "output": "data/processed/returns_panel.csv",
+      "description": "Convert prices to returns and create panel"
+    },
+    {
+      "step": 2,
+      "name": "CAPM Regression",
+      "script": "analysis/capm_regression.py",
+      "input": [
+        "data/processed/returns_panel.csv"
+      ],
+      "output": "results/data/capm_results.csv",
+      "description": "Estimate beta, alpha, R\u00b2 for each stock"
+    },
+    {
+      "step": 3,
+      "name": "Fama-MacBeth Test",
+      "script": "analysis/fama_macbeth.py",
+      "input": [
+        "results/data/capm_results.csv",
+        "data/processed/returns_panel.csv"
+      ],
+      "output": "results/reports/fama_macbeth_summary.csv",
+      "description": "Cross-sectional test of CAPM"
+    }
+  ]
+}
