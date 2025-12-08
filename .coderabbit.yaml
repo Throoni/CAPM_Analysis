@@ -1,0 +1,87 @@
+# CodeRabbit Configuration for CAPM_Analysis
+
+# Language settings
+language: python
+
+# Review settings
+reviews:
+  # Review pull requests
+  pull_requests:
+    enabled: true
+    # Review all PRs
+    review_all: true
+    # Review only changed files
+    review_only_changed_files: false
+  
+  # Review commits
+  commits:
+    enabled: true
+  
+  # Review code suggestions
+  code_suggestions:
+    enabled: true
+    # Auto-apply suggestions (set to false for manual review)
+    auto_apply: false
+
+# Paths to include/exclude
+paths:
+  include:
+    - "analysis/**/*.py"
+    - "audit/**/*.py"
+    - "tests/**/*.py"
+  exclude:
+    - "venv/**"
+    - "**/__pycache__/**"
+    - "**/*.pyc"
+    - ".git/**"
+    - "data/**"
+    - "results/**"
+    - "logs/**"
+
+# Focus areas for this project
+focus_areas:
+  - "Financial calculations correctness"
+  - "Statistical methodology"
+  - "Data quality and validation"
+  - "Code quality and best practices"
+  - "Error handling"
+  - "Documentation completeness"
+
+# Rules and guidelines
+rules:
+  # Financial correctness
+  - name: "Verify financial calculations"
+    description: "Ensure all financial calculations (returns, betas, risk-free rates) are correct"
+    severity: "critical"
+  
+  # Data quality
+  - name: "Check data quality"
+    description: "Verify data validation and quality checks are in place"
+    severity: "high"
+  
+  # Code quality
+  - name: "Code quality standards"
+    description: "Ensure code follows best practices and is well-documented"
+    severity: "medium"
+
+# Ignore patterns (files to skip in reviews)
+ignore:
+  - "**/*.csv"
+  - "**/*.json"
+  - "**/*.png"
+  - "**/*.md"  # Documentation files (optional - remove if you want docs reviewed)
+  - "requirements*.txt"
+  - ".gitignore"
+  - ".env*"
+
+# Model settings (if using premium features)
+model:
+  # Use advanced model for financial code
+  use_advanced: true
+
+# Auto-fix settings
+auto_fix:
+  enabled: false  # Set to true if you want CodeRabbit to auto-fix issues
+  # Only auto-fix low-risk changes
+  risk_level: "low"
+

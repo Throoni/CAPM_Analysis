@@ -1,8 +1,9 @@
 # CAPM_Analysis
 
-[![CI](https://github.com/YOUR_USERNAME/CAPM_Analysis/workflows/CI/badge.svg)](https://github.com/YOUR_USERNAME/CAPM_Analysis/actions)
-[![Audit](https://github.com/YOUR_USERNAME/CAPM_Analysis/workflows/Audit/badge.svg)](https://github.com/YOUR_USERNAME/CAPM_Analysis/actions)
-[![Tests](https://img.shields.io/badge/tests-10%2F10%20passing-brightgreen)](tests/)
+[![CI](https://github.com/Throoni/CAPM_Analysis/workflows/CI/badge.svg)](https://github.com/Throoni/CAPM_Analysis/actions)
+[![Audit](https://github.com/Throoni/CAPM_Analysis/workflows/Audit/badge.svg)](https://github.com/Throoni/CAPM_Analysis/actions)
+[![Tests](https://img.shields.io/badge/tests-19%2F19%20passing-brightgreen)](tests/)
+[![CodeRabbit Reviews](https://img.shields.io/coderabbit/prs/github/Throoni/CAPM_Analysis?utm_source=oss&utm_medium=github&utm_campaign=Throoni%2FCAPM_Analysis&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)](https://coderabbit.ai)
 
 Empirical CAPM testing across 7 European markets
 
