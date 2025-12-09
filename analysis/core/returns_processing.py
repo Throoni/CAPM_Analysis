@@ -455,9 +455,9 @@ def process_all_countries() -> pd.DataFrame:
                 
             except Exception as e:
                 logger.error(f"Error fetching risk-free rate for {country}: {e}")
-                # Use small positive rate as placeholder (0.1% monthly ≈ 1.2% annual)
-                # This allows testing while proper data source is implemented
-                country_panel['riskfree_rate'] = 0.1
+                logger.error(f"Skipping {country} - real risk-free rate data required (no placeholders)")
+                # Skip this country - don't use placeholder
+                continue
             
             # Calculate excess returns directly in the panel
             country_panel['stock_excess_return'] = country_panel['stock_return'] - country_panel['riskfree_rate']

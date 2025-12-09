@@ -12,8 +12,8 @@ Regression Specification:
 - Model: E_i,t = α_i + β_i * E_m,t + ε_i,t
 - Observations: 59 months per stock
 
-Note: Currently uses placeholder risk-free rates. Will work seamlessly with actual
-country-specific rates when provided (just update panel and re-run).
+Note: Uses real risk-free rate data from CSV files or API sources.
+Country-specific rates are automatically fetched for each market.
 """
 
 import os

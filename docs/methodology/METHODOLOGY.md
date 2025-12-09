@@ -198,11 +198,13 @@ CAPM is derived under the following assumptions:
 
 **Risk-Free Rate Data:**
 - Source: Multiple sources with fallback order:
-  1. ECB API (for EUR countries)
-  2. FRED API (for all countries, requires API key)
-  3. WRDS (for academic users)
-  4. Yahoo Finance (limited)
-  5. Placeholder (0.1% monthly, last resort)
+  1. CSV files (processed risk-free rate files, primary source)
+  2. ECB API (for EUR countries)
+  3. FRED API (for all countries, requires API key)
+  4. WRDS (for academic users)
+  5. Yahoo Finance (limited)
+  
+  **Note:** System requires real data - no placeholder values. CSV files are available for all countries.
 - Conversion: Annual rates converted to monthly using $(1 + R_{annual})^{1/12} - 1$
 
 **Data Quality Controls:**

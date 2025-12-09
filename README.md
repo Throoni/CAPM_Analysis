@@ -5,18 +5,26 @@
 [![Tests](https://img.shields.io/badge/tests-19%2F19%20passing-brightgreen)](tests/)
 [![CodeRabbit Reviews](https://img.shields.io/coderabbit/prs/github/Throoni/CAPM_Analysis?utm_source=oss&utm_medium=github&utm_campaign=Throoni%2FCAPM_Analysis&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)](https://coderabbit.ai)
 
-Empirical CAPM testing across 7 European markets
+## 🎯 Mission: Investment Analysis for American Equity Investors
+
+Empirical CAPM testing across 7 European markets with **actionable investment recommendations** for American equity investors. This analysis identifies opportunities in European equity markets, focusing on currency risk, country allocation, factor-based strategies, and portfolio construction.
+
+**Key Finding:** CAPM is rejected in European markets - beta does not explain expected returns, creating opportunities for factor-based and active strategies.
+
+📊 **[View Investment Recommendations](results/reports/Investment_Recommendations_US_Investor.md)** | 📖 **[Execution Guide](docs/EXECUTION_GUIDE.md)** | 📈 **[Methodology](docs/methodology/METHODOLOGY.md)**
 
 ## Risk-Free Rate Data Sources
 
 This project requires actual 3-month government bond yields as risk-free rates. The system supports multiple data sources with automatic fallback:
 
 ### Data Source Priority (tried in order):
-1. **ECB API** - For EUR countries (free, no API key required)
-2. **FRED API** - For all countries (free, requires API key)
-3. **WRDS** - For academic users with WRDS access
-4. **Yahoo Finance** - Limited availability (fallback)
-5. **Placeholder** - Last resort (0.1% monthly)
+1. **CSV Files** - Processed risk-free rate files (primary source, available for all countries)
+2. **ECB API** - For EUR countries (free, no API key required)
+3. **FRED API** - For all countries (free, requires API key)
+4. **WRDS** - For academic users with WRDS access
+5. **Yahoo Finance** - Limited availability (fallback)
+
+**Note:** System requires real data - CSV files are available for all 7 countries in `data/raw/riskfree_rates/`. No placeholder values are used.
 
 ### Setting Up Credentials (Recommended)
 
@@ -116,18 +124,70 @@ If you still want to try WRDS:
 
 ### Current Status
 
-The system will automatically try data sources in order. If no API keys are set, it will use placeholder values (0.1% monthly) with warnings.
+The system automatically tries data sources in order, starting with CSV files (available for all countries). **Real data is required** - the system will fail with a clear error if no data source succeeds (no placeholder fallback).
 
-To get actual risk-free rates:
-- **Best option**: Set up FRED API key (free, 5 minutes)
+Risk-free rate CSV files are available for all 7 countries in `data/raw/riskfree_rates/`. To use additional sources:
+- **Best option**: Set up FRED API key (free, 5 minutes) for automatic updates
 - **Alternative**: Use WRDS if you have access
-- **Fallback**: System will use placeholder with clear warnings
+- **Primary**: CSV files are already available and will be used automatically
 
 ### Testing Data Sources
 
 Test your setup:
 ```bash
-python3 -m analysis.riskfree_helper
+python3 -m analysis.data.riskfree_helper
 ```
 
 This will test fetching risk-free rates for all countries using available data sources.
+
+---
+
+## Quick Start: Running the Full Analysis
+
+**For detailed step-by-step instructions, see [Execution Guide](docs/EXECUTION_GUIDE.md).**
+
+### Run All Analyses
+
+```bash
+# 1. Process returns
+python3 -m analysis.core.returns_processing
+
+# 2. CAPM regression
+python3 -m analysis.core.capm_regression
+
+# 3. Fama-MacBeth test
+python3 -m analysis.core.fama_macbeth
+
+# 4. Robustness checks
+python3 -m analysis.core.robustness_checks
+
+# 5. Portfolio optimization
+python3 -m analysis.extensions.portfolio_optimization
+
+# 6. Value effects
+python3 -m analysis.extensions.value_effects
+
+# 7. Market cap analysis
+python3 -m analysis.extensions.market_cap_analysis
+
+# 8. Portfolio recommendation
+python3 -m analysis.extensions.portfolio_recommendation
+
+# 9. Investment recommendations (US investors)
+python3 -m analysis.extensions.investment_recommendations
+```
+
+### Key Outputs
+
+- **Investment Recommendations:** `results/reports/Investment_Recommendations_US_Investor.md`
+- **Portfolio Recommendation:** `results/reports/Portfolio_Recommendation.md`
+- **CAPM Analysis Report:** `results/reports/main/CAPM_Analysis_Report.md`
+- **Executive Summary:** `results/reports/main/Executive_Summary.md`
+
+---
+
+## Important Notes
+
+- **Real Data Only:** System requires real data - no placeholder values are used. CSV files are available for all 7 countries.
+- **Fail Hard:** If data is missing, system will fail with clear error messages (no silent placeholders).
+- **Investment Focus:** Analysis is designed to provide actionable recommendations for American equity investors.

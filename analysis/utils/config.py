@@ -126,7 +126,9 @@ MIN_OBSERVATIONS = 59
 # -------------------------------------------------------------------
 
 # Preferred data source order (will try in this order until one succeeds)
-RISKFREE_SOURCE_ORDER = ["ecb", "fred", "wrds", "yfinance", "placeholder"]
+# Note: CSV files are checked first in get_riskfree_rate() before this list
+# System requires real data - no placeholder fallback
+RISKFREE_SOURCE_ORDER = ["csv", "ecb", "fred", "wrds", "yfinance"]
 
 # FRED API Series Codes for 3-month government bond yields
 # Format: IR3TTS01[COUNTRY]M156N where COUNTRY is country code

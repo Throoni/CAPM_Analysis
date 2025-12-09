@@ -25,7 +25,8 @@ This document provides a comprehensive assessment of data quality for the CAPM a
   2. FRED API (for all countries, requires API key)
   3. WRDS (for academic users)
   4. Yahoo Finance (limited)
-  5. Placeholder (0.1% monthly, last resort)
+
+  **Note:** System requires real data - CSV files are available for all countries. No placeholder values are used.
 - **Conversion:** Annual rates converted to monthly using compounding formula: $(1 + R_{annual})^{1/12} - 1$
 - **Format:** CSV files in `data/raw/riskfree_rates/`
 

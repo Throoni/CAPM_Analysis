@@ -15,7 +15,9 @@ Data Sources (in order of preference):
 2. FRED API - For all countries (free, requires API key)
 3. WRDS - For academic users with WRDS access
 4. Yahoo Finance - Limited availability (fallback)
-5. Placeholder - Last resort (0.1% monthly)
+
+Note: System requires real data - CSV files are available for all countries.
+No placeholder values are used.
 """
 
 import logging
@@ -479,7 +481,8 @@ def get_riskfree_rate(
     """
     Fetch risk-free rate for a given country using best available source.
     
-    Tries sources in order: CSV -> ECB -> FRED -> WRDS -> yfinance -> placeholder
+    Tries sources in order: CSV -> ECB -> FRED -> WRDS -> yfinance
+    System requires real data - raises ValueError if all sources fail (no placeholder)
     
     Per methodology:
     - EUR countries (Germany, France, Italy, Spain): German 3-month Bund (EUR)
@@ -494,7 +497,7 @@ def get_riskfree_rate(
     end_date : str
         End date in 'YYYY-MM-DD' format
     source : str, optional
-        Specific source to use ('csv', 'ecb', 'fred', 'wrds', 'yfinance', 'placeholder')
+        Specific source to use ('csv', 'ecb', 'fred', 'wrds', 'yfinance')
         If None, tries sources in order until one succeeds
     
     Returns
@@ -503,6 +506,11 @@ def get_riskfree_rate(
         Monthly risk-free rate in percentage form (%)
         Index: dates (monthly, month-end)
         Values: risk-free rate (%)
+    
+    Raises
+    ------
+    ValueError
+        If all data sources fail and no risk-free rate can be obtained
     """
     if country not in COUNTRIES:
         raise ValueError(f"Unknown country: {country}. Must be one of {list(COUNTRIES.keys())}")
@@ -558,20 +566,17 @@ def get_riskfree_rate(
             result = fetch_riskfree_from_yfinance(target_country, start_date, end_date)
             if result is not None and not result.empty:
                 return result
-        
-        elif src == "placeholder":
-            # Placeholder: Use small positive rate (0.1% monthly ≈ 1.2% annual)
-            logger.warning(
-                f"Using placeholder risk-free rate (0.1% monthly) for {target_country}. "
-                f"To get actual rates, set up FRED_API_KEY or WRDS credentials."
-            )
-            placeholder_rates = pd.Series(0.1, index=date_range, name='riskfree_rate')
-            return placeholder_rates
     
-    # If all sources failed, return placeholder
-    logger.error(f"All data sources failed for {target_country}, using placeholder")
-    placeholder_rates = pd.Series(0.1, index=date_range, name='riskfree_rate')
-    return placeholder_rates
+    # If all sources failed, raise error (no placeholder fallback)
+    error_msg = (
+        f"All data sources failed for {target_country} ({country}). "
+        f"Tried: CSV, ECB, FRED, WRDS, yfinance. "
+        f"Please ensure risk-free rate data is available in data/raw/riskfree_rates/ "
+        f"or set up FRED_API_KEY/WRDS credentials. "
+        f"System requires real data - no placeholder values allowed."
+    )
+    logger.error(error_msg)
+    raise ValueError(error_msg)
 
 
 def align_riskfree_with_returns(
