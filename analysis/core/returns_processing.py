@@ -5,10 +5,10 @@ Convert raw price data into monthly excess returns ready for CAPM regressions.
 
 Per methodology:
 - Returns: R_t = [(P_t - P_{t-1}) / P_{t-1}] × 100 (%) - percentage form
-- Beta benchmark: MSCI country indices (NOT local indices)
+- Beta benchmark: MSCI Europe index (IEUR) - single pan-European index for all countries
 - Risk-free: 3-month government bonds
 - Estimation window: Exactly 60 months per stock
-- All calculations in local currency
+- Currency: All returns use MSCI Europe (tracks EUR-denominated European stocks)
 """
 
 import os
@@ -22,7 +22,9 @@ from analysis.utils.config import (
     ANALYSIS_SETTINGS,
     DATA_RAW_DIR,
     DATA_PROCESSED_DIR,
+    DATA_RAW_EXCHANGE_DIR,
     COUNTRIES,
+    MSCI_EUROPE_TICKER,
 )
 from analysis.utils.universe import load_stock_universe
 from analysis.data.riskfree_helper import get_riskfree_rate, align_riskfree_with_returns
@@ -197,6 +199,283 @@ def handle_missing_values(returns_df: pd.DataFrame, max_missing_pct: float = MAX
 
 
 # -------------------------------------------------------------------
+# CURRENCY CONVERSION
+# -------------------------------------------------------------------
+
+def load_exchange_rates_from_ecb(base_currency: str, target_currency: str = "EUR") -> pd.Series:
+    """
+    Load exchange rates from ECB data portal.
+    
+    Tries to load from existing CSV files or downloads from ECB if needed.
+    Currently supports: USD/EUR, GBP/EUR, SEK/EUR, CHF/EUR
+    
+    Parameters
+    ----------
+    base_currency : str
+        Base currency (USD, GBP, SEK, CHF)
+    target_currency : str
+        Target currency (default: EUR)
+    
+    Returns
+    -------
+    pd.Series
+        Monthly exchange rates, index=month-end dates, values=base_currency per target_currency
+    """
+    # ECB series codes for exchange rates
+    ecb_series_codes = {
+        "USD/EUR": "EXR.D.USD.EUR.SP00.A",
+        "GBP/EUR": "EXR.D.GBP.EUR.SP00.A",
+        "SEK/EUR": "EXR.D.SEK.EUR.SP00.A",
+        "CHF/EUR": "EXR.D.CHF.EUR.SP00.A",
+    }
+    
+    pair = f"{base_currency}/{target_currency}"
+    if pair not in ecb_series_codes:
+        raise ValueError(f"Exchange rate pair {pair} not supported. Available: {list(ecb_series_codes.keys())}")
+    
+    series_code = ecb_series_codes[pair]
+    
+    # Try to find existing CSV file
+    exch_dir = DATA_RAW_EXCHANGE_DIR
+    # Look for files with the currency pair in name (various formats)
+    pattern1 = f"{base_currency.lower()}_{target_currency.lower()}"
+    pattern2 = f"{base_currency}_{target_currency}"
+    pattern3 = f"{base_currency}/{target_currency}".lower()
+    
+    exch_files = []
+    if os.path.exists(exch_dir):
+        for f in os.listdir(exch_dir):
+            if f.endswith('.csv'):
+                f_lower = f.lower()
+                # Match various file naming patterns
+                if (pattern1 in f_lower or pattern2 in f_lower or pattern3 in f_lower or 
+                    (base_currency.lower() in f_lower and target_currency.lower() in f_lower) or
+                    (base_currency.lower() in f_lower and target_currency.lower() in f_lower and 'ecb' in f_lower)):
+                    exch_files.append(f)
+    
+    # Special case for USD/EUR - also check ECB file (has different naming)
+    if pair == "USD/EUR" and not exch_files:
+        ecb_files = [f for f in os.listdir(exch_dir) if f.endswith('.csv') and 'ecb' in f.lower()]
+        if ecb_files:
+            exch_files = ecb_files
+    
+    if exch_files:
+        # Load from existing file (prefer most recent)
+        exch_files.sort(reverse=True)  # Most recent first
+        exch_file = os.path.join(exch_dir, exch_files[0])
+        logger.info(f"Loading {pair} exchange rates from: {exch_file}")
+        df = pd.read_csv(exch_file)
+    else:
+        raise FileNotFoundError(
+            f"No {pair} exchange rate file found in {exch_dir}. "
+            f"Please download using: python -m analysis.data.data_collection (download_exchange_rates function)"
+        )
+    
+    # Parse dates (first column should be DATE or Date)
+    date_col = df.columns[0]
+    
+    # Find rate column
+    # Could be: "GBP/EUR", "GBP_EUR", "EXR.D.GBP.EUR.SP00.A", or similar
+    rate_col = None
+    for col in df.columns:
+        col_upper = col.upper()
+        if (series_code in col or 
+            f"{base_currency}/{target_currency}".upper() in col_upper or
+            f"{base_currency}_{target_currency}".upper() in col_upper or
+            (base_currency.upper() in col_upper and target_currency.upper() in col_upper and 'EXR' not in col_upper)):
+            rate_col = col
+            break
+    
+    if rate_col is None:
+        # Fallback: check column names
+        # ECB format: DATE, TIME PERIOD, "US dollar/Euro (EXR.D.USD.EUR.SP00.A)"
+        # yfinance format: Date, GBP/EUR
+        for col in df.columns:
+            if 'eur' in col.lower() or 'exchange' in col.lower() or 'rate' in col.lower():
+                if 'time' not in col.lower() and 'period' not in col.lower():
+                    rate_col = col
+                    break
+        
+        # If still not found, use appropriate column by position
+        if rate_col is None:
+            if len(df.columns) >= 3:
+                rate_col = df.columns[2]  # ECB format (third column)
+            elif len(df.columns) >= 2:
+                rate_col = df.columns[1]  # yfinance format (second column)
+            else:
+                raise ValueError(f"Could not find exchange rate column in {exch_file}. Columns: {list(df.columns)}")
+    
+    df['date'] = pd.to_datetime(df[date_col])
+    df = df.sort_values('date')
+    
+    # Convert rate to float (remove quotes if present, handle commas)
+    df[rate_col] = df[rate_col].astype(str).str.replace('"', '').str.replace(',', '').astype(float)
+    
+    # Get monthly month-end rates
+    df['year_month'] = df['date'].dt.to_period('M')
+    monthly = df.groupby('year_month').last()
+    
+    # Convert Period index to month-end timestamps
+    monthly.index = monthly.index.to_timestamp('M')
+    
+    # Create Series with exchange rates
+    exchange_rates = monthly[rate_col].copy()
+    exchange_rates.name = f'{base_currency.lower()}_{target_currency.lower()}_rate'
+    exchange_rates.index.name = 'date'
+    
+    logger.info(f"Loaded {len(exchange_rates)} monthly {pair} exchange rates")
+    logger.info(f"  Date range: {exchange_rates.index.min()} to {exchange_rates.index.max()}")
+    logger.info(f"  Rate range: [{exchange_rates.min():.4f}, {exchange_rates.max():.4f}]")
+    
+    return exchange_rates
+
+
+def load_usd_eur_exchange_rates() -> pd.Series:
+    """
+    Load USD/EUR exchange rates from ECB data and convert to monthly month-end rates.
+    
+    Returns
+    -------
+    pd.Series
+        Monthly USD/EUR exchange rates, index=month-end dates, values=USD per EUR
+    """
+    return load_exchange_rates_from_ecb("USD", "EUR")
+
+
+def convert_stock_prices_to_eur(
+    stock_prices: pd.DataFrame,
+    country: str
+) -> pd.DataFrame:
+    """
+    Convert stock prices from local currency to EUR.
+    
+    For GBP stocks: Price_EUR = Price_GBP × GBP_EUR_Rate
+    For SEK stocks: Price_EUR = Price_SEK × SEK_EUR_Rate
+    For CHF stocks: Price_EUR = Price_CHF × CHF_EUR_Rate
+    For EUR stocks: No conversion needed
+    
+    Parameters
+    ----------
+    stock_prices : pd.DataFrame
+        Stock prices in local currency, index=dates, columns=tickers
+    country : str
+        Country name (determines currency)
+    
+    Returns
+    -------
+    pd.DataFrame
+        Stock prices in EUR, same structure as input
+    """
+    country_config = COUNTRIES.get(country)
+    if country_config is None:
+        logger.warning(f"Unknown country {country}, skipping currency conversion")
+        return stock_prices
+    
+    currency = country_config.currency
+    
+    # EUR stocks don't need conversion
+    if currency == "EUR":
+        logger.debug(f"{country} stocks already in EUR, no conversion needed")
+        return stock_prices
+    
+    # Load appropriate exchange rate
+    try:
+        exchange_rates = load_exchange_rates_from_ecb(currency, "EUR")
+        logger.info(f"Converting {country} stock prices from {currency} to EUR...")
+    except FileNotFoundError as e:
+        logger.error(f"Could not load {currency}/EUR exchange rates: {e}")
+        logger.error(f"Skipping currency conversion for {country} - results will have currency mismatch")
+        return stock_prices
+    
+    # Align exchange rates with price dates
+    stock_prices.index = pd.to_datetime(stock_prices.index)
+    exchange_rates.index = pd.to_datetime(exchange_rates.index)
+    
+    # Convert to month-end for alignment
+    prices_month_end = stock_prices.index.to_period('M').to_timestamp('M')
+    rates_month_end = exchange_rates.index.to_period('M').to_timestamp('M')
+    
+    # Reindex exchange rates to match price dates
+    aligned_rates = exchange_rates.reindex(prices_month_end)
+    aligned_rates = aligned_rates.ffill().bfill()  # Forward and backward fill
+    
+    # Handle any remaining NaN
+    if aligned_rates.isna().any():
+        aligned_rates = aligned_rates.fillna(exchange_rates.iloc[0])
+    
+    # Convert prices: EUR = Local_Currency × (Local_Currency/EUR_Rate)
+    # Exchange rate is "local currency per EUR", so multiply
+    # Create DataFrame with EUR prices
+    eur_prices = stock_prices.copy()
+    for col in eur_prices.columns:
+        eur_prices[col] = stock_prices[col].values * aligned_rates.values
+    
+    logger.info(f"Converted {len(stock_prices.columns)} {country} stocks from {currency} to EUR")
+    if len(stock_prices) > 0:
+        sample_ticker = stock_prices.columns[0]
+        logger.info(f"  Sample: {stock_prices[sample_ticker].iloc[0]:.2f} {currency} → {eur_prices[sample_ticker].iloc[0]:.2f} EUR")
+    
+    return eur_prices
+
+
+def convert_usd_prices_to_eur(
+    usd_prices: pd.Series,
+    exchange_rates: pd.Series
+) -> pd.Series:
+    """
+    Convert USD-denominated prices to EUR using USD/EUR exchange rates.
+    
+    Formula: Price_EUR = Price_USD / USD_EUR_Rate
+    (If USD_EUR_Rate = 1.20, then 1 USD = 1/1.20 = 0.833 EUR)
+    
+    Parameters
+    ----------
+    usd_prices : pd.Series
+        Prices in USD, index=dates
+    exchange_rates : pd.Series
+        USD/EUR exchange rates, index=dates (month-end)
+    
+    Returns
+    -------
+    pd.Series
+        Prices in EUR, same index as input
+    """
+    # Ensure datetime indices
+    usd_prices.index = pd.to_datetime(usd_prices.index)
+    # Exchange rates should already be DatetimeIndex, but ensure it
+    if isinstance(exchange_rates.index, pd.PeriodIndex):
+        exchange_rates.index = exchange_rates.index.to_timestamp('M')
+    exchange_rates.index = pd.to_datetime(exchange_rates.index)
+    
+    # Convert both to month-end for alignment
+    usd_prices_month_end = usd_prices.index.to_period('M').to_timestamp('M')
+    exchange_rates_month_end = exchange_rates.index.to_period('M').to_timestamp('M')
+    
+    # Reindex exchange rates to match price dates (forward fill for missing)
+    aligned_rates = exchange_rates.reindex(usd_prices_month_end)
+    aligned_rates = aligned_rates.ffill()  # Forward fill
+    
+    # Handle any remaining NaN (use backward fill if needed)
+    if aligned_rates.isna().any():
+        aligned_rates = aligned_rates.bfill()  # Backward fill
+        if aligned_rates.isna().any():
+            # If still NaN, use the first available rate
+            aligned_rates = aligned_rates.fillna(exchange_rates.iloc[0])
+    
+    # Convert prices: EUR = USD / (USD/EUR rate)
+    # The exchange rate is "USD per EUR", so to convert USD to EUR: divide by rate
+    eur_prices = usd_prices / aligned_rates.values
+    eur_prices.index = usd_prices.index  # Keep original index
+    eur_prices.name = usd_prices.name
+    
+    logger.info(f"Converted {len(usd_prices)} USD prices to EUR")
+    if len(usd_prices) > 0:
+        logger.info(f"  Sample: {usd_prices.iloc[0]:.2f} USD @ {aligned_rates.iloc[0]:.4f} USD/EUR → {eur_prices.iloc[0]:.2f} EUR")
+    
+    return eur_prices
+
+
+# -------------------------------------------------------------------
 # ALIGNMENT WITH MSCI INDEX
 # -------------------------------------------------------------------
 
@@ -244,23 +523,25 @@ def load_price_data(country: str, data_type: str = "stocks") -> pd.DataFrame:
     Parameters
     ----------
     country : str
-        Country name
+        Country name (or "Europe" for MSCI Europe index)
     data_type : str
-        'stocks' or 'indices' or 'msci'
+        'stocks' or 'indices' or 'msci' or 'msci_europe'
     
     Returns
     -------
     pd.DataFrame
         Price data with date index
     """
-    if data_type == "msci":
+    if data_type == "msci_europe":
+        filename = "prices_indices_msci_Europe.csv"
+    elif data_type == "msci":
         filename = f"prices_indices_msci_{country}.csv"
     elif data_type == "indices":
         filename = f"prices_indices_{country}.csv"
     else:
         filename = f"prices_stocks_{country}.csv"
     
-    filepath = os.path.join(DATA_RAW_DIR, filename)
+    filepath = os.path.join(DATA_RAW_DIR, "prices", filename)
     
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Price file not found: {filepath}")
@@ -274,7 +555,11 @@ def load_price_data(country: str, data_type: str = "stocks") -> pd.DataFrame:
 
 def create_country_panel(country: str) -> pd.DataFrame:
     """
-    Create aligned panel for one country with stock returns and MSCI index returns.
+    Create aligned panel for one country with stock returns and MSCI Europe index returns.
+    
+    NOTE: All countries now use the same MSCI Europe index (IEUR) as the market proxy,
+    reflecting the integrated nature of European financial markets and providing a
+    consistent benchmark for cross-country analysis.
     
     Parameters
     ----------
@@ -288,31 +573,72 @@ def create_country_panel(country: str) -> pd.DataFrame:
     """
     logger.info(f"Processing country: {country}")
     
-    # Load stock prices and convert to returns
+    # Load stock prices and convert to EUR (if needed)
     try:
         stock_prices = load_price_data(country, "stocks")
-        stock_returns = prices_to_returns(stock_prices)
+        
+        # CRITICAL: Convert stock prices to EUR to match market proxy currency
+        # This eliminates currency mismatch for GBP/SEK/CHF stocks
+        stock_prices_eur = convert_stock_prices_to_eur(stock_prices, country)
+        
+        # Calculate returns from EUR-denominated prices
+        stock_returns = prices_to_returns(stock_prices_eur)
         stock_returns = handle_missing_values(stock_returns)
         stock_returns = filter_stocks_by_observations(stock_returns, min_observations=MIN_OBSERVATIONS)
     except FileNotFoundError as e:
         logger.error(f"Could not load stock prices for {country}: {e}")
         return pd.DataFrame()
     
-    # Load MSCI index prices and convert to returns
+    # Load MSCI Europe index prices and convert to returns
+    # ALL countries now use the same MSCI Europe index
+    # CRITICAL: Convert from USD to EUR to match stock currencies
     try:
-        msci_prices = load_price_data(country, "msci")
+        msci_prices_usd = load_price_data("Europe", "msci_europe")
+        
+        # Convert dates to month-end if they are month-start
+        # MSCI Europe data may have month-start dates, but we need month-end for alignment
+        msci_prices_usd.index = pd.to_datetime(msci_prices_usd.index)
+        # Check if dates are month-start (day == 1) and convert to month-end
+        if (msci_prices_usd.index.day == 1).all():
+            logger.info("Converting MSCI Europe dates from month-start to month-end")
+            msci_prices_usd.index = msci_prices_usd.index.to_period('M').to_timestamp('M')
+        
+        # CRITICAL FIX: Convert IEUR prices from USD to EUR
+        # IEUR is USD-denominated, but we need EUR returns for German investors
+        logger.info("Converting MSCI Europe (IEUR) prices from USD to EUR...")
+        try:
+            exchange_rates = load_usd_eur_exchange_rates()
+            # Get the price series (should be single column)
+            if len(msci_prices_usd.columns) > 0:
+                price_series_usd = msci_prices_usd.iloc[:, 0]
+                # Convert to EUR
+                price_series_eur = convert_usd_prices_to_eur(price_series_usd, exchange_rates)
+                # Create DataFrame with EUR prices
+                msci_prices = pd.DataFrame({price_series_eur.name: price_series_eur})
+                msci_prices.index = price_series_eur.index
+                logger.info("✅ Successfully converted MSCI Europe prices from USD to EUR")
+            else:
+                logger.error("No price data in MSCI Europe file")
+                return pd.DataFrame()
+        except Exception as e:
+            logger.error(f"Failed to convert MSCI Europe to EUR: {e}")
+            logger.error("Falling back to USD prices (WARNING: currency mismatch will affect results)")
+            msci_prices = msci_prices_usd
+        
+        # Calculate returns from EUR-denominated prices
         msci_returns = prices_to_returns(msci_prices)
         # MSCI index should be a single column
         if len(msci_returns.columns) > 0:
             msci_returns_series = msci_returns.iloc[:, 0]
         else:
-            logger.error(f"No MSCI index data for {country}")
+            logger.error(f"No MSCI Europe index data available")
             return pd.DataFrame()
     except FileNotFoundError as e:
-        logger.error(f"Could not load MSCI index prices for {country}: {e}")
+        logger.error(f"Could not load MSCI Europe index prices: {e}")
+        logger.error(f"  Expected file: {os.path.join(DATA_RAW_DIR, 'prices', 'prices_indices_msci_Europe.csv')}")
         return pd.DataFrame()
     
-    # Align stocks with MSCI index
+    # Align stocks with MSCI Europe index
     aligned_stock_returns = align_stocks_with_index(stock_returns, msci_returns_series)
     
     # Re-align MSCI returns to match stock dates
@@ -342,6 +668,7 @@ def create_country_panel(country: str) -> pd.DataFrame:
     country_panel = pd.concat(panel_list, ignore_index=True)
     
     logger.info(f"Created panel for {country}: {len(country_panel)} rows, {len(aligned_stock_returns.columns)} stocks")
+    logger.info(f"  Using MSCI Europe index (IEUR) as market proxy")
     
     return country_panel
 

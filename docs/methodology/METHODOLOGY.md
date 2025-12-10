@@ -192,9 +192,28 @@ CAPM is derived under the following assumptions:
 - Stocks: 219 with complete data (after filtering)
 
 **Market Index Data:**
-- Source: MSCI country indices via iShares ETFs
-- Tickers: EWG (Germany), EWQ (France), EWI (Italy), EWP (Spain), EWD (Sweden), EWU (UK), EWL (Switzerland)
-- **Note:** These are USD-denominated ETFs, which creates currency exposure in beta (documented in methodology)
+- Source: MSCI Europe index via iShares Core MSCI Europe ETF (IEUR)
+- Ticker: IEUR (iShares Core MSCI Europe ETF)
+- **Index Choice Justification:** We use a single MSCI Europe index for all countries, rather than country-specific indices, for the following reasons:
+  1. **European Market Integration:** European financial markets are highly integrated, with common regulations (MiFID II), shared monetary policy (ECB for Eurozone), and free capital movement across EU/EEA borders
+  2. **Cross-Border Capital Flows:** German and other European investors can and do invest across all European markets, making a pan-European index more representative of the investable universe
+  3. **Market Interconnectedness:** European markets exhibit high correlation and move together due to shared economic cycles, policy coordination, and integrated supply chains
+  4. **Consistent Benchmark:** Using a single index provides a consistent benchmark for cross-country comparison and avoids country-specific index construction differences
+  5. **Investor Perspective:** For a German investor, the relevant market portfolio includes all accessible European markets, not just German stocks
+- **Alternative Consideration:** While country-specific indices (e.g., MSCI Germany) could reflect home bias (investors preferring domestic stocks), the integrated nature of European markets and the ability of German investors to access all European markets supports the pan-European approach
+- **Index Characteristics:** MSCI Europe includes large-, mid-, and small-cap stocks from developed European markets, weighted by market capitalization, providing broad market representation
+- **Currency Conversion:** 
+  - **MSCI Europe (IEUR):** Converted from USD to EUR using USD/EUR exchange rates (ECB data). Formula: `Price_EUR = Price_USD / USD_EUR_Rate`
+  - **Stock Prices:** All stock prices converted to EUR:
+    - GBP stocks: `Price_EUR = Price_GBP × GBP_EUR_Rate` (using yfinance GBP/EUR rates)
+    - SEK stocks: `Price_EUR = Price_SEK × SEK_EUR_Rate` (using yfinance SEK/EUR rates)
+    - CHF stocks: `Price_EUR = Price_CHF × CHF_EUR_Rate` (using yfinance CHF/EUR rates)
+    - EUR stocks: No conversion needed
+  - **Impact:** Currency conversion eliminates currency mismatch noise, improving R² values:
+    - GBP stocks: R² improved from 0.203 to 0.258 (+0.055)
+    - SEK stocks: R² improved from 0.264 to 0.323 (+0.059)
+    - Overall: Average R² improved from 0.217 to 0.233 (+0.016)
+  - All returns are now calculated from EUR-denominated prices, ensuring consistent currency for German investors
 
 **Risk-Free Rate Data:**
 - Source: Multiple sources with fallback order:

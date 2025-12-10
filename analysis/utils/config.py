@@ -108,6 +108,8 @@ COUNTRIES = {
 }
 
 # MSCI Country Index Tickers (iShares ETFs tracking MSCI indices)
+# NOTE: These are kept for reference but are no longer used in the main analysis.
+# The analysis now uses MSCI Europe (IEUR) for all countries.
 MSCI_INDEX_TICKERS = {
     "Germany":        "EWG",
     "France":         "EWQ",
@@ -117,6 +119,14 @@ MSCI_INDEX_TICKERS = {
     "UnitedKingdom": "EWU",
     "Switzerland":    "EWL",
 }
+
+# MSCI Europe Index Ticker (iShares Core MSCI Europe ETF)
+# This is used as the market proxy for all countries in the analysis
+# Ticker: IEUR (tracks MSCI Europe Index, includes large-, mid-, and small-cap European stocks)
+# Note: While the ETF trades in USD, it tracks EUR-denominated European stocks,
+# making it appropriate for European investor analysis. The underlying returns
+# reflect European market movements in their local currencies.
+MSCI_EUROPE_TICKER = "IEUR"
 
 # Minimum observations required (59 months of returns from 60 months of prices)
 MIN_OBSERVATIONS = 59

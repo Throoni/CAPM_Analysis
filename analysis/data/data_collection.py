@@ -10,7 +10,7 @@ import logging
 
 import pandas as pd
 
-from analysis.utils.config import ANALYSIS_SETTINGS, DATA_RAW_DIR
+from analysis.utils.config import ANALYSIS_SETTINGS, DATA_RAW_DIR, MSCI_EUROPE_TICKER
 from analysis.utils.universe import load_stock_universe
 from analysis.data.yf_helper import download_monthly_prices
 
@@ -225,6 +225,141 @@ def collect_prices_by_country():
         logger.warning(f"{'='*60}\n")
     else:
         logger.info("\n✅ All downloaded files have complete date ranges within expected parameters.")
+
+
+def download_exchange_rates(base_currency: str, target_currency: str = "EUR") -> bool:
+    """
+    Download exchange rates using yfinance (currency pairs).
+    
+    Uses Yahoo Finance to get historical exchange rate data.
+    Saves to: data/raw/exchange_rates/[base]_[target].csv
+    
+    Parameters
+    ----------
+    base_currency : str
+        Base currency (GBP, SEK, CHF, USD)
+    target_currency : str
+        Target currency (default: EUR)
+    
+    Returns
+    -------
+    bool
+        True if successful, False otherwise
+    """
+    import yfinance as yf
+    from analysis.utils.config import ANALYSIS_SETTINGS
+    
+    logger.info("="*60)
+    logger.info(f"Downloading {base_currency}/{target_currency} Exchange Rates")
+    logger.info("="*60)
+    
+    # Yahoo Finance ticker format for currency pairs
+    # Format: [BASE][TARGET]=X (e.g., GBPEUR=X for GBP/EUR)
+    ticker_symbol = f"{base_currency}{target_currency}=X"
+    
+    logger.info(f"Ticker: {ticker_symbol}")
+    logger.info(f"Date range: {ANALYSIS_SETTINGS.start_date} to {ANALYSIS_SETTINGS.end_date}")
+    
+    try:
+        # Download exchange rate data
+        ticker = yf.Ticker(ticker_symbol)
+        df = ticker.history(
+            start=ANALYSIS_SETTINGS.start_date,
+            end=ANALYSIS_SETTINGS.end_date,
+            interval="1mo"
+        )
+        
+        if df.empty:
+            logger.warning(f"No data returned for {ticker_symbol}")
+            return False
+        
+        # Use Close price as exchange rate
+        rates = df['Close'].copy()
+        rates.index = rates.index.to_period('M').to_timestamp('M')  # Convert to month-end
+        
+        # Create DataFrame with date and rate
+        output_df = pd.DataFrame({
+            'Date': rates.index,
+            f'{base_currency}/{target_currency}': rates.values
+        })
+        
+        # Save to CSV
+        output_file = os.path.join(
+            DATA_RAW_DIR,
+            "exchange_rates",
+            f"{base_currency}_{target_currency}.csv"
+        )
+        output_df.to_csv(output_file, index=False)
+        logger.info(f"✅ Saved: {output_file}")
+        logger.info(f"  Rows: {len(output_df)}, Date range: {rates.index.min()} to {rates.index.max()}")
+        logger.info(f"  Rate range: [{rates.min():.4f}, {rates.max():.4f}]")
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to download {base_currency}/{target_currency}: {e}")
+        logger.exception("Full error details:")
+        return False
+
+
+def collect_msci_europe_index():
+    """
+    Download MSCI Europe index data (IEUR - iShares Core MSCI Europe ETF).
+    
+    This function downloads the MSCI Europe index which is used as the market proxy
+    for all countries in the analysis, reflecting the integrated nature of European
+    financial markets.
+    
+    Saves data to: data/raw/prices/prices_indices_msci_Europe.csv
+    """
+    logger.info("="*60)
+    logger.info("Downloading MSCI Europe Index (IEUR)")
+    logger.info("="*60)
+    
+    start_date = ANALYSIS_SETTINGS.start_date
+    end_date = ANALYSIS_SETTINGS.end_date
+    
+    logger.info(f"Ticker: {MSCI_EUROPE_TICKER}")
+    logger.info(f"Date range: {start_date} to {end_date}")
+    
+    try:
+        # Download MSCI Europe index prices
+        logger.info(f"Downloading MSCI Europe index prices...")
+        df_msci_europe = download_monthly_prices(
+            [MSCI_EUROPE_TICKER],
+            start=start_date,
+            end=end_date
+        )
+        
+        if df_msci_europe.empty:
+            logger.error(f"No data returned for {MSCI_EUROPE_TICKER}")
+            return False
+        
+        # Save to CSV
+        msci_europe_path = os.path.join(
+            DATA_RAW_DIR,
+            "prices",
+            "prices_indices_msci_Europe.csv"
+        )
+        df_msci_europe.to_csv(msci_europe_path, index=True)
+        logger.info(f"SUCCESS: Saved MSCI Europe index prices to {msci_europe_path}")
+        logger.info(f"  Shape: {df_msci_europe.shape}, Columns: {list(df_msci_europe.columns)}")
+        
+        # Validate date range
+        validation = validate_data_date_range(df_msci_europe, msci_europe_path, start_date, end_date)
+        if not validation['is_valid']:
+            logger.warning(f"Data quality issues for MSCI Europe index:")
+            for issue in validation['issues']:
+                logger.warning(f"  - {issue}")
+            return False
+        
+        logger.info("✅ MSCI Europe index data collection completed successfully")
+        return True
+        
+    except Exception as e:
+        logger.error(f"ERROR downloading MSCI Europe index: {e}")
+        logger.exception("Full error details:")
+        return False
 
 
 if __name__ == "__main__":

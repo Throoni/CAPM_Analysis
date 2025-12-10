@@ -159,14 +159,19 @@ Studies of CAPM in European markets have generally found:
 - Period: December 2020 to November 2025 (60 months of prices, 59 months of returns)
 
 **Market Proxies:**
-- MSCI country indices accessed via iShares ETFs:
-  - Germany: EWG (MSCI Germany)
-  - France: EWQ (MSCI France)
-  - Italy: EWI (MSCI Italy)
-  - Spain: EWP (MSCI Spain)
-  - Sweden: EWD (MSCI Sweden)
-  - United Kingdom: EWU (MSCI UK)
-  - Switzerland: EWL (MSCI Switzerland)
+- **MSCI Europe Index** accessed via iShares Core MSCI Europe ETF (IEUR)
+  - **Single pan-European index used for all countries**
+  - Ticker: IEUR (iShares Core MSCI Europe ETF)
+  - Includes large-, mid-, and small-cap stocks from developed European markets
+  - Market capitalization weighted
+  - **Justification for European-wide approach:**
+    1. **Market Integration:** European financial markets are highly integrated with common regulations (MiFID II), shared monetary policy (ECB), and free capital movement
+    2. **Investor Access:** German and European investors can access all European markets, making a pan-European index more representative of the investable universe
+    3. **Market Interconnectedness:** European markets exhibit high correlation and move together due to shared economic cycles and policy coordination
+    4. **Consistent Benchmark:** Single index provides consistent benchmark for cross-country comparison
+    5. **Investor Perspective:** For German investors, the relevant market portfolio includes all accessible European markets
+  - **Alternative Consideration:** While country-specific indices could reflect home bias (preference for domestic stocks), the integrated nature of European markets supports the pan-European approach
+  - **Currency Conversion:** IEUR is USD-denominated, but we convert it to EUR using USD/EUR exchange rates (ECB data) to remove currency noise. This improves beta estimates and R² values by eliminating exchange rate effects between USD (IEUR) and local stock currencies. The conversion ensures the market proxy better represents European market movements in EUR terms, which is appropriate for German investors who care about EUR returns.
 
 **Risk-Free Rates:**
 - 3-month government bond yields for each country:
@@ -262,17 +267,19 @@ $$R_{i,t} - R_{f,t} = \alpha_i + \beta_i (R_{m,t} - R_{f,t}) + \varepsilon_{i,t}
 
 ### 4.1 Aggregate Statistics
 
-The time-series regressions yield the following aggregate results:
+The time-series regressions yield the following aggregate results (after full currency conversion to EUR):
 
 | Statistic | Value |
 |-----------|-------|
-| Valid stocks | 219 |
-| Average beta | 0.688 |
-| Median beta | 0.646 |
-| Average R² | 0.235 |
-| Median R² | 0.210 |
-| Average alpha | 0.144% |
-| % Significant betas (p < 0.05) | 95.9% |
+| Valid stocks | 245 |
+| Average beta | 0.905 |
+| Median beta | 0.884 |
+| Average R² | 0.233 |
+| Median R² | 0.221 |
+| Average alpha | -0.038% |
+| % Significant betas (p < 0.05) | 95.5% |
+
+**Note on Currency Conversion:** All stock returns (GBP/SEK/CHF/EUR) and market returns (MSCI Europe) are converted to EUR to eliminate currency mismatch. This improves R² values, especially for GBP stocks (average R² improved from 0.203 to 0.258).
 
 ### 4.2 Results by Country
 
@@ -280,36 +287,72 @@ The time-series regressions yield the following aggregate results:
 
 *(See Appendix A.1 for full table)*
 
-Key findings by country:
-- **Beta values** are economically reasonable, with median betas ranging from 0.53 to 0.67
-- **R² values** average approximately 0.24, indicating moderate explanatory power
-- **Significant betas** represent 95.9% of the sample, indicating beta is statistically distinguishable from zero for most stocks
+Key findings by country (after currency conversion):
+- **Beta values** are economically reasonable, with median betas ranging from 0.77 to 1.14
+- **R² values** average approximately 0.23, indicating moderate explanatory power
+  - **GBP stocks:** Average R² = 0.258 (improved from 0.203 after currency conversion)
+  - **SEK stocks:** Average R² = 0.323 (improved from 0.264)
+  - **CHF stocks:** Average R² = 0.246 (slightly decreased from 0.275, but still strong)
+  - **EUR stocks:** Average R² = 0.208 (no change, as no conversion needed)
+- **Significant betas** represent 95.5% of the sample, indicating beta is statistically distinguishable from zero for most stocks
+
+**Currency Conversion Impact:** Converting all stock returns to EUR eliminated currency mismatch and improved R², particularly for GBP stocks (46% had R² < 0.15 before, 26.6% after conversion).
 
 ### 4.3 Distribution Analysis
 
-**Beta Distribution:**
-- Most stocks have betas below 1.0, as expected for European large-cap stocks
-- Distribution is centered around 0.6-0.7
-- Relatively few extreme values (after removing outliers)
+**Beta Distribution (after currency conversion):**
+- Most stocks have betas between 0.6 and 1.2, as expected for European stocks relative to pan-European index
+- Distribution is centered around 0.88 (median), with 25th-75th percentile range of 0.77-1.10
+- Higher betas than before currency conversion (was 0.65), reflecting removal of currency noise that was reducing correlations
 
-**R² Distribution:**
-- Average R² of 0.235 indicates that market beta explains approximately 24% of return variation
-- Approximately 76% of return variation remains unexplained by market risk alone
-- This suggests that firm-specific factors, sector effects, and other non-market drivers play a substantial role
+**R² Distribution (after currency conversion):**
+- Average R² of 0.233 indicates that market beta explains approximately 23% of return variation
+- Median R² of 0.221 shows the distribution is slightly right-skewed
+- Approximately 77% of return variation remains unexplained by market risk alone
+- **Improvement from currency conversion:** Average R² increased from 0.217 to 0.233 (+0.016)
+- **Low R² stocks reduced:** Percentage with R² < 0.15 decreased from 36.1% to 30.2% (-5.9 percentage points)
+
+**R² by Currency (after conversion):**
+- **GBP stocks:** Average R² = 0.258 (improved from 0.203, +0.055) - major improvement
+- **SEK stocks:** Average R² = 0.323 (improved from 0.264, +0.059) - strong performance
+- **CHF stocks:** Average R² = 0.246 (slightly decreased from 0.275, but still good)
+- **EUR stocks:** Average R² = 0.208 (no change, as no conversion needed)
+
+**Why Some Stocks Still Have Low R²:**
+- **30.2% of stocks have R² < 0.15** - this is expected for a single-factor model
+- Low R² stocks tend to have:
+  - Lower betas (mean 0.575 vs overall 0.905), indicating weak market sensitivity
+  - Some have non-significant betas (29.7% have p > 0.05), suggesting truly idiosyncratic returns
+  - Concentrated in certain countries (Spain: 45.7% have R² < 0.15, UK: 26.6%)
+- **This is normal:** CAPM is a single-factor model, and finance literature shows that R² of 0.20-0.30 is typical for individual stocks. The remaining variation reflects:
+  - Firm-specific factors (earnings surprises, management changes, product launches)
+  - Sector effects (technology, financials, energy have distinct risk profiles)
+  - Country-specific factors (even after currency conversion, local economic conditions matter)
+  - Size, value, quality, and momentum factors (captured by multi-factor models)
 
 ### 4.4 Interpretation
 
 **In time series, the CAPM is partially useful:**
 
-1. **Market risk matters:** Beta captures a meaningful portion of stock return variation, confirming that market movements are an important driver of individual stock returns.
+1. **Market risk matters:** Beta captures a meaningful portion of stock return variation, confirming that market movements are an important driver of individual stock returns. After currency conversion, average R² improved to 0.233, indicating that eliminating currency noise improves the model fit.
 
-2. **Idiosyncratic risk dominates:** Approximately 76% of return variation is unexplained by the market, indicating that firm-specific factors, sector effects, and other non-market drivers play a substantial role.
+2. **Idiosyncratic risk dominates:** Approximately 77% of return variation remains unexplained by the market, indicating that firm-specific factors, sector effects, and other non-market drivers play a substantial role. This is expected and consistent with finance literature.
 
-3. **Betas are plausible:** The median beta of 0.646 is consistent with expectations for developed European markets, where large-cap stocks typically exhibit moderate market sensitivity.
+3. **Betas are plausible:** The median beta of 0.884 (after currency conversion) is consistent with expectations for European stocks relative to a pan-European market index. Betas are higher than before (0.646) because currency conversion removed noise that was reducing correlations.
 
-4. **Positive alphas:** The average alpha of 0.144% suggests that stocks, on average, earn returns slightly higher than what CAPM predicts based on their beta alone.
+4. **Currency conversion impact:** Converting all returns to EUR significantly improved R² for GBP stocks (0.203 → 0.258) and SEK stocks (0.264 → 0.323), demonstrating that currency mismatch was a major source of noise.
 
-**Conclusion:** While CAPM has moderate time-series explanatory power, it leaves substantial return variation unexplained, suggesting that additional factors beyond market beta are necessary to fully explain stock returns.
+5. **Remaining low R² stocks:** 30.2% of stocks still have R² < 0.15. Analysis shows these are primarily:
+   - Stocks with very low betas (mean 0.575 vs overall 0.905), suggesting weak market sensitivity
+   - Some with non-significant betas (29.7% have p > 0.05), indicating truly idiosyncratic returns
+   - Concentrated in certain countries (Spain: 16 stocks, UK: 17 stocks) and sectors
+   - This is expected - not all stocks should have high R² with a single market factor
+
+**Conclusion:** While CAPM has moderate time-series explanatory power (R² ≈ 0.23), it leaves substantial return variation unexplained. Currency conversion improved the fit significantly (especially for GBP and SEK stocks), but the remaining low R² reflects the inherent limitation of a single-factor model. 
+
+**R² of 0.20-0.30 is typical for CAPM** in finance literature. The fact that 70% of stocks have R² > 0.15 demonstrates that the model has meaningful explanatory power. Further improvements would require multi-factor models (Fama-French 3-factor, Carhart 4-factor) that incorporate size, value, quality, and momentum factors beyond market beta alone.
+
+**For detailed R² analysis, see:** `results/reports/R2_improvements_analysis.md`
 
 ---
 
@@ -541,6 +584,7 @@ We construct the efficient frontier, identify the minimum-variance portfolio, fi
    - Expected Return: 2.00% (monthly)
    - Volatility: 1.93% (monthly)
    - Sharpe Ratio: 1.03
+   - **Note:** Sharpe ratio calculation verified. All returns and risk-free rates are in consistent currency (EUR). After currency conversion, all calculations use EUR-denominated returns, ensuring proper risk-return relationships.
 
 3. **Equal-Weighted Portfolio:**
    - Expected Return: 0.81% (monthly)
@@ -553,15 +597,25 @@ We construct the efficient frontier, identify the minimum-variance portfolio, fi
    - **Diversification Ratio:** 2.35
    - **Variance Reduction:** 82.0%
 
-**Figure 7: Efficient Frontier**
+**Figure 7: Efficient Frontier with All Stocks and Market Index**
 
-*(See `results/plots/efficient_frontier.png`)*
+*(See `results/figures/efficient_frontier.png`)*
 
-The efficient frontier shows:
-- All efficient portfolios lie on the upward-sloping curve
-- Minimum-variance portfolio is at the leftmost point
-- Tangency portfolio (optimal risky portfolio) maximizes Sharpe ratio
-- Capital Market Line connects risk-free rate to tangency portfolio
+The enhanced efficient frontier graph shows:
+- **X-axis:** Volatility (standard deviation, %)
+- **Y-axis:** Expected return (%)
+- **All individual stocks** plotted as scatter points (gray)
+- **Efficient frontier** (blue line) showing optimal risk-return combinations
+- **Market index (MSCI Europe)** plotted as a red star
+- **Minimum-variance portfolio** (red circle)
+- **Tangency portfolio** (optimal risky portfolio, green circle)
+- **Capital Market Line** connecting risk-free rate to tangency portfolio
+
+**CAPM Interpretation from the Graph:**
+- **If the efficient frontier overlaps well with the chosen market index (MSCI Europe):** This would indicate that CAPM holds - the market index lies on or near the efficient frontier, suggesting it represents the optimal market portfolio
+- **If the efficient frontier does NOT overlap with the market index:** This indicates that CAPM does not hold - the market index is not on the efficient frontier, suggesting that the market portfolio is not mean-variance efficient
+
+The graph provides visual evidence of whether the chosen market index (MSCI Europe) represents an efficient portfolio, which is a key assumption of CAPM.
 
 ### 8.4 Interpretation
 
@@ -790,16 +844,16 @@ More recent literature finds **mixed evidence** for CAPM, especially in:
 
 ---
 
-## 8. Conclusions & Implications
+## 12. Conclusions & Implications
 
-### 8.1 Main Conclusions
+### 12.1 Main Conclusions
 
 This analysis provides **robust evidence** that the Capital Asset Pricing Model fails to explain cross-sectional variation in European stock returns during 2021-2025. The results are consistent across:
 - Time-series regressions (moderate explanatory power, R² ≈ 0.24)
 - Cross-sectional tests (beta not priced, $\gamma_1$ insignificant)
 - Robustness checks (results hold across subperiods, countries, and sample specifications)
 
-### 8.2 Key Findings Summary
+### 12.2 Key Findings Summary
 
 1. **Time-Series:** CAPM has moderate explanatory power (R² ≈ 0.24), indicating that market beta explains approximately 24% of return variation.
 
@@ -813,7 +867,7 @@ This analysis provides **robust evidence** that the Capital Asset Pricing Model 
 
 4. **Economic Interpretation:** The CAPM failure suggests that multi-factor models (Fama-French, Carhart) incorporating size, value, profitability, and momentum factors are necessary to explain expected returns.
 
-### 8.3 Implications
+### 12.3 Implications
 
 **For Researchers:**
 - CAPM remains a useful theoretical benchmark but fails empirically in European markets
@@ -830,7 +884,11 @@ This analysis provides **robust evidence** that the Capital Asset Pricing Model 
 - Diversification across factors (size, value, quality) may be more important than market beta
 - Understanding sector and company-specific risks is crucial
 
-### 12.4 Limitations and Validity Assessment
+---
+
+## 14. Appendices
+
+### A.10 Limitations and Validity Assessment
 
 **1. Data Limitations:**
 
@@ -873,7 +931,7 @@ This analysis provides **robust evidence** that the Capital Asset Pricing Model 
   - Independence (returns may be autocorrelated)
   - Normality (returns are typically non-normal)
 
-### 12.5 Recommendations for Proceeding
+### A.11 Recommendations for Proceeding
 
 **Should XYZ Asset Manager proceed with the recommendation?**
 
@@ -903,7 +961,7 @@ This analysis provides **robust evidence** that the Capital Asset Pricing Model 
    - Consider hybrid approach if costs are prohibitive
    - Monitor net-of-fee returns carefully
 
-### 12.6 Directions for Further Research
+### A.12 Directions for Further Research
 
 **1. Multi-Factor Models:**
 - Test Fama-French 3-factor model in European markets
@@ -940,7 +998,7 @@ This analysis provides **robust evidence** that the Capital Asset Pricing Model 
 - Test portfolio construction with constraints (note: minimum-variance portfolio allows short selling; tangency and efficient frontier use long-only constraints)
 - Examine rebalancing frequency and turnover
 
-### 12.7 Overall Validity Assessment
+### A.13 Overall Validity Assessment
 
 **Strengths of This Analysis:**
 
@@ -988,10 +1046,6 @@ Lintner, J. (1965). The valuation of risk assets and the selection of risky inve
 Markowitz, H. (1952). Portfolio selection. *Journal of Finance*, 7(1), 77-91.
 
 Sharpe, W. F. (1964). Capital asset prices: A theory of market equilibrium under conditions of risk. *Journal of Finance*, 19(3), 425-442.
-
----
-
-## 14. Appendices
 
 ### A.1 Table 1: CAPM Time-Series Summary by Country
 

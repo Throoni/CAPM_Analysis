@@ -434,7 +434,7 @@ def load_riskfree_from_csv(
     pd.Series or None
         Monthly risk-free rate in percentage form (%), or None if file not found
     """
-    csv_path = os.path.join(DATA_RAW_DIR, f"riskfree_rate_{country}.csv")
+    csv_path = os.path.join(DATA_RAW_DIR, "riskfree_rates", f"riskfree_rate_{country}.csv")
     
     if not os.path.exists(csv_path):
         logger.debug(f"CSV file not found: {csv_path}")

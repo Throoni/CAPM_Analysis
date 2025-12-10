@@ -17,19 +17,33 @@ The analysis period spans **2020-12-01 to 2025-12-01**, using **monthly** return
 
 ### Market Proxies
 
-For each country, beta is estimated against the **MSCI country index** (accessed via iShares ETFs), not the local stock exchange index. This choice is motivated by:
-- Broader market coverage (includes mid-caps)
-- Consistent methodology across countries
-- Empirically superior explanatory power
+For all countries, beta is estimated against the **MSCI Europe index** (accessed via iShares Core MSCI Europe ETF, ticker: IEUR), not country-specific or local stock exchange indices. This choice is motivated by:
 
-The market proxies used are:
-- Germany: MSCI Germany (via EWG)
-- France: MSCI France (via EWQ)
-- Italy: MSCI Italy (via EWI)
-- Spain: MSCI Spain (via EWP)
-- Sweden: MSCI Sweden (via EWD)
-- United Kingdom: MSCI UK (via EWU)
-- Switzerland: MSCI Switzerland (via EWL)
+**Primary Justification - European Market Integration:**
+1. **Integrated Financial Markets:** European financial markets are highly integrated with common regulations (MiFID II), shared monetary policy (ECB for Eurozone), and free capital movement across EU/EEA borders
+2. **Cross-Border Capital Flows:** German and other European investors can and do invest across all European markets, making a pan-European index more representative of the investable universe
+3. **Market Interconnectedness:** European markets exhibit high correlation and move together due to:
+   - Shared economic cycles and business cycles
+   - Policy coordination (ECB monetary policy, EU fiscal policy)
+   - Integrated supply chains and trade relationships
+   - Common regulatory framework
+4. **Consistent Benchmark:** Using a single index provides a consistent benchmark for cross-country comparison and avoids country-specific index construction differences
+5. **Investor Perspective:** For a German investor, the relevant market portfolio includes all accessible European markets, not just German stocks
+
+**Index Characteristics:**
+- **MSCI Europe Index** (via IEUR): Includes large-, mid-, and small-cap stocks from developed European markets
+- Market capitalization weighted
+- Broader market coverage than country-specific indices
+- Empirically provides consistent methodology across all countries
+
+**Currency Handling:**
+- IEUR is USD-denominated, but we convert it to EUR using USD/EUR exchange rates (ECB data) to remove currency noise
+- Conversion formula: `Price_EUR = Price_USD / USD_EUR_Rate`
+- This ensures the market proxy represents European market movements in EUR terms, appropriate for German investors
+- Currency conversion improves beta estimates and R² values by eliminating exchange rate effects
+
+**Alternative Consideration:**
+While country-specific indices (e.g., MSCI Germany via EWG) could reflect home bias (behavioral preference for domestic stocks), the integrated nature of European markets and the ability of German investors to access all European markets supports the pan-European approach. The choice between European-wide and country-specific indices is ultimately a question of investor perspective and market representation, and we provide evidence supporting the European-wide approach based on market integration.
 
 ### Risk-Free Rate
 

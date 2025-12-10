@@ -389,71 +389,119 @@ def plot_efficient_frontier(
     frontier_df: pd.DataFrame,
     min_var_port: Tuple[float, float],
     tangency_port: Tuple[float, float],
-    individual_stocks: pd.Series,
+    expected_returns: pd.Series,
+    cov_matrix: pd.DataFrame,
+    market_index_return: float,
+    market_index_vol: float,
     risk_free_rate: float,
     output_path: str
 ) -> None:
     """
-    Plot efficient frontier with minimum-variance and tangency portfolios.
+    Plot efficient frontier with all individual stocks and market index.
+    
+    This graph shows:
+    - X-axis: Volatility (standard deviation)
+    - Y-axis: Expected return
+    - All individual stocks as scatter points
+    - Efficient frontier
+    - Market index (MSCI Europe) point
+    - Interpretation: If efficient frontier overlaps well with market index, CAPM holds.
+                     If not, CAPM does not hold (opposite).
     
     Parameters
     ----------
     frontier_df : pd.DataFrame
-        Efficient frontier data
+        Efficient frontier data with 'volatility' and 'return' columns
     min_var_port : tuple
         (return, volatility) for minimum-variance portfolio
     tangency_port : tuple
         (return, volatility) for tangency portfolio
-    individual_stocks : pd.Series
-        Individual stock (return, volatility) pairs
+    expected_returns : pd.Series
+        Expected returns for all individual stocks
+    cov_matrix : pd.DataFrame
+        Covariance matrix for calculating individual stock volatilities
+    market_index_return : float
+        Expected return of market index (MSCI Europe)
+    market_index_vol : float
+        Volatility of market index (MSCI Europe)
     risk_free_rate : float
         Risk-free rate
     output_path : str
         Path to save plot
     """
-    logger.info("Creating efficient frontier plot...")
+    logger.info("Creating enhanced efficient frontier plot with all stocks and market index...")
     
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(14, 10))
+    
+    # Calculate individual stock volatilities from covariance matrix diagonal
+    individual_volatilities = np.sqrt(np.diag(cov_matrix.values)) * 100  # Convert to percentage
+    
+    # Plot ALL individual stocks
+    ax.scatter(individual_volatilities, expected_returns.values, 
+              alpha=0.4, s=30, color='gray', label=f'Individual Stocks (n={len(expected_returns)})',
+              edgecolors='black', linewidths=0.3)
     
     # Plot efficient frontier
     ax.plot(frontier_df['volatility'], frontier_df['return'], 
-            'b-', linewidth=2, label='Efficient Frontier')
+            'b-', linewidth=2.5, label='Efficient Frontier', zorder=5)
+    
+    # Plot market index (MSCI Europe)
+    ax.scatter(market_index_vol, market_index_return, 
+              s=200, marker='*', color='red', edgecolors='darkred', linewidths=2,
+              label='Market Index (MSCI Europe)', zorder=6)
     
     # Plot minimum-variance portfolio
     ax.plot(min_var_port[1], min_var_port[0], 
-            'ro', markersize=12, label='Minimum-Variance Portfolio')
+            'ro', markersize=12, label='Minimum-Variance Portfolio', zorder=5)
     
     # Plot tangency portfolio
     ax.plot(tangency_port[1], tangency_port[0], 
-            'go', markersize=12, label='Optimal Risky Portfolio (Tangency)')
+            'go', markersize=12, label='Optimal Risky Portfolio (Tangency)', zorder=5)
     
     # Plot risk-free rate
-    ax.axhline(y=risk_free_rate, color='k', linestyle='--', linewidth=1, label=f'Risk-Free Rate ({risk_free_rate:.2f}%)')
+    ax.axhline(y=risk_free_rate, color='k', linestyle='--', linewidth=1, 
+              label=f'Risk-Free Rate ({risk_free_rate:.2f}%)', zorder=3)
     
     # Plot capital market line (from risk-free rate through tangency portfolio)
     if tangency_port[1] > 0:
         cml_slope = (tangency_port[0] - risk_free_rate) / tangency_port[1]
-        x_cml = np.linspace(0, frontier_df['volatility'].max() * 1.1, 100)
+        x_cml = np.linspace(0, max(frontier_df['volatility'].max(), individual_volatilities.max()) * 1.1, 100)
         y_cml = risk_free_rate + cml_slope * x_cml
-        ax.plot(x_cml, y_cml, 'g--', linewidth=1.5, alpha=0.7, label='Capital Market Line')
+        ax.plot(x_cml, y_cml, 'g--', linewidth=1.5, alpha=0.7, label='Capital Market Line', zorder=4)
     
-    # Plot individual stocks (sample)
-    if len(individual_stocks) > 0:
-        # Sample stocks for clarity (if too many)
-        if len(individual_stocks) > 50:
-            sample_stocks = individual_stocks.sample(50)
-        else:
-            sample_stocks = individual_stocks
-        
-        # Calculate volatilities for sample stocks
-        # This would require covariance matrix - for now, skip individual stocks
-        # ax.scatter(..., alpha=0.3, s=20, label='Individual Stocks', color='gray')
-        pass
+    # Add interpretation text about CAPM
+    # Calculate distance between market index and efficient frontier
+    # Find closest point on efficient frontier to market index
+    frontier_distances = np.sqrt(
+        (frontier_df['volatility'] - market_index_vol)**2 + 
+        (frontier_df['return'] - market_index_return)**2
+    )
+    min_distance = frontier_distances.min()
+    closest_idx = frontier_distances.idxmin()
+    closest_point_vol = frontier_df.loc[closest_idx, 'volatility']
+    closest_point_ret = frontier_df.loc[closest_idx, 'return']
+    
+    # Interpretation: If market index is close to efficient frontier, CAPM holds
+    # Threshold: if distance is less than 5% of market volatility, consider it "close"
+    distance_threshold = market_index_vol * 0.05
+    if min_distance < distance_threshold:
+        capm_status = "CAPM HOLDS: Market index overlaps well with efficient frontier"
+        capm_color = 'green'
+    else:
+        capm_status = "CAPM DOES NOT HOLD: Market index does not overlap with efficient frontier"
+        capm_color = 'red'
+    
+    # Add text box with interpretation
+    textstr = f'CAPM Interpretation:\n{capm_status}\n\nDistance to frontier: {min_distance:.3f}'
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.8, edgecolor=capm_color, linewidth=2)
+    ax.text(0.02, 0.98, textstr, transform=ax.transAxes, fontsize=10,
+            verticalalignment='top', bbox=props, color=capm_color, fontweight='bold')
     
     ax.set_xlabel('Volatility (Standard Deviation, %)', fontsize=12, fontweight='bold')
     ax.set_ylabel('Expected Return (%)', fontsize=12, fontweight='bold')
-    ax.set_title('Mean-Variance Efficient Frontier', fontsize=14, fontweight='bold')
-    ax.legend(loc='best', fontsize=10)
+    ax.set_title('Mean-Variance Efficient Frontier with All Stocks and Market Index', 
+                fontsize=14, fontweight='bold')
+    ax.legend(loc='best', fontsize=9, framealpha=0.9)
     ax.grid(True, alpha=0.3)
     
     plt.tight_layout()
@@ -461,6 +509,8 @@ def plot_efficient_frontier(
     plt.close()
     
     logger.info(f"✅ Saved: {output_path}")
+    logger.info(f"  Market index distance to efficient frontier: {min_distance:.4f}")
+    logger.info(f"  CAPM status: {capm_status}")
 
 
 def run_portfolio_optimization() -> Dict:
@@ -518,13 +568,24 @@ def run_portfolio_optimization() -> Dict:
     # Calculate diversification benefits
     div_benefits = calculate_diversification_benefits(expected_returns, cov_matrix)
     
-    # Create plot
+    # Calculate market index (MSCI Europe) return and volatility from panel
+    # Market index returns are in the 'msci_index_return' column (already in percentage form)
+    # Get unique market returns (same for all stocks in each month)
+    market_returns = panel_df.groupby('date')['msci_index_return'].first().dropna()
+    market_index_return = market_returns.mean()  # Expected return (mean historical, already in %)
+    market_index_vol = market_returns.std()  # Volatility (already in percentage form, no need to multiply by 100)
+    logger.info(f"Market index (MSCI Europe): Return={market_index_return:.4f}%, Volatility={market_index_vol:.4f}%")
+    
+    # Create plot with all stocks and market index
     plot_path = os.path.join(RESULTS_FIGURES_DIR, "efficient_frontier.png")
     plot_efficient_frontier(
         frontier_df,
         (min_var_return, min_var_vol),
         (tangency_return, tangency_vol),
-        expected_returns,  # Individual stocks (simplified)
+        expected_returns,
+        cov_matrix,
+        market_index_return,
+        market_index_vol,
         avg_rf_rate,
         plot_path
     )
