@@ -6,7 +6,7 @@ This section provides a brief recap of the data and methodology used in the empi
 
 #\section{Universe
 
-The analysis covers \textbf{7 European markets\textbf{: Germany (DE), France (FR), Italy (IT), Spain (ES), Sweden (SE), United Kingdom (UK), and Switzerland (CH). After data cleaning and quality filters, the final sample consists of \textbf{245 valid stocks\textbf{ (out of 249 total) with complete return data.
+The analysis covers \textbf{7 European markets\textbf{: Germany (DE), France (FR), Italy (IT), Spain (ES), Sweden (SE), United Kingdom (UK), and Switzerland (CH). After data cleaning and quality filters, the final sample consists of \textbf{245 stocks\textbf{ with complete return data.
 
 #\section{Period
 
@@ -83,16 +83,16 @@ The time-series regressions yield the following aggregate results:
 - \textbf{Valid stocks:\textbf{ 245 (out of 249 total)
 - \textbf{Average beta:\textbf{ 0.917
 - \textbf{Median beta:\textbf{ 0.875
-- \textbf{Average R²:\textbf{ 0.236
+- \textbf{Average R²:\textbf{ 0.235
 - \textbf{Average alpha:\textbf{ -0.099%
 
 #\section{Results by Country
 
 Table~\ref{tab:1 presents the CAPM time-series summary by country. Key findings:
 
-- \textbf{Beta values\textbf{ are economically reasonable, with median betas ranging from approximately 0.77 to 1.14 across countries. Most stocks have betas below 1.0, as expected for many European large-cap stocks that are less volatile than their respective market indices.
+- \textbf{Beta values\textbf{ are economically reasonable, with median betas ranging from approximately 0.53 to 0.67 across countries. Most stocks have betas below 1.0, as expected for many European large-cap stocks that are less volatile than their respective market indices.
 
-- \textbf{R² values\textbf{ average approximately 0.24, indicating that the market factor explains approximately 23.6% of return variation on average. This represents a \textbf{non-trivial but limited\textbf{ explanatory power.
+- \textbf{R² values\textbf{ average approximately 0.24, indicating that the market factor explains approximately 23.5% of return variation on average. This represents a \textbf{non-trivial but limited\textbf{ explanatory power.
 
 - \textbf{Significant betas\textbf{ (p < 0.05) represent approximately 91.4% of the sample, indicating that for most stocks, beta is statistically distinguishable from zero.
 
@@ -102,7 +102,7 @@ Figure~\ref{fig:1 shows the distribution of betas by country. The distributions 
 
 #\section{Interpretation
 
-\textbf{In time series, the CAPM is partially useful:\textbf{ The market factor explains some risk, but not all. The average R² of 0.236 suggests that:
+\textbf{In time series, the CAPM is partially useful:\textbf{ The market factor explains some risk, but not all. The average R² of 0.235 suggests that:
 
 1. \textbf{Market risk matters:\textbf{ Beta captures a meaningful portion of stock return variation, confirming that market movements are an important driver of individual stock returns.
 
@@ -110,7 +110,7 @@ Figure~\ref{fig:1 shows the distribution of betas by country. The distributions 
 
 3. \textbf{Betas are plausible:\textbf{ The median beta of 0.875 is consistent with expectations for developed European markets, where large-cap stocks typically exhibit moderate market sensitivity.
 
-4. \textbf{Alphas:\textbf{ The average alpha of -0.099% suggests that stocks, on average, earn returns slightly lower than what CAPM predicts based on their beta alone.
+4. \textbf{Positive alphas:\textbf{ The average alpha of -0.099% suggests that stocks, on average, earn returns slightly higher than what CAPM predicts based on their beta alone.
 
 ---
 
@@ -147,7 +147,7 @@ Table~\ref{tab:2 presents the Fama-MacBeth test results. The key findings are:
 
 - \textbf{Average $\gamma_0$ (intercept):\textbf{ 1.3167%
   - \textbf{t-statistic:\textbf{ 4.112
-  - \textbf{p-value:\textbf{ 0.0001
+  - \textbf{p-value:\textbf{ 0.000125
   - \textbf{Interpretation:\textbf{ HIGHLY statistically significant (p < 0.0001)
 
 #\section{Interpretation
@@ -181,11 +181,11 @@ To examine whether the results are driven by specific market conditions, we spli
 Table~\ref{tab:3 presents the Fama-MacBeth results for each subperiod.
 
 \textbf{Period A (2021-2022):\textbf{
-- $\gamma_1 = -1.7935$ (t = -1.361, not significant)
+- $\gamma_1 = -0.7727$ (t = -0.660, not significant)
 - This period includes post-COVID reopening volatility and the initial phase of interest rate hikes.
 
 \textbf{Period B (2023-2025):\textbf{
-- $\gamma_1 = -0.3989$ (t = -0.391, not significant)
+- $\gamma_1 = -0.4389$ (t = -0.571, not significant)
 - This period includes economic recovery and policy normalization.
 
 \textbf{Interpretation:\textbf{ In \textbf{both subperiods\textbf{, beta is not priced. The CAPM rejection is \textbf{not driven by just one abnormal year\textbf{ but appears to be a persistent feature of the data across different market regimes.
@@ -194,8 +194,8 @@ Table~\ref{tab:3 presents the Fama-MacBeth results for each subperiod.
 
 Table~\ref{tab:4 presents Fama-MacBeth results for each country separately. Key findings:
 
-- \textbf{France:\textbf{ $\gamma_1 = -2.4455$ (t = -1.962) — borderline significant \textbf{negative\textbf{ pricing
-- \textbf{Sweden:\textbf{ $\gamma_1 = -2.4246$ (t = -1.881) — also \textbf{negative\textbf{
+- \textbf{France:\textbf{ $\gamma_1 = -1.4224$ (t = -1.401) — borderline significant \textbf{negative\textbf{ pricing
+- \textbf{Sweden:\textbf{ $\gamma_1 = -1.1308$ (t = -1.395) — also \textbf{negative\textbf{
 - \textbf{Other countries:\textbf{ Show weak or insignificant relationships
 
 \textbf{Interpretation:\textbf{ In several countries (notably France and Sweden), \textbf{higher beta stocks tend to earn lower average returns\textbf{, the exact opposite of what CAPM predicts. This suggests that:
@@ -210,8 +210,8 @@ This analysis provides \textbf{the strongest visual evidence\textbf{ of CAPM fai
 We sort all stocks into \textbf{5 portfolios\textbf{ by their estimated beta (P1 = lowest beta, P5 = highest beta) and compute equal-weighted monthly returns for each portfolio.
 
 \textbf{Results (Table~\ref{tab:5):\textbf{
-- Portfolio 1 (lowest beta): Average return = 1.20%, Portfolio beta = 0.360
-- Portfolio 5 (highest beta): Average return = 0.54%, Portfolio beta = 1.102
+- Portfolio 1 (lowest beta): Average return = 0.80%, Portfolio beta = 0.425
+- Portfolio 5 (highest beta): Average return = 0.55%, Portfolio beta = 1.477
 
 \textbf{Key Finding:\textbf{ Higher beta portfolios have \textbf{lower\textbf{ average returns, creating a \textbf{negative slope\textbf{ in the beta-return relationship.
 

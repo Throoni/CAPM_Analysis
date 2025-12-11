@@ -15,7 +15,7 @@ The analysis now addresses 100% of the assignment requirements.
 
 **Key Results:**
 - Overall market-cap weighted beta: 0.6360
-- Overall equal-weighted beta: 0.6883
+- Overall equal-weighted beta: 0.9167
 - Difference: 0.0523 (7.6%)
 - Interpretation: Betas are reasonably representative; large-cap stocks have slightly lower betas (as expected)
 

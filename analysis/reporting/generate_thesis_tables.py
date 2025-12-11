@@ -408,11 +408,8 @@ def generate_table6_descriptive() -> pd.DataFrame:
             date_range = "2021-01 to 2025-11"
         
         # Market proxy: All countries now use MSCI Europe (IEUR)
-        # Risk-free rate: Converted to EUR for all countries
-        if COUNTRIES[country].currency == "EUR":
-            rf_source = "German 3-month Bund (EUR)"
-        else:
-            rf_source = f"{country} 3-month government bond (converted to EUR)"
+        # Risk-free rate: All countries use German 3-month Bund (EUR)
+        rf_source = "German 3-month Bund (EUR)"
         
         table6_data.append({
             'Country': country,

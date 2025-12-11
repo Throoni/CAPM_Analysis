@@ -18,8 +18,8 @@ This study tests the Capital Asset Pricing Model (CAPM) across seven European eq
 
 ### 1. Time-Series Results: Moderate Explanatory Power
 
-- **Average R²:** 0.235 (market beta explains ~24% of return variation)
-- **Average Beta:** 0.688 (median: 0.646)
+- **Average R²:** 0.236 (market beta explains ~24% of return variation)
+- **Average Beta:** 0.917 (median: 0.875)
 - **Significant Betas:** 95.9% of stocks have statistically significant betas
 
 **Interpretation:** CAPM has moderate time-series explanatory power, but approximately 76% of return variation remains unexplained by market risk alone.
@@ -27,12 +27,12 @@ This study tests the Capital Asset Pricing Model (CAPM) across seven European eq
 ### 2. Cross-Sectional Results: CAPM REJECTED
 
 **Fama-MacBeth Test Results:**
-- **Market Price of Risk (γ₁):** -0.9662
-- **t-statistic:** -1.199
-- **p-value:** 0.236
+- **Market Price of Risk (γ₁):** -0.5747
+- **t-statistic:** -0.880
+- **p-value:** 0.3825
 - **Conclusion:** **NOT statistically significant**
 
-**Intercept (γ₀):** 1.5385% (t=4.444, highly significant)
+**Intercept (γ₀):** 1.3167% (t=4.112, highly significant)
 
 **Interpretation:** Beta does **NOT** explain cross-sectional variation in expected returns. Higher beta stocks do not earn higher average returns than lower beta stocks.
 
@@ -112,7 +112,7 @@ While beta has moderate time-series explanatory power (R² ≈ 0.24), it does no
 - **Country-Level Results:** Negative or insignificant relationships across countries
 
 ### Statistical Evidence
-- Fama-MacBeth test: γ₁ insignificant (p = 0.236)
+- Fama-MacBeth test: γ₁ insignificant (p = 0.3825)
 - Subperiod tests: Consistent rejection in both periods
 - Portfolio analysis: Negative beta-return relationship
 

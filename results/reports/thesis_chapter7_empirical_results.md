@@ -6,7 +6,7 @@ This section provides a brief recap of the data and methodology used in the empi
 
 ### Universe
 
-The analysis covers **7 European markets**: Germany (DE), France (FR), Italy (IT), Spain (ES), Sweden (SE), United Kingdom (UK), and Switzerland (CH). After data cleaning and quality filters, the final sample consists of **245 valid stocks** (out of 249 total) with complete return data.
+The analysis covers **7 European markets**: Germany (DE), France (FR), Italy (IT), Spain (ES), Sweden (SE), United Kingdom (UK), and Switzerland (CH). After data cleaning and quality filters, the final sample consists of **245 stocks** with complete return data.
 
 ### Period
 
@@ -17,33 +17,19 @@ The analysis period spans **2020-12-01 to 2025-12-01**, using **monthly** return
 
 ### Market Proxies
 
-For all countries, beta is estimated against the **MSCI Europe index** (accessed via iShares Core MSCI Europe ETF, ticker: IEUR), not country-specific or local stock exchange indices. This choice is motivated by:
+For each country, beta is estimated against the **MSCI country index** (accessed via iShares ETFs), not the local stock exchange index. This choice is motivated by:
+- Broader market coverage (includes mid-caps)
+- Consistent methodology across countries
+- Empirically superior explanatory power
 
-**Primary Justification - European Market Integration:**
-1. **Integrated Financial Markets:** European financial markets are highly integrated with common regulations (MiFID II), shared monetary policy (ECB for Eurozone), and free capital movement across EU/EEA borders
-2. **Cross-Border Capital Flows:** German and other European investors can and do invest across all European markets, making a pan-European index more representative of the investable universe
-3. **Market Interconnectedness:** European markets exhibit high correlation and move together due to:
-   - Shared economic cycles and business cycles
-   - Policy coordination (ECB monetary policy, EU fiscal policy)
-   - Integrated supply chains and trade relationships
-   - Common regulatory framework
-4. **Consistent Benchmark:** Using a single index provides a consistent benchmark for cross-country comparison and avoids country-specific index construction differences
-5. **Investor Perspective:** For a German investor, the relevant market portfolio includes all accessible European markets, not just German stocks
-
-**Index Characteristics:**
-- **MSCI Europe Index** (via IEUR): Includes large-, mid-, and small-cap stocks from developed European markets
-- Market capitalization weighted
-- Broader market coverage than country-specific indices
-- Empirically provides consistent methodology across all countries
-
-**Currency Handling:**
-- IEUR is USD-denominated, but we convert it to EUR using USD/EUR exchange rates (ECB data) to remove currency noise
-- Conversion formula: `Price_EUR = Price_USD / USD_EUR_Rate`
-- This ensures the market proxy represents European market movements in EUR terms, appropriate for German investors
-- Currency conversion improves beta estimates and R² values by eliminating exchange rate effects
-
-**Alternative Consideration:**
-While country-specific indices (e.g., MSCI Germany via EWG) could reflect home bias (behavioral preference for domestic stocks), the integrated nature of European markets and the ability of German investors to access all European markets supports the pan-European approach. The choice between European-wide and country-specific indices is ultimately a question of investor perspective and market representation, and we provide evidence supporting the European-wide approach based on market integration.
+The market proxies used are:
+- Germany: MSCI Germany (via EWG)
+- France: MSCI France (via EWQ)
+- Italy: MSCI Italy (via EWI)
+- Spain: MSCI Spain (via EWP)
+- Sweden: MSCI Sweden (via EWD)
+- United Kingdom: MSCI UK (via EWU)
+- Switzerland: MSCI Switzerland (via EWL)
 
 ### Risk-Free Rate
 
@@ -97,16 +83,16 @@ The time-series regressions yield the following aggregate results:
 - **Valid stocks:** 245 (out of 249 total)
 - **Average beta:** 0.917
 - **Median beta:** 0.875
-- **Average R²:** 0.236
+- **Average R²:** 0.235
 - **Average alpha:** -0.099%
 
 ### Results by Country
 
 Table 1 presents the CAPM time-series summary by country. Key findings:
 
-- **Beta values** are economically reasonable, with median betas ranging from approximately 0.77 to 1.14 across countries. Most stocks have betas below 1.0, as expected for many European large-cap stocks that are less volatile than their respective market indices.
+- **Beta values** are economically reasonable, with median betas ranging from approximately 0.53 to 0.67 across countries. Most stocks have betas below 1.0, as expected for many European large-cap stocks that are less volatile than their respective market indices.
 
-- **R² values** average approximately 0.24, indicating that the market factor explains approximately 23.6% of return variation on average. This represents a **non-trivial but limited** explanatory power.
+- **R² values** average approximately 0.24, indicating that the market factor explains approximately 23.5% of return variation on average. This represents a **non-trivial but limited** explanatory power.
 
 - **Significant betas** (p < 0.05) represent approximately 91.4% of the sample, indicating that for most stocks, beta is statistically distinguishable from zero.
 
@@ -116,7 +102,7 @@ Figure 1 shows the distribution of betas by country. The distributions are cente
 
 ### Interpretation
 
-**In time series, the CAPM is partially useful:** The market factor explains some risk, but not all. The average R² of 0.236 suggests that:
+**In time series, the CAPM is partially useful:** The market factor explains some risk, but not all. The average R² of 0.235 suggests that:
 
 1. **Market risk matters:** Beta captures a meaningful portion of stock return variation, confirming that market movements are an important driver of individual stock returns.
 
@@ -124,7 +110,7 @@ Figure 1 shows the distribution of betas by country. The distributions are cente
 
 3. **Betas are plausible:** The median beta of 0.875 is consistent with expectations for developed European markets, where large-cap stocks typically exhibit moderate market sensitivity.
 
-4. **Alphas:** The average alpha of -0.099% suggests that stocks, on average, earn returns slightly lower than what CAPM predicts based on their beta alone.
+4. **Positive alphas:** The average alpha of -0.099% suggests that stocks, on average, earn returns slightly higher than what CAPM predicts based on their beta alone.
 
 ---
 
@@ -161,7 +147,7 @@ Table 2 presents the Fama-MacBeth test results. The key findings are:
 
 - **Average $\gamma_0$ (intercept):** 1.3167%
   - **t-statistic:** 4.112
-  - **p-value:** 0.0001
+  - **p-value:** 0.000125
   - **Interpretation:** HIGHLY statistically significant (p < 0.0001)
 
 ### Interpretation
@@ -173,7 +159,7 @@ Table 2 presents the Fama-MacBeth test results. The key findings are:
 **Our Results:**
 - **$\gamma_1$ is negative and insignificant** → Beta is **not rewarded** in the cross-section. Higher beta stocks do not earn higher average returns than lower beta stocks.
 
-- **$\gamma_0$ is strongly positive and significant** → Even a zero-beta asset earns a positive excess return (approximately 1.54% per month), suggesting that the zero-beta rate exceeds the risk-free rate.
+- **$\gamma_0$ is strongly positive and significant** → Even a zero-beta asset earns a positive excess return (approximately 1.32% per month), suggesting that the zero-beta rate exceeds the risk-free rate.
 
 **Conclusion:** This is a **rejection of the CAPM in the cross-section**, despite time-series betas being sensible and statistically significant. The model fails its main prediction: that beta should explain cross-sectional variation in expected returns.
 
@@ -195,11 +181,11 @@ To examine whether the results are driven by specific market conditions, we spli
 Table 3 presents the Fama-MacBeth results for each subperiod.
 
 **Period A (2021-2022):**
-- $\gamma_1 = -1.7935$ (t = -1.361, not significant)
+- $\gamma_1 = -0.7727$ (t = -0.660, not significant)
 - This period includes post-COVID reopening volatility and the initial phase of interest rate hikes.
 
 **Period B (2023-2025):**
-- $\gamma_1 = -0.3989$ (t = -0.391, not significant)
+- $\gamma_1 = -0.4389$ (t = -0.571, not significant)
 - This period includes economic recovery and policy normalization.
 
 **Interpretation:** In **both subperiods**, beta is not priced. The CAPM rejection is **not driven by just one abnormal year** but appears to be a persistent feature of the data across different market regimes.
@@ -208,8 +194,8 @@ Table 3 presents the Fama-MacBeth results for each subperiod.
 
 Table 4 presents Fama-MacBeth results for each country separately. Key findings:
 
-- **France:** $\gamma_1 = -2.4455$ (t = -1.962) — borderline significant **negative** pricing
-- **Sweden:** $\gamma_1 = -2.4246$ (t = -1.881) — also **negative**
+- **France:** $\gamma_1 = -1.4224$ (t = -1.401) — borderline significant **negative** pricing
+- **Sweden:** $\gamma_1 = -1.1308$ (t = -1.395) — also **negative**
 - **Other countries:** Show weak or insignificant relationships
 
 **Interpretation:** In several countries (notably France and Sweden), **higher beta stocks tend to earn lower average returns**, the exact opposite of what CAPM predicts. This suggests that:
@@ -224,8 +210,8 @@ This analysis provides **the strongest visual evidence** of CAPM failure.
 We sort all stocks into **5 portfolios** by their estimated beta (P1 = lowest beta, P5 = highest beta) and compute equal-weighted monthly returns for each portfolio.
 
 **Results (Table 5):**
-- Portfolio 1 (lowest beta): Average return = 1.20%, Portfolio beta = 0.360
-- Portfolio 5 (highest beta): Average return = 0.54%, Portfolio beta = 1.102
+- Portfolio 1 (lowest beta): Average return = 0.80%, Portfolio beta = 0.425
+- Portfolio 5 (highest beta): Average return = 0.55%, Portfolio beta = 1.477
 
 **Key Finding:** Higher beta portfolios have **lower** average returns, creating a **negative slope** in the beta-return relationship.
 

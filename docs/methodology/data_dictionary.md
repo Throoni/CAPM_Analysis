@@ -125,8 +125,8 @@ Comprehensive documentation of all data files used in the CAPM analysis.
 **Statistics:**
 - Total stocks: 249
 - Valid stocks: 245
-- Average beta: 0.688
-- Average R²: 0.235
+- Average beta: 0.917
+- Average R²: 0.236
 
 ### Fama-MacBeth Summary
 **Location:** `results/reports/fama_macbeth_summary.csv`
@@ -146,7 +146,7 @@ Comprehensive documentation of all data files used in the CAPM analysis.
 - `pvalue_gamma_0`: P-value for γ₀
 - `n_months`: Number of monthly regressions (should be 59)
 
-**Key Result:** γ₁ = -0.9662 (t=-1.199, p=0.236) - NOT significant, CAPM rejected
+**Key Result:** γ₁ = -0.5747 (t=-0.880, p=0.3825) - NOT significant, CAPM rejected
 
 ### Market-Cap Weighted Betas
 **Location:** `results/tables/table7_market_cap_weighted_betas.csv`
@@ -162,7 +162,7 @@ Comprehensive documentation of all data files used in the CAPM analysis.
 - `n_stocks_with_mcap`: Number of stocks with market cap data
 - `mcap_data_source`: Data source ('yfinance' or 'estimated')
 
-**Key Finding:** Overall MW beta (0.636) vs EW beta (0.688) - 7.6% difference
+**Key Finding:** Overall MW beta (0.636) vs EW beta (0.917) - 30.6% difference
 
 ### Portfolio Optimization Results
 **Location:** `results/reports/portfolio_optimization_results.csv`

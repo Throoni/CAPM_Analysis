@@ -12,8 +12,8 @@ Based on comprehensive empirical analysis of 245 stocks across 7 European market
 
 ### 1. CAPM Test Results
 
-- **Time-Series:** Beta explains ~24% of return variation (R² = 0.235)
-- **Cross-Sectional:** CAPM **REJECTED** - Beta does not price returns (γ₁ = -0.9662, p = 0.236)
+- **Time-Series:** Beta explains ~24% of return variation (R² = 0.236)
+- **Cross-Sectional:** CAPM **REJECTED** - Beta does not price returns (γ₁ = -0.5747, p = 0.3825)
 - **Interpretation:** Market risk (beta) alone is insufficient to explain expected returns
 
 ### 2. Beta-Return Relationship

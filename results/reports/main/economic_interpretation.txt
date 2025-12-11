@@ -24,16 +24,16 @@ stocks, on average, earn returns higher than what CAPM predicts based on their b
 --------------------------------------------------------------------------------
 
 Fama-MacBeth cross-sectional test results:
-- Average market price of risk (gamma_1): -0.9662
-- t-statistic: -1.199
-- p-value: 0.2356
-- Intercept (gamma_0): 1.5385 (t=4.444)
+- Average market price of risk (gamma_1): -0.5747
+- t-statistic: -0.880
+- p-value: 0.3825
+- Intercept (gamma_0): 1.3167 (t=4.112)
 
 Interpretation:
 The Fama-MacBeth test REJECTS the CAPM's main prediction. The market price of risk
-(gamma_1) is -0.9662, which is NOT statistically
+(gamma_1) is -0.5747, which is NOT statistically
 significant. This indicates that beta does NOT explain cross-sectional variation in
-returns. The positive and significant intercept (gamma_0 = 1.5385) suggests
+returns. The positive and significant intercept (gamma_0 = 1.3167) suggests
 that the zero-beta rate exceeds the risk-free rate, further contradicting CAPM predictions.
 
 

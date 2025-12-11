@@ -5,9 +5,9 @@
 ### Key Findings at a Glance
 
 **Time-Series CAPM:**
-- Valid stocks: 245 (out of 249 total)
+- Valid stocks: 245
 - Average beta: 0.917
-- Average R²: 0.236
+- Average R²: 0.235
 - Average alpha: -0.099%
 
 **Cross-Sectional CAPM (Fama-MacBeth):**
@@ -21,8 +21,8 @@
 - Results hold across subperiods, countries, and sample specifications
 
 **Beta-Sorted Portfolios:**
-- Portfolio 1 (lowest beta): Return = 1.20%
-- Portfolio 5 (highest beta): Return = 0.54%
+- Portfolio 1 (lowest beta): Return = 0.80%
+- Portfolio 5 (highest beta): Return = 0.55%
 - **Negative relationship:** Higher beta → Lower return (contrary to CAPM)
 
 ---
@@ -87,31 +87,31 @@
 
 
 **France:**
-- γ₁ = -2.4455 (t=-1.962)
-- ✅ Significant
+- γ₁ = -1.4224 (t=-1.401)
+- ❌ Not significant
 
 **Germany:**
-- γ₁ = -0.2331 (t=-0.215)
+- γ₁ = -0.0754 (t=-0.104)
 - ❌ Not significant
 
 **Italy:**
-- γ₁ = 0.1413 (t=0.087)
+- γ₁ = 0.7178 (t=0.784)
 - ❌ Not significant
 
 **Spain:**
-- γ₁ = 0.1405 (t=0.117)
+- γ₁ = -0.5489 (t=-0.756)
 - ❌ Not significant
 
 **Sweden:**
-- γ₁ = -2.4246 (t=-1.881)
+- γ₁ = -1.1308 (t=-1.395)
 - ❌ Not significant
 
 **Switzerland:**
-- γ₁ = -0.6076 (t=-0.554)
+- γ₁ = 0.3334 (t=0.414)
 - ❌ Not significant
 
 **UnitedKingdom:**
-- γ₁ = -0.7563 (t=-0.808)
+- γ₁ = -0.6090 (t=-0.782)
 - ❌ Not significant
 
 
@@ -152,4 +152,4 @@
 
 ---
 
-**Generated:** 2025-12-03 13:19:37
+**Generated:** 2025-12-11 22:03:41

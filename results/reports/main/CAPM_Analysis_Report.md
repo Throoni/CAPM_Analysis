@@ -13,9 +13,9 @@ This report presents a comprehensive empirical test of the Capital Asset Pricing
 
 ### Key Findings
 
-1. **Time-Series Results:** CAPM demonstrates moderate explanatory power, with an average R² of 0.235, indicating that market beta explains approximately 24% of individual stock return variation.
+1. **Time-Series Results:** CAPM demonstrates moderate explanatory power, with an average R² of 0.236, indicating that market beta explains approximately 24% of individual stock return variation.
 
-2. **Cross-Sectional Results:** The Fama-MacBeth test **rejects** the CAPM's core prediction. The market price of risk (γ₁) is -0.9662 with a t-statistic of -1.199 (p = 0.236), indicating that **beta does not explain cross-sectional variation in expected returns**.
+2. **Cross-Sectional Results:** The Fama-MacBeth test **rejects** the CAPM's core prediction. The market price of risk (γ₁) is -0.5747 with a t-statistic of -0.880 (p = 0.3825), indicating that **beta does not explain cross-sectional variation in expected returns**.
 
 3. **Robustness:** Results are consistent across:
    - Subperiods (2021-2022 vs. 2023-2025)
@@ -338,7 +338,7 @@ Key findings by country (after currency and risk-free rate conversion):
 
 2. **Idiosyncratic risk dominates:** Approximately 77% of return variation remains unexplained by the market, indicating that firm-specific factors, sector effects, and other non-market drivers play a substantial role. This is expected and consistent with finance literature.
 
-3. **Betas are plausible:** The median beta of 0.884 (after currency conversion) is consistent with expectations for European stocks relative to a pan-European market index. Betas are higher than before (0.646) because currency conversion removed noise that was reducing correlations.
+3. **Betas are plausible:** The median beta of 0.875 is consistent with expectations for European stocks relative to a pan-European market index.
 
 4. **Currency conversion impact:** Converting all returns to EUR significantly improved R² for GBP stocks (0.203 → 0.258) and SEK stocks (0.264 → 0.323), demonstrating that currency mismatch was a major source of noise.
 
@@ -383,8 +383,8 @@ We then **average** $\gamma_0$ and $\gamma_1$ across all 59 months and compute F
 
 | Coefficient | Average Value | t-statistic | p-value | Interpretation |
 |-------------|---------------|-------------|---------|----------------|
-| $\gamma_1$ (Market Price of Risk) | -0.9662 | -1.199 | 0.2356 | **NOT significant** |
-| $\gamma_0$ (Intercept) | 1.5385% | 4.444 | < 0.0001 | **HIGHLY significant** |
+| $\gamma_1$ (Market Price of Risk) | -0.5747 | -0.880 | 0.3825 | **NOT significant** |
+| $\gamma_0$ (Intercept) | 1.3167% | 4.112 | < 0.0001 | **HIGHLY significant** |
 
 ### 5.3 Interpretation
 
@@ -462,7 +462,7 @@ We sort all stocks into **5 portfolios** by their estimated beta (P1 = lowest be
 |-----------|------|----------------|-------------------|
 | P1 (Lowest) | 0.360 | 1.20% | 4.85% |
 | P2 | 0.523 | 0.95% | 4.62% |
-| P3 | 0.646 | 0.89% | 4.78% |
+| P3 | 0.875 | 0.89% | 4.78% |
 | P4 | 0.802 | 0.72% | 5.12% |
 | P5 (Highest) | 1.102 | 0.54% | 6.23% |
 
@@ -507,7 +507,7 @@ For each country and overall, we:
 **Key Findings:**
 
 - **Overall Market-Cap Weighted Beta:** 0.6360
-- **Overall Equal-Weighted Beta:** 0.6883
+- **Overall Equal-Weighted Beta:** 0.9167
 - **Difference:** 0.0523 (7.6%)
 
 **By Country:**
@@ -527,7 +527,7 @@ For each country and overall, we:
 
 2. **Country-Level:** Most countries show small to moderate differences (<10%), indicating reasonable representativeness. Switzerland shows the largest difference (13.9%), suggesting our sample may underweight or overweight certain large-cap stocks.
 
-3. **Market Representation:** The fact that market-cap weighted beta (0.636) is lower than equal-weighted (0.688) suggests that:
+3. **Market Representation:** The fact that market-cap weighted beta (0.636) is lower than equal-weighted (0.917) suggests that:
    - Large-cap stocks (which dominate market-cap weighting) have lower betas
    - Our sample is reasonably representative, but large-cap stocks are slightly less sensitive to market movements
    - This is consistent with typical market structure where large-caps are more stable

@@ -194,12 +194,12 @@ CAPM_Analysis/
 ## 📊 Results Summary
 
 ### **Time-Series CAPM:**
-- R² = 0.235 (moderate explanatory power)
-- 95.9% significant betas
+- R² = 0.236 (moderate explanatory power)
+- 91.4% significant betas
 - Beta is statistically meaningful
 
 ### **Cross-Sectional CAPM:**
-- γ₁ = -0.9662 (not significant, p = 0.236)
+- γ₁ = -0.5747 (not significant, p = 0.3825)
 - **CAPM REJECTED**
 - Beta does not price returns
 

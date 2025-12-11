@@ -302,7 +302,7 @@ where:
 **Interpretation:**
 - $\bar{\gamma}_1 > 0$ and significant: CAPM supported (higher beta → higher return)
 - $\bar{\gamma}_1 = 0$ or not significant: CAPM rejected (beta does not price returns)
-- Our result: $\bar{\gamma}_1 = -0.9662$, t = -1.199, p = 0.236 → **CAPM REJECTED**
+- Our result: $\bar{\gamma}_1 = -0.5747$, t = -0.880, p = 0.3825 → **CAPM REJECTED**
 
 ### 3.4 Robustness Checks
 
@@ -359,17 +359,17 @@ where:
 ### 4.1 Time-Series Results Interpretation
 
 **Key Statistics:**
-- Average R²: 0.235 (23.5%)
-- Average Beta: 0.688
-- Median Beta: 0.646
-- 95.9% of betas statistically significant (p < 0.05)
+- Average R²: 0.236 (23.6%)
+- Average Beta: 0.917
+- Median Beta: 0.875
+- 91.4% of betas statistically significant (p < 0.05)
 
 **What This Means:**
 
 **Positive Findings:**
-1. **Beta is statistically meaningful:** 95.9% of stocks have significant betas
+1. **Beta is statistically meaningful:** 91.4% of stocks have significant betas
 2. **Market risk matters:** Beta explains ~24% of return variation
-3. **Betas are economically reasonable:** Median beta of 0.646 is plausible for European large-cap stocks
+3. **Betas are economically reasonable:** Median beta of 0.875 is plausible for European large-cap stocks
 
 **Limitations:**
 1. **Low R²:** 76% of return variation remains unexplained
@@ -387,9 +387,9 @@ where:
 ### 4.2 Cross-Sectional Results Interpretation
 
 **Fama-MacBeth Results:**
-- $\bar{\gamma}_1$ (Market Price of Risk): -0.9662
-- t-statistic: -1.199
-- p-value: 0.236
+- $\bar{\gamma}_1$ (Market Price of Risk): -0.5747
+- t-statistic: -0.880
+- p-value: 0.3825
 - **Conclusion: NOT statistically significant**
 
 **What This Means:**
@@ -414,7 +414,7 @@ where:
   - Multi-factor models are necessary
 
 **Intercept (γ₀):**
-- $\bar{\gamma}_0 = 1.5385\%$ (highly significant, t = 4.444)
+- $\bar{\gamma}_0 = 1.3167\%$ (highly significant, t = 4.112)
 - This is the return on a zero-beta portfolio
 - Positive and significant intercept suggests:
   - Stocks earn returns beyond what CAPM predicts

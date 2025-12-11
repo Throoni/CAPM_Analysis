@@ -23,10 +23,10 @@ This document provides a comprehensive portrayal of all CAPM analysis results, i
 
 **Key Statistics:**
 - **Valid Stocks:** 245
-- **Average Beta:** 0.688 (median: 0.646)
-- **Average R²:** 0.235 (23.5%)
-- **Significant Betas:** 95.9% (p < 0.05)
-- **Average Alpha:** 0.144% per month
+- **Average Beta:** 0.917 (median: 0.875)
+- **Average R²:** 0.236 (23.6%)
+- **Significant Betas:** 91.4% (p < 0.05)
+- **Average Alpha:** -0.099% per month
 
 **Interpretation:**
 - Market beta explains approximately **24% of return variation**
@@ -42,14 +42,14 @@ This document provides a comprehensive portrayal of all CAPM analysis results, i
 ### 1.2 Cross-Sectional CAPM: REJECTED
 
 **Fama-MacBeth Test Results:**
-- **γ₁ (Market Price of Risk):** -0.9662
-- **t-statistic:** -1.199
-- **p-value:** 0.236
+- **γ₁ (Market Price of Risk):** -0.5747
+- **t-statistic:** -0.880
+- **p-value:** 0.3825
 - **Conclusion:** **NOT statistically significant**
 
 **γ₀ (Intercept):**
-- **Value:** 1.5385% per month
-- **t-statistic:** 4.444
+- **Value:** 1.3167% per month
+- **t-statistic:** 4.112
 - **p-value:** < 0.0001
 - **Conclusion:** **HIGHLY significant**
 
@@ -102,12 +102,12 @@ This document provides a comprehensive portrayal of all CAPM analysis results, i
 | Metric | Value | Interpretation |
 |--------|-------|----------------|
 | Valid Stocks | 245 | Sufficient sample size |
-| Average Beta | 0.688 | Less volatile than market |
-| Median Beta | 0.646 | Consistent with average |
-| Average R² | 0.235 | Moderate explanatory power |
+| Average Beta | 0.917 | Slightly less volatile than market |
+| Median Beta | 0.875 | Consistent with average |
+| Average R² | 0.236 | Moderate explanatory power |
 | Median R² | 0.210 | Consistent with average |
-| Average Alpha | 0.144% | Small, mostly insignificant |
-| % Significant Betas | 95.9% | Strong statistical evidence |
+| Average Alpha | -0.099% | Small, mostly insignificant |
+| % Significant Betas | 91.4% | Strong statistical evidence |
 
 #### Results by Country
 
@@ -157,14 +157,14 @@ This document provides a comprehensive portrayal of all CAPM analysis results, i
 #### Full Sample Results
 
 **Coefficients:**
-- γ₀ (Intercept): 1.5385% per month
-  - t-statistic: 4.444
+- γ₀ (Intercept): 1.3167% per month
+  - t-statistic: 4.112
   - p-value: < 0.0001
   - **Highly significant**
 
-- γ₁ (Market Price of Risk): -0.9662
-  - t-statistic: -1.199
-  - p-value: 0.236
+- γ₁ (Market Price of Risk): -0.5747
+  - t-statistic: -0.880
+  - p-value: 0.3825
   - **NOT significant**
 
 **Interpretation:**
@@ -238,7 +238,7 @@ This document provides a comprehensive portrayal of all CAPM analysis results, i
 
 **Results:**
 - Market-cap weighted beta: 0.712
-- Slightly higher than equal-weighted (0.688)
+- Slightly higher than equal-weighted (0.917)
 - Large stocks have slightly higher beta
 
 **Interpretation:**
@@ -388,9 +388,9 @@ This document provides a comprehensive portrayal of all CAPM analysis results, i
 - Number of months
 
 **Key Findings:**
-- γ₁ = -0.9662 (negative, not significant)
-- γ₀ = 1.5385% (positive, highly significant)
-- p-value for γ₁ = 0.236 (not significant)
+- γ₁ = -0.5747 (negative, not significant)
+- γ₀ = 1.3167% (positive, highly significant)
+- p-value for γ₁ = 0.3825 (not significant)
 
 **Interpretation:**
 - **CAPM REJECTED**

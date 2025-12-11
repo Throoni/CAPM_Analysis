@@ -24,9 +24,9 @@ This guide explains how to read and interpret the CAPM analysis results. It prov
 For each stock, the CAPM regression produces:
 
 ```
-Beta (β): 0.688
-Alpha (α): 0.144%
-R²: 0.235
+Beta (β): 0.917
+Alpha (α): -0.099%
+R²: 0.236
 Beta t-statistic: 5.23
 Beta p-value: 0.0001
 Alpha t-statistic: 0.45
@@ -43,13 +43,13 @@ Alpha p-value: 0.65
 - β < 0: Stock moves opposite to the market (rare, usually indicates data error)
 
 **Our Results:**
-- Average β = 0.688: Stocks are, on average, less volatile than the market
-- Median β = 0.646: Consistent with average
+- Average β = 0.917: Stocks are, on average, slightly less volatile than the market
+- Median β = 0.875: Consistent with average
 - Range: Most stocks have β between 0.3 and 1.5 (economically reasonable)
 
 **Economic Interpretation:**
 - European large-cap stocks typically have β < 1.0
-- Average β of 0.688 is consistent with expectations
+- Average β of 0.917 is consistent with expectations
 - Suggests stocks are less sensitive to market movements than the market itself
 
 ### 1.3 Alpha (α) Interpretation
@@ -61,9 +61,9 @@ Alpha p-value: 0.65
 - α = 0: Stock earns exactly what CAPM predicts
 
 **Our Results:**
-- Average α = 0.144% per month
+- Average α = -0.099% per month
 - This is small and mostly not statistically significant
-- Suggests stocks earn slightly more than CAPM predicts, but not significantly
+- Suggests stocks earn slightly less than CAPM predicts, but not significantly
 
 **Economic Interpretation:**
 - Small positive alpha suggests slight outperformance
@@ -74,11 +74,11 @@ Alpha p-value: 0.65
 
 **What R² Means:**
 - R² measures the proportion of return variation explained by the model
-- R² = 0.235 means 23.5% of return variation is explained by market beta
+- R² = 0.236 means 23.6% of return variation is explained by market beta
 - Remaining 76.5% is unexplained (idiosyncratic risk)
 
 **Our Results:**
-- Average R² = 0.235 (23.5%)
+- Average R² = 0.236 (23.6%)
 - Median R² = 0.210 (21.0%)
 - Range: R² varies widely across stocks (0.05 to 0.50+)
 
@@ -120,12 +120,12 @@ Alpha p-value: 0.65
 The Fama-MacBeth test produces:
 
 ```
-γ₀ (Intercept): 1.5385%
-γ₁ (Market Price of Risk): -0.9662
-γ₀ t-statistic: 4.444
-γ₁ t-statistic: -1.199
+γ₀ (Intercept): 1.3167%
+γ₁ (Market Price of Risk): -0.5747
+γ₀ t-statistic: 4.112
+γ₁ t-statistic: -0.880
 γ₀ p-value: < 0.0001
-γ₁ p-value: 0.236
+γ₁ p-value: 0.3825
 ```
 
 ### 2.2 γ₀ (Intercept) Interpretation
@@ -137,7 +137,7 @@ The Fama-MacBeth test produces:
 - If γ₀ < R_f: Zero-beta stocks earn less than risk-free rate
 
 **Our Results:**
-- γ₀ = 1.5385% per month (highly significant, t = 4.444)
+- γ₀ = 1.3167% per month (highly significant, t = 4.112)
 - This is much higher than typical risk-free rate (~0.1-0.3% monthly)
 - **Interpretation:** Zero-beta stocks earn substantial returns
 
@@ -160,12 +160,12 @@ The Fama-MacBeth test produces:
 - γ₁ = 0 or not significant: Beta does not price returns (CAPM rejected)
 
 **Our Results:**
-- γ₁ = -0.9662 (negative, contrary to CAPM)
-- t-statistic = -1.199
-- p-value = 0.236 (NOT significant)
+- γ₁ = -0.5747 (negative, contrary to CAPM)
+- t-statistic = -0.880
+- p-value = 0.3825 (NOT significant)
 
 **Statistical Interpretation:**
-- p = 0.236 means we **cannot reject** the null hypothesis that γ₁ = 0
+- p = 0.3825 means we **cannot reject** the null hypothesis that γ₁ = 0
 - This means beta does NOT explain cross-sectional variation in returns
 - The negative sign suggests higher beta → lower return (though not significant)
 
@@ -182,15 +182,15 @@ The Fama-MacBeth test produces:
 
 ### 2.4 Significance Testing
 
-**Why p = 0.236 is NOT Significant:**
+**Why p = 0.3825 is NOT Significant:**
 - Conventional significance level: p < 0.05
-- p = 0.236 means there's a 23.6% chance of observing this result if γ₁ = 0
+- p = 0.3825 means there's a 38.25% chance of observing this result if γ₁ = 0
 - This is too high to reject the null hypothesis
 - **Conclusion:** We cannot say beta prices returns
 
 **If γ₁ Were Significant:**
 - If p < 0.05, we would conclude beta DOES price returns
-- But our p = 0.236 is far from significant
+- But our p = 0.3825 is far from significant
 - This provides strong evidence against CAPM
 
 ---
@@ -205,7 +205,7 @@ The Fama-MacBeth test produces:
 - Ranges from 0 (no explanation) to 1 (perfect explanation)
 
 **Our Results:**
-- Average R² = 0.235 (23.5%)
+- Average R² = 0.236 (23.6%)
 - This means market beta explains about 1/4 of return variation
 
 ### 3.2 Why R² is Low for Individual Stocks
@@ -281,7 +281,7 @@ The Fama-MacBeth test produces:
 ### 4.2 Economic Significance
 
 **Beta Magnitude:**
-- Average β = 0.688 is economically reasonable
+- Average β = 0.917 is economically reasonable
 - Suggests stocks are less volatile than the market
 - Consistent with large-cap European stocks
 
@@ -324,7 +324,7 @@ The Fama-MacBeth test produces:
 
 **Our Finding:**
 - γ₁ is negative (contrary to prediction)
-- γ₁ is not significant (p = 0.236)
+- γ₁ is not significant (p = 0.3825)
 - Beta does NOT explain cross-sectional returns
 
 **Conclusion:**
