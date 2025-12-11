@@ -20,8 +20,8 @@ After implementing full currency conversion (all stocks and market index to EUR)
 
 **Overall:**
 - Before: Average R² = 0.217, 36.1% of stocks < 0.15
-- After: Average R² = 0.233, 30.2% of stocks < 0.15
-- Improvement: +0.016 average R², -5.9 percentage points in low R² stocks
+- After: Average R² = 0.236, 30.2% of stocks < 0.15
+- Improvement: +0.019 average R², -5.9 percentage points in low R² stocks
 
 **By Currency:**
 - **GBP:** 0.203 → 0.258 (+0.055, +27% improvement)

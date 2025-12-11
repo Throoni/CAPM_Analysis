@@ -2,9 +2,9 @@
 
 ## Executive Summary
 
-Based on comprehensive empirical analysis of 245 valid stocks across 7 European markets (2021-2025), this report provides a portfolio recommendation for XYZ Asset Manager's European equity fund.
+Based on comprehensive empirical analysis of 219 stocks across 7 European markets (2021-2025), this report provides a portfolio recommendation for XYZ Asset Manager's European equity fund.
 
-**Recommendation: Active**
+**Recommendation: Hybrid (Tilted Passive)**
 
 ---
 
@@ -25,50 +25,43 @@ Based on comprehensive empirical analysis of 245 valid stocks across 7 European 
 
 ### 3. Value Effects
 
-- **Finding:** Reverse value effect detected
-- **Alpha Spread:** -0.3235%
-- **Implication:** Book-to-market ratios may explain return differences, but relationship is contrary to classic value theory
+- **Finding:** Value effect detected
+- **Alpha Spread:** 0.0000%
+- **Implication:** Book-to-market ratios may explain return differences, but relationship is consistent with classic value theory
 
 ### 4. Diversification Benefits
 
-- **Variance Reduction:** 82.0%
-- **Diversification Ratio:** 2.35
+- **Variance Reduction:** 79.5%
+- **Diversification Ratio:** 2.21
 - **Implication:** Significant benefits from portfolio diversification across European markets
 
 ### 5. Optimal Portfolio Characteristics
 
-- **Minimum-Variance Portfolio Return:** 1.13% (monthly)
-- **Minimum-Variance Portfolio Volatility:** 0.002% (monthly) - **Theoretical only**
-- **Minimum-Variance Sharpe Ratio:** Not meaningful (volatility too low)
-- **Optimal Risky Portfolio Return:** 2.00% (monthly)
-- **Optimal Portfolio Volatility:** 1.93% (monthly)
-- **Sharpe Ratio:** 1.03
-
-**Important Note:** The minimum-variance portfolio with short selling achieves theoretically near-zero volatility (0.002%), but this is **not achievable in practice** due to transaction costs, margin requirements, liquidity constraints, and regulatory restrictions. In practice, such a portfolio would have volatility of 0.5-1.5% monthly and a Sharpe ratio of 1-3. The tangency portfolio and efficient frontier use long-only constraints and represent more realistic investment opportunities.
+- **Optimal Risky Portfolio Return:** 2.17%
+- **Optimal Portfolio Volatility:** 2.34%
+- **Sharpe Ratio:** 0.93
 
 ---
 
-## Recommendation: Active
+## Recommendation: Hybrid (Tilted Passive)
 
 ### Justification
 
-- Multiple lines of evidence suggest market inefficiencies that active management can exploit.
+- Mixed evidence suggests a hybrid approach: passive core with active tilts to exploit identified factors.
 
 ### Key Evidence
 
 - CAPM is rejected - beta does not price returns, suggesting market inefficiencies
-- Negative beta-return relationship contradicts CAPM, indicating mispricing opportunities
-- Value effects exist (or reverse value effects), suggesting factor-based strategies may add value
+- Strong diversification benefits (79.5% variance reduction)
 
 ### Implementation Strategy
 
-- Focus on factor-based strategies (value, quality, low-volatility) given CAPM failure
-- Avoid high-beta stocks given negative beta-return relationship
+- Core: Market-cap weighted index (70-80% of portfolio)
+- Tilt: Factor-based ETFs or active strategies (20-30%) targeting value, quality, or low-volatility
 
 ### Risks and Considerations
 
-- Active management costs (fees, turnover) may erode returns
-- Factor exposures may not persist in future periods
+- Hybrid approach balances costs and opportunities but requires careful implementation
 
 ---
 
@@ -103,4 +96,4 @@ This recommendation balances the evidence of market inefficiencies with the bene
 
 ---
 
-*Report generated based on comprehensive CAPM analysis of 245 valid stocks across 7 European markets (2021-2025)*
+*Report generated based on comprehensive CAPM analysis of 219 stocks across 7 European markets (2021-2025)*

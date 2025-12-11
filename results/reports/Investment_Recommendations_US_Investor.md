@@ -5,7 +5,7 @@
 
 ## Executive Summary
 
-This report provides actionable investment recommendations for **American equity investors** considering European equity markets. Based on comprehensive CAPM analysis of 245 valid stocks across 7 European markets, we identify key opportunities and risks.
+This report provides actionable investment recommendations for **American equity investors** considering European equity markets. Based on comprehensive CAPM analysis of 219 stocks across 7 European markets, we identify key opportunities and risks.
 
 **Key Finding:** CAPM is **rejected** in European markets - beta does not explain expected returns. This creates opportunities for factor-based and active strategies.
 
@@ -70,13 +70,13 @@ This report provides actionable investment recommendations for **American equity
 
 | Country | Stocks | Avg Beta | Avg Alpha | Avg R² | Significant Betas |
 |---------|--------|----------|-----------|--------|-------------------|
-| Germany | 36 | 0.685 | 0.10% | 0.245 | 97.2% |
-| France | 34 | 0.649 | -0.25% | 0.226 | 88.2% |
-| Italy | 22 | 0.636 | 0.63% | 0.250 | 100.0% |
-| Spain | 33 | 0.623 | 0.69% | 0.224 | 93.9% |
-| Sweden | 25 | 0.594 | 0.47% | 0.263 | 96.0% |
-| UnitedKingdom | 54 | 0.821 | -0.32% | 0.216 | 98.1% |
-| Switzerland | 15 | 0.686 | 0.34% | 0.256 | 100.0% |
+| Germany | 39 | 0.939 | -0.34% | 0.224 | 94.9% |
+| France | 37 | 0.875 | -0.83% | 0.213 | 91.9% |
+| Italy | 27 | 0.829 | 0.41% | 0.211 | 85.2% |
+| Spain | 35 | 0.774 | 0.85% | 0.184 | 77.1% |
+| Sweden | 27 | 1.141 | -0.28% | 0.323 | 100.0% |
+| UnitedKingdom | 64 | 0.971 | -0.26% | 0.258 | 93.8% |
+| Switzerland | 16 | 0.832 | 0.34% | 0.246 | 93.8% |
 
 ### Allocation Recommendations
 
@@ -90,8 +90,8 @@ This report provides actionable investment recommendations for **American equity
 - **Implementation:** Use equal-weight country ETFs or manually rebalance
 
 **Country-Specific Notes:**
-- **Overweight:** Sweden, Spain (lower beta, potentially better risk-adjusted returns)
-- **Underweight:** UnitedKingdom (higher beta, potentially lower risk-adjusted returns)
+- **Overweight:** Spain, Italy (lower beta, potentially better risk-adjusted returns)
+- **Underweight:** Sweden (higher beta, potentially lower risk-adjusted returns)
 
 ---
 
@@ -300,6 +300,6 @@ This report provides actionable investment recommendations for **American equity
 
 ---
 
-*Report generated based on comprehensive CAPM analysis of 245 valid stocks across 7 European markets (2021-2025)*
+*Report generated based on comprehensive CAPM analysis of 219 stocks across 7 European markets (2021-2025)*
 *Analysis period: January 2021 - November 2025*
-*Last updated: 2025-12-09*
+*Last updated: 2025-12-11*

@@ -279,7 +279,7 @@ The time-series regressions yield the following aggregate results (after full cu
 | Average alpha | -0.089% |
 | % Significant betas (p < 0.05) | 95.5% |
 
-**Note on Currency Conversion:** All stock returns (GBP/SEK/CHF/EUR) and market returns (MSCI Europe) are converted to EUR to eliminate currency mismatch. This improves R² values, especially for GBP stocks (average R² improved from 0.203 to 0.258).
+**Note on Currency and Risk-Free Rate Conversion:** All stock returns (GBP/SEK/CHF/EUR) and market returns (MSCI Europe) are converted to EUR to eliminate currency mismatch. Risk-free rates for GBP, SEK, and CHF countries are also converted to EUR for consistency. This improves R² values, especially for GBP stocks (average R² improved from 0.203 to 0.258).
 
 ### 4.2 Results by Country
 
@@ -334,7 +334,7 @@ Key findings by country (after currency and risk-free rate conversion):
 
 **In time series, the CAPM is partially useful:**
 
-1. **Market risk matters:** Beta captures a meaningful portion of stock return variation, confirming that market movements are an important driver of individual stock returns. After currency conversion, average R² improved to 0.233, indicating that eliminating currency noise improves the model fit.
+1. **Market risk matters:** Beta captures a meaningful portion of stock return variation, confirming that market movements are an important driver of individual stock returns. After currency and risk-free rate conversion, average R² improved to 0.236, indicating that eliminating currency noise improves the model fit.
 
 2. **Idiosyncratic risk dominates:** Approximately 77% of return variation remains unexplained by the market, indicating that firm-specific factors, sector effects, and other non-market drivers play a substantial role. This is expected and consistent with finance literature.
 
@@ -348,7 +348,7 @@ Key findings by country (after currency and risk-free rate conversion):
    - Concentrated in certain countries (Spain: 16 stocks, UK: 17 stocks) and sectors
    - This is expected - not all stocks should have high R² with a single market factor
 
-**Conclusion:** While CAPM has moderate time-series explanatory power (R² ≈ 0.24), it leaves substantial return variation unexplained. Currency conversion and risk-free rate conversion to EUR improved the fit significantly (especially for GBP and SEK stocks), but the remaining low R² reflects the inherent limitation of a single-factor model. 
+**Conclusion:** While CAPM has moderate time-series explanatory power (R² ≈ 0.24), it leaves substantial return variation unexplained. Currency conversion (stocks and market index) and risk-free rate conversion (GBP/SEK/CHF to EUR) improved the fit significantly (especially for GBP and SEK stocks), but the remaining low R² reflects the inherent limitation of a single-factor model. 
 
 **R² of 0.20-0.30 is typical for CAPM** in finance literature. The fact that 70% of stocks have R² > 0.15 demonstrates that the model has meaningful explanatory power. Further improvements would require multi-factor models (Fama-French 3-factor, Carhart 4-factor) that incorporate size, value, quality, and momentum factors beyond market beta alone.
 

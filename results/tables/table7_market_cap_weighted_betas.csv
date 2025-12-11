@@ -1,8 +1,8 @@
 country,n_stocks,equal_weighted_beta,market_cap_weighted_beta,market_cap_total_millions,n_stocks_with_mcap,mcap_data_source
-Germany,36,0.6853183717073341,,,0,unavailable
-France,34,0.649298793618943,,,0,unavailable
-Italy,22,0.6357230569353806,,,0,unavailable
-Spain,33,0.6229764037734294,,,0,unavailable
-Sweden,25,0.5937179268656393,,,0,unavailable
-UnitedKingdom,54,0.8207461591481061,,,0,unavailable
-Switzerland,15,0.6860053653663648,,,0,unavailable
+Germany,39,0.9394750339429965,,,0,unavailable
+France,37,0.8745108156109411,,,0,unavailable
+Italy,27,0.8292635470173022,,,0,unavailable
+Spain,35,0.7737273538467284,,,0,unavailable
+Sweden,27,1.1407389743627527,,,0,unavailable
+UnitedKingdom,64,0.9713398754571325,,,0,unavailable
+Switzerland,16,0.8318256262721728,,,0,unavailable
