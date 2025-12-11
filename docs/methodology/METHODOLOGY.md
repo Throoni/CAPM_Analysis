@@ -195,7 +195,7 @@ CAPM is derived under the following assumptions:
 - Frequency: Monthly (month-end prices)
 - Period: January 2021 - November 2025 (59 months)
 - Countries: 7 European markets
-- Stocks: 219 with complete data (after filtering)
+- Stocks: 245 with complete data (after filtering)
 
 **Market Index Data:**
 - Source: MSCI Europe index via iShares Core MSCI Europe ETF (IEUR)

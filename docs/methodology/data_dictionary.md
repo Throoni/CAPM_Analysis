@@ -124,7 +124,7 @@ Comprehensive documentation of all data files used in the CAPM analysis.
 
 **Statistics:**
 - Total stocks: 249
-- Valid stocks: 219
+- Valid stocks: 245
 - Average beta: 0.688
 - Average R²: 0.235
 

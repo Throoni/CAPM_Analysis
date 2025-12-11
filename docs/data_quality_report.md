@@ -77,7 +77,7 @@ This document provides a comprehensive assessment of data quality for the CAPM a
 - Complete panel structure with all required columns
 
 **Results:**
-- Final sample: 219 stocks with complete data
+- Final sample: 245 stocks with complete data
 - All stocks have >=59 months of data
 - Panel structure is correct
 

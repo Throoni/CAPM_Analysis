@@ -8,14 +8,22 @@
   },
   "sample": {
     "total_stocks": 249,
-    "valid_stocks": 219,
+    "valid_stocks": 245,
     "countries": 7,
-    "countries_list": ["France", "Germany", "Italy", "Spain", "Sweden", "Switzerland", "UnitedKingdom"]
+    "countries_list": [
+      "France",
+      "Germany",
+      "Italy",
+      "Spain",
+      "Sweden",
+      "Switzerland",
+      "UnitedKingdom"
+    ]
   },
   "data_sources": {
     "stock_prices": "Yahoo Finance (yfinance)",
-    "market_indices": "MSCI country indices via iShares ETFs (EWG, EWQ, EWI, EWP, EWD, EWL, EWU)",
-    "risk_free_rates": "Country-specific 3-month government bond yields (ECB, FRED, Yahoo Finance)",
+    "market_indices": "MSCI Europe index via iShares Core MSCI Europe ETF (IEUR)",
+    "risk_free_rates": "All countries use German 3-month Bund (EUR) - processed from historical bond yield data",
     "market_cap_data": "Yahoo Finance (yfinance)",
     "book_to_market_data": "Yahoo Finance (yfinance)"
   },
@@ -29,13 +37,12 @@
   },
   "main_findings": {
     "capm_rejected": true,
-    "gamma_1": -0.9662,
-    "gamma_1_pvalue": 0.236,
+    "gamma_1": -0.5747,
+    "gamma_1_pvalue": 0.3825,
     "interpretation": "Beta does not explain cross-sectional variation in returns",
     "recommendation": "Active management with factor-based strategies"
   },
-  "version": "2.1",
-  "last_updated": "2025-12-03",
-  "notes": "Complete analysis addressing all assignment requirements. Includes market-cap weighted betas, portfolio optimization, value effects, and portfolio recommendations. Note: Minimum-variance portfolio allows short selling (weights can be negative, bounded by [-1, 1]), while tangency portfolio and efficient frontier use long-only constraints (weights bounded by [0, 1])."
+  "version": "2.2",
+  "last_updated": "2025-12-11",
+  "notes": "Complete analysis addressing all assignment requirements. Includes market-cap weighted betas, portfolio optimization, value effects, and portfolio recommendations. All countries use German Bund rate (EUR) as risk-free rate. Note: Minimum-variance portfolio allows short selling (weights can be negative, bounded by [-1, 1]), while tangency portfolio and efficient frontier use long-only constraints (weights bounded by [0, 1])."
 }
-

@@ -74,7 +74,7 @@ python3 -m analysis.core.capm_regression
 
 **Dependencies**: Requires `data/processed/returns_panel.csv`
 
-**Expected Result**: ~219 stocks with beta, alpha, R², p-values, and validation flags
+**Expected Result**: ~245 stocks with beta, alpha, R², p-values, and validation flags
 
 ---
 

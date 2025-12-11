@@ -22,7 +22,7 @@ This document provides a comprehensive portrayal of all CAPM analysis results, i
 ### 1.1 Time-Series CAPM: Moderate Explanatory Power
 
 **Key Statistics:**
-- **Valid Stocks:** 219
+- **Valid Stocks:** 245
 - **Average Beta:** 0.688 (median: 0.646)
 - **Average R²:** 0.235 (23.5%)
 - **Significant Betas:** 95.9% (p < 0.05)
@@ -101,7 +101,7 @@ This document provides a comprehensive portrayal of all CAPM analysis results, i
 
 | Metric | Value | Interpretation |
 |--------|-------|----------------|
-| Valid Stocks | 219 | Sufficient sample size |
+| Valid Stocks | 245 | Sufficient sample size |
 | Average Beta | 0.688 | Less volatile than market |
 | Median Beta | 0.646 | Consistent with average |
 | Average R² | 0.235 | Moderate explanatory power |
