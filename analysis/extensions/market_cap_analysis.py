@@ -12,6 +12,7 @@ import numpy as np
 from typing import Dict, Optional
 import yfinance as yf
 from datetime import datetime
+import time
 
 from analysis.utils.config import (
     DATA_RAW_DIR,
@@ -46,23 +47,66 @@ def fetch_market_cap(ticker: str, country: str, date: Optional[str] = None) -> O
         date = ANALYSIS_SETTINGS.end_date
     
     try:
-        # Try to fetch from yfinance
+        # Try to fetch from yfinance with retry logic
+        # Add small delay to avoid rate limiting
+        time.sleep(0.1)  # 100ms delay between requests
+        
         stock = yf.Ticker(ticker)
-        info = stock.info
         
-        # Get market cap
+        # Try to get info - sometimes this fails, so we'll retry
+        max_retries = 3
+        info = None
+        for attempt in range(max_retries):
+            try:
+                info = stock.info
+                if info and len(info) > 0:
+                    break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    logger.debug(f"Attempt {attempt + 1} failed for {ticker}, retrying...")
+                    time.sleep(0.5)  # Wait before retry
+                    continue
+                else:
+                    logger.debug(f"Could not fetch info for {ticker} after {max_retries} attempts: {e}")
+                    return None
+        
+        if not info or len(info) == 0:
+            logger.debug(f"No info available for {ticker}")
+            return None
+        
+        # Get market cap - try multiple keys
         market_cap = info.get('marketCap')
+        source = 'marketCap'
+        
         if market_cap is None:
-            # Try alternative keys
-            market_cap = info.get('totalAssets') or info.get('enterpriseValue')
+            market_cap = info.get('totalAssets')
+            source = 'totalAssets'
         
-        if market_cap is not None:
+        if market_cap is None:
+            market_cap = info.get('enterpriseValue')
+            source = 'enterpriseValue'
+        
+        if market_cap is None:
+            # Try shares outstanding * price if available
+            shares_outstanding = info.get('sharesOutstanding') or info.get('sharesOutstanding')
+            current_price = info.get('currentPrice') or info.get('regularMarketPrice')
+            if shares_outstanding and current_price:
+                market_cap = shares_outstanding * current_price
+                source = 'sharesOutstanding * price'
+        
+        if market_cap is not None and market_cap > 0:
             # Convert to millions
-            return market_cap / 1e6
+            market_cap_millions = market_cap / 1e6
+            if logger.level <= logging.DEBUG:
+                logger.debug(f"Successfully fetched market cap for {ticker}: {market_cap_millions:.0f}M (source: {source})")
+            return market_cap_millions
         
+        if logger.level <= logging.DEBUG:
+            logger.debug(f"Market cap not available for {ticker} (tried {source})")
         return None
+        
     except Exception as e:
-        logger.debug(f"Could not fetch market cap for {ticker}: {e}")
+        logger.debug(f"Error fetching market cap for {ticker}: {type(e).__name__}: {str(e)[:100]}")
         return None
 
 
@@ -130,27 +174,33 @@ def load_market_caps_for_country(country: str, capm_results: pd.DataFrame) -> pd
     """
     country_stocks = capm_results[capm_results['country'] == country].copy()
     
-    # Load price data
+    # Try to load price data (optional, only for estimation fallback)
+    prices_df = None
     prices_file = os.path.join(DATA_RAW_DIR, f"prices_stocks_{country}.csv")
-    if not os.path.exists(prices_file):
-        logger.warning(f"Price file not found for {country}")
-        return pd.DataFrame()
-    
-    prices_df = pd.read_csv(prices_file, index_col=0, parse_dates=True)
+    if os.path.exists(prices_file):
+        try:
+            prices_df = pd.read_csv(prices_file, index_col=0, parse_dates=True)
+        except Exception as e:
+            logger.debug(f"Could not load price file for {country}: {e}")
     
     market_caps = []
+    successful_fetches = 0
+    estimated_count = 0
+    failed_count = 0
     
     for _, row in country_stocks.iterrows():
         ticker = row['ticker']
         
-        # Try to fetch real market cap
+        # Try to fetch real market cap from yfinance first
         market_cap = fetch_market_cap(ticker, country)
         source = 'yfinance'
         
-        # If unavailable, estimate from prices
-        if market_cap is None:
+        # If unavailable and we have price data, estimate from prices
+        if market_cap is None and prices_df is not None:
             market_cap = estimate_market_cap_from_price(ticker, country, prices_df)
             source = 'estimated'
+            if market_cap is not None:
+                estimated_count += 1
         
         if market_cap is not None:
             market_caps.append({
@@ -158,8 +208,14 @@ def load_market_caps_for_country(country: str, capm_results: pd.DataFrame) -> pd
                 'market_cap_millions': market_cap,
                 'source': source
             })
+            if source == 'yfinance':
+                successful_fetches += 1
         else:
-            logger.warning(f"Could not determine market cap for {ticker}")
+            failed_count += 1
+            if logger.level <= logging.DEBUG:
+                logger.debug(f"Could not determine market cap for {ticker}")
+    
+    logger.info(f"  Market cap data: {successful_fetches} from yfinance, {estimated_count} estimated, {failed_count} failed")
     
     return pd.DataFrame(market_caps)
 

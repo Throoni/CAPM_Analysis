@@ -443,10 +443,15 @@ def plot_efficient_frontier(
     """
     logger.info("Creating enhanced efficient frontier plot with all stocks and market index...")
     
-    fig, ax = plt.subplots(figsize=(14, 10))
+    # Verify units: returns are in percentage, covariance is in percentage²
+    # Individual stock volatilities: sqrt(diag(Σ)) gives percentage
+    individual_volatilities = np.sqrt(np.diag(cov_matrix.values))
+    logger.info(f"  Unit check - Individual stock volatilities: min={individual_volatilities.min():.2f}%, max={individual_volatilities.max():.2f}%")
+    logger.info(f"  Unit check - Expected returns: min={expected_returns.min():.2f}%, max={expected_returns.max():.2f}%")
+    logger.info(f"  Unit check - Frontier volatility: min={frontier_df['volatility'].min():.2f}%, max={frontier_df['volatility'].max():.2f}%")
+    logger.info(f"  Unit check - Market index: return={market_index_return:.2f}%, vol={market_index_vol:.2f}%")
     
-    # Calculate individual stock volatilities from covariance matrix diagonal
-    individual_volatilities = np.sqrt(np.diag(cov_matrix.values)) * 100  # Convert to percentage
+    fig, ax = plt.subplots(figsize=(14, 10))
     
     # Plot ALL individual stocks
     ax.scatter(individual_volatilities, expected_returns.values, 

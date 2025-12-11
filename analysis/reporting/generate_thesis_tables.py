@@ -278,21 +278,29 @@ def generate_table4_country_level() -> pd.DataFrame:
     
     # Create table
     table4 = country_fm[[
-        'country', 'avg_gamma_0', 'tstat_gamma_0', 'avg_gamma_1', 'tstat_gamma_1',
+        'country', 'avg_gamma_0', 'tstat_gamma_0', 'pvalue_gamma_0', 
+        'avg_gamma_1', 'tstat_gamma_1', 'pvalue_gamma_1',
         'n_months', 'avg_r_squared'
     ]].copy()
     
     # Round values
     table4['avg_gamma_0'] = table4['avg_gamma_0'].round(4)
     table4['tstat_gamma_0'] = table4['tstat_gamma_0'].round(3)
+    # Format p-values: use scientific notation for very small values (< 0.0001)
+    table4['pvalue_gamma_0'] = table4['pvalue_gamma_0'].apply(
+        lambda x: f"{x:.4e}" if x < 0.0001 and x > 0 else f"{x:.4f}"
+    )
     table4['avg_gamma_1'] = table4['avg_gamma_1'].round(4)
     table4['tstat_gamma_1'] = table4['tstat_gamma_1'].round(3)
+    table4['pvalue_gamma_1'] = table4['pvalue_gamma_1'].apply(
+        lambda x: f"{x:.4e}" if x < 0.0001 and x > 0 else f"{x:.4f}"
+    )
     table4['avg_r_squared'] = table4['avg_r_squared'].round(3)
     table4['n_months'] = table4['n_months'].astype(int)
     
     # Rename columns
     table4.columns = [
-        'Country', 'γ₀ Mean', 't(γ₀)', 'γ₁ Mean', 't(γ₁)',
+        'Country', 'γ₀ Mean', 't(γ₀)', 'p-value(γ₀)', 'γ₁ Mean', 't(γ₁)', 'p-value(γ₁)',
         'N Months', 'Avg R²'
     ]
     
