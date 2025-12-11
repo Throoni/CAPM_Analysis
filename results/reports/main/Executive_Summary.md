@@ -6,11 +6,11 @@
 
 ## Overview
 
-This study tests the Capital Asset Pricing Model (CAPM) across seven European equity markets using a sample of 219 stocks from Germany, France, Italy, Spain, Sweden, United Kingdom, and Switzerland. We employ both time-series and cross-sectional methodologies to evaluate whether beta explains stock returns.
+This study tests the Capital Asset Pricing Model (CAPM) across seven European equity markets using a sample of 245 valid stocks (out of 249 total) from Germany, France, Italy, Spain, Sweden, United Kingdom, and Switzerland. We employ both time-series and cross-sectional methodologies to evaluate whether beta explains stock returns.
 
 **Period:** January 2021 - November 2025 (59 months)  
 **Markets:** 7 European countries  
-**Stocks:** 219 with complete data
+**Stocks:** 245 valid stocks (out of 249 total) with complete data
 
 ---
 

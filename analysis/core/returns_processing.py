@@ -418,6 +418,86 @@ def convert_stock_prices_to_eur(
     return eur_prices
 
 
+def convert_riskfree_rate_to_eur(
+    riskfree_rate: pd.Series,
+    country: str
+) -> pd.Series:
+    """
+    Convert risk-free rate from local currency to EUR.
+    
+    For GBP: RF_EUR = RF_GBP × GBP_EUR_Rate
+    For SEK: RF_EUR = RF_SEK × SEK_EUR_Rate
+    For CHF: RF_EUR = RF_CHF × CHF_EUR_Rate
+    For EUR: No conversion needed
+    
+    Note: Risk-free rates are in monthly percentage form. The conversion
+    accounts for the fact that if a bond pays X% in local currency,
+    the EUR equivalent return is X% × (Local/EUR_Rate).
+    
+    Parameters
+    ----------
+    riskfree_rate : pd.Series
+        Risk-free rate in local currency (monthly, percentage form)
+        Index should be dates
+    country : str
+        Country name (determines currency)
+    
+    Returns
+    -------
+    pd.Series
+        Risk-free rate in EUR (monthly, percentage form), same index
+    """
+    country_config = COUNTRIES.get(country)
+    if country_config is None:
+        logger.warning(f"Unknown country {country}, skipping risk-free rate conversion")
+        return riskfree_rate
+    
+    currency = country_config.currency
+    
+    # EUR countries don't need conversion
+    if currency == "EUR":
+        logger.debug(f"{country} risk-free rate already in EUR, no conversion needed")
+        return riskfree_rate
+    
+    # Load appropriate exchange rate
+    try:
+        exchange_rates = load_exchange_rates_from_ecb(currency, "EUR")
+        logger.info(f"Converting {country} risk-free rate from {currency} to EUR...")
+    except FileNotFoundError as e:
+        logger.error(f"Could not load {currency}/EUR exchange rates: {e}")
+        logger.error(f"Skipping risk-free rate conversion for {country} - currency mismatch will affect results")
+        return riskfree_rate
+    
+    # Align exchange rates with risk-free rate dates
+    riskfree_rate.index = pd.to_datetime(riskfree_rate.index)
+    exchange_rates.index = pd.to_datetime(exchange_rates.index)
+    
+    # Convert to month-end for alignment
+    rf_dates_month_end = riskfree_rate.index.to_period('M').to_timestamp('M')
+    rates_month_end = exchange_rates.index.to_period('M').to_timestamp('M')
+    
+    # Reindex exchange rates to match risk-free rate dates
+    aligned_rates = exchange_rates.reindex(rf_dates_month_end)
+    aligned_rates = aligned_rates.ffill().bfill()  # Forward and backward fill
+    
+    # Handle any remaining NaN
+    if aligned_rates.isna().any():
+        aligned_rates = aligned_rates.fillna(exchange_rates.iloc[0])
+    
+    # Convert risk-free rate: RF_EUR = RF_Local × (Local/EUR_Rate)
+    # Exchange rate is "local currency per EUR", so multiply
+    eur_riskfree = riskfree_rate * aligned_rates.values
+    
+    # Update index to match original
+    eur_riskfree.index = riskfree_rate.index
+    
+    logger.info(f"Converted {country} risk-free rate from {currency} to EUR")
+    if len(riskfree_rate) > 0:
+        logger.info(f"  Sample: {riskfree_rate.iloc[0]:.4f}% {currency} → {eur_riskfree.iloc[0]:.4f}% EUR")
+    
+    return eur_riskfree
+
+
 def convert_usd_prices_to_eur(
     usd_prices: pd.Series,
     exchange_rates: pd.Series
@@ -772,12 +852,16 @@ def process_all_countries() -> pd.DataFrame:
                 
                 riskfree_aligned = align_riskfree_with_returns(riskfree_rate, panel_dates_month_end)
                 
+                # CRITICAL: Convert risk-free rate to EUR to match stock and market returns
+                # All returns are now in EUR, so risk-free rates must also be in EUR
+                riskfree_aligned_eur = convert_riskfree_rate_to_eur(riskfree_aligned, country)
+                
                 # Create mapping: convert panel dates to month-end for lookup
                 country_panel_dates = pd.to_datetime(country_panel['date'])
                 # Convert to DatetimeIndex for to_period operation
                 country_panel_dates_dt = pd.DatetimeIndex(country_panel_dates)
                 country_panel_dates_month_end = country_panel_dates_dt.to_period('M').to_timestamp('M')
-                riskfree_dict = dict(zip(riskfree_aligned.index, riskfree_aligned.values))
+                riskfree_dict = dict(zip(riskfree_aligned_eur.index, riskfree_aligned_eur.values))
                 country_panel['riskfree_rate'] = country_panel_dates_month_end.map(riskfree_dict)
                 
             except Exception as e:

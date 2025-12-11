@@ -6,7 +6,7 @@ This section provides a brief recap of the data and methodology used in the empi
 
 ### Universe
 
-The analysis covers **7 European markets**: Germany (DE), France (FR), Italy (IT), Spain (ES), Sweden (SE), United Kingdom (UK), and Switzerland (CH). After data cleaning and quality filters, the final sample consists of **219 stocks** with complete return data.
+The analysis covers **7 European markets**: Germany (DE), France (FR), Italy (IT), Spain (ES), Sweden (SE), United Kingdom (UK), and Switzerland (CH). After data cleaning and quality filters, the final sample consists of **245 valid stocks** (out of 249 total) with complete return data.
 
 ### Period
 
@@ -94,7 +94,7 @@ where:
 
 The time-series regressions yield the following aggregate results:
 
-- **Valid stocks:** 219 (out of 249 total)
+- **Valid stocks:** 245 (out of 249 total)
 - **Average beta:** 0.688
 - **Median beta:** 0.646
 - **Average R²:** 0.235

@@ -5,7 +5,7 @@
 
 ## Executive Summary
 
-This report provides actionable investment recommendations for **American equity investors** considering European equity markets. Based on comprehensive CAPM analysis of 219 stocks across 7 European markets, we identify key opportunities and risks.
+This report provides actionable investment recommendations for **American equity investors** considering European equity markets. Based on comprehensive CAPM analysis of 245 valid stocks across 7 European markets, we identify key opportunities and risks.
 
 **Key Finding:** CAPM is **rejected** in European markets - beta does not explain expected returns. This creates opportunities for factor-based and active strategies.
 
@@ -300,6 +300,6 @@ This report provides actionable investment recommendations for **American equity
 
 ---
 
-*Report generated based on comprehensive CAPM analysis of 219 stocks across 7 European markets (2021-2025)*
+*Report generated based on comprehensive CAPM analysis of 245 valid stocks across 7 European markets (2021-2025)*
 *Analysis period: January 2021 - November 2025*
 *Last updated: 2025-12-09*

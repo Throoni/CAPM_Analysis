@@ -5,7 +5,7 @@
 ### Key Findings at a Glance
 
 **Time-Series CAPM:**
-- Valid stocks: 219
+- Valid stocks: 245 (out of 249 total)
 - Average beta: 0.688
 - Average R²: 0.235
 - Average alpha: 0.144%

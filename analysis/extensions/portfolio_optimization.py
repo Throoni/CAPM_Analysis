@@ -34,6 +34,9 @@ def calculate_expected_returns_and_covariance(panel_df: pd.DataFrame) -> Tuple[p
     """
     Calculate expected returns (mean historical returns) and covariance matrix.
     
+    Only includes valid stocks (stocks with is_valid=True in CAPM results).
+    This ensures consistency across all analyses.
+    
     Parameters
     ----------
     panel_df : pd.DataFrame
@@ -46,8 +49,17 @@ def calculate_expected_returns_and_covariance(panel_df: pd.DataFrame) -> Tuple[p
     """
     logger.info("Calculating expected returns and covariance matrix...")
     
+    # Load CAPM results to filter by valid stocks only
+    from analysis.utils.config import RESULTS_DATA_DIR
+    capm_results = pd.read_csv(os.path.join(RESULTS_DATA_DIR, "capm_results.csv"))
+    valid_tickers = set(capm_results[capm_results['is_valid']]['ticker'].unique())
+    
+    # Filter panel to only include valid stocks
+    panel_df_filtered = panel_df[panel_df['ticker'].isin(valid_tickers)].copy()
+    logger.info(f"  Filtered to {len(valid_tickers)} valid stocks (from {panel_df['ticker'].nunique()} total)")
+    
     # Pivot to wide format: stocks as columns, dates as rows
-    returns_wide = panel_df.pivot_table(
+    returns_wide = panel_df_filtered.pivot_table(
         index='date',
         columns='ticker',
         values='stock_return',

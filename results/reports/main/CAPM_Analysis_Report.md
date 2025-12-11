@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This report presents a comprehensive empirical test of the Capital Asset Pricing Model (CAPM) across seven European equity markets from 2021 to 2025. Using a sample of 219 stocks from Germany, France, Italy, Spain, Sweden, United Kingdom, and Switzerland, we employ both time-series and cross-sectional methodologies to evaluate whether beta explains stock returns.
+This report presents a comprehensive empirical test of the Capital Asset Pricing Model (CAPM) across seven European equity markets from 2021 to 2025. Using a sample of 245 valid stocks (out of 249 total) from Germany, France, Italy, Spain, Sweden, United Kingdom, and Switzerland, we employ both time-series and cross-sectional methodologies to evaluate whether beta explains stock returns.
 
 ### Key Findings
 
@@ -143,7 +143,7 @@ Studies of CAPM in European markets have generally found:
 **Stock Universe:**
 - Initial universe: 313 stocks
 - After data quality filters: 249 stocks
-- Final sample with complete data: 219 stocks
+- Final sample with complete data: 245 valid stocks (out of 249 total)
 
 **Selection Criteria:**
 - Large-cap stocks from major European indices
@@ -272,11 +272,11 @@ The time-series regressions yield the following aggregate results (after full cu
 | Statistic | Value |
 |-----------|-------|
 | Valid stocks | 245 |
-| Average beta | 0.905 |
+| Average beta | 0.917 |
 | Median beta | 0.884 |
-| Average R² | 0.233 |
+| Average R² | 0.236 |
 | Median R² | 0.221 |
-| Average alpha | -0.038% |
+| Average alpha | -0.089% |
 | % Significant betas (p < 0.05) | 95.5% |
 
 **Note on Currency Conversion:** All stock returns (GBP/SEK/CHF/EUR) and market returns (MSCI Europe) are converted to EUR to eliminate currency mismatch. This improves R² values, especially for GBP stocks (average R² improved from 0.203 to 0.258).
@@ -287,9 +287,9 @@ The time-series regressions yield the following aggregate results (after full cu
 
 *(See Appendix A.1 for full table)*
 
-Key findings by country (after currency conversion):
+Key findings by country (after currency and risk-free rate conversion):
 - **Beta values** are economically reasonable, with median betas ranging from 0.77 to 1.14
-- **R² values** average approximately 0.23, indicating moderate explanatory power
+- **R² values** average approximately 0.24, indicating moderate explanatory power
   - **GBP stocks:** Average R² = 0.258 (improved from 0.203 after currency conversion)
   - **SEK stocks:** Average R² = 0.323 (improved from 0.264)
   - **CHF stocks:** Average R² = 0.246 (slightly decreased from 0.275, but still strong)
@@ -305,11 +305,11 @@ Key findings by country (after currency conversion):
 - Distribution is centered around 0.88 (median), with 25th-75th percentile range of 0.77-1.10
 - Higher betas than before currency conversion (was 0.65), reflecting removal of currency noise that was reducing correlations
 
-**R² Distribution (after currency conversion):**
-- Average R² of 0.233 indicates that market beta explains approximately 23% of return variation
+**R² Distribution (after currency and risk-free rate conversion):**
+- Average R² of 0.236 indicates that market beta explains approximately 24% of return variation
 - Median R² of 0.221 shows the distribution is slightly right-skewed
-- Approximately 77% of return variation remains unexplained by market risk alone
-- **Improvement from currency conversion:** Average R² increased from 0.217 to 0.233 (+0.016)
+- Approximately 76% of return variation remains unexplained by market risk alone
+- **Improvement from currency conversion:** Average R² increased from 0.217 to 0.236 (+0.019)
 - **Low R² stocks reduced:** Percentage with R² < 0.15 decreased from 36.1% to 30.2% (-5.9 percentage points)
 
 **R² by Currency (after conversion):**
@@ -348,7 +348,7 @@ Key findings by country (after currency conversion):
    - Concentrated in certain countries (Spain: 16 stocks, UK: 17 stocks) and sectors
    - This is expected - not all stocks should have high R² with a single market factor
 
-**Conclusion:** While CAPM has moderate time-series explanatory power (R² ≈ 0.23), it leaves substantial return variation unexplained. Currency conversion improved the fit significantly (especially for GBP and SEK stocks), but the remaining low R² reflects the inherent limitation of a single-factor model. 
+**Conclusion:** While CAPM has moderate time-series explanatory power (R² ≈ 0.24), it leaves substantial return variation unexplained. Currency conversion and risk-free rate conversion to EUR improved the fit significantly (especially for GBP and SEK stocks), but the remaining low R² reflects the inherent limitation of a single-factor model. 
 
 **R² of 0.20-0.30 is typical for CAPM** in finance literature. The fact that 70% of stocks have R² > 0.15 demonstrates that the model has meaningful explanatory power. Further improvements would require multi-factor models (Fama-French 3-factor, Carhart 4-factor) that incorporate size, value, quality, and momentum factors beyond market beta alone.
 
@@ -633,7 +633,7 @@ This portfolio should be combined with the risk-free asset according to investor
 1. **Massive Variance Reduction:** Portfolio variance is reduced by 82% compared to average individual stock variance
 2. **Volatility Reduction:** Portfolio volatility (3.62%) is less than half of average stock volatility (8.52%)
 3. **Diversification Ratio:** 2.35 indicates that diversification reduces risk by more than half
-4. **Economic Significance:** Diversification across 219 stocks and 7 countries provides substantial risk reduction
+4. **Economic Significance:** Diversification across 245 stocks and 7 countries provides substantial risk reduction
 
 **Conclusion:** Diversification is **highly effective** in this sample, reducing portfolio risk by over 80% while maintaining reasonable expected returns. The optimal risky portfolio offers attractive risk-adjusted returns (Sharpe ratio > 1.0).
 
@@ -923,7 +923,7 @@ This analysis provides **robust evidence** that the Capital Asset Pricing Model 
 
 **5. Statistical Limitations:**
 
-- **Sample Size:** 219 stocks over 59 months provides reasonable power, but some tests (value effects) have limited statistical power.
+- **Sample Size:** 245 valid stocks over 59 months provides reasonable power, but some tests (value effects) have limited statistical power.
 - **Multiple Testing:** We conduct many tests. Some significant results may be due to multiple testing rather than true effects.
 - **Assumption Violations:** OLS regression assumes:
   - Linearity (may not hold)

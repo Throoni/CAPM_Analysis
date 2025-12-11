@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Based on comprehensive empirical analysis of 219 stocks across 7 European markets (2021-2025), this report provides a portfolio recommendation for XYZ Asset Manager's European equity fund.
+Based on comprehensive empirical analysis of 245 valid stocks across 7 European markets (2021-2025), this report provides a portfolio recommendation for XYZ Asset Manager's European equity fund.
 
 **Recommendation: Active**
 
@@ -103,4 +103,4 @@ This recommendation balances the evidence of market inefficiencies with the bene
 
 ---
 
-*Report generated based on comprehensive CAPM analysis of 219 stocks across 7 European markets (2021-2025)*
+*Report generated based on comprehensive CAPM analysis of 245 valid stocks across 7 European markets (2021-2025)*
