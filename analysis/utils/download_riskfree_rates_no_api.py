@@ -404,14 +404,16 @@ def get_country_riskfree_rate(
     country_rates: Dict[str, Tuple[pd.Series, str]]
 ) -> Optional[pd.Series]:
     """
-    Get risk-free rate for a country, handling EUR countries.
+    Get risk-free rate for a country.
     
-    EUR countries (Germany, France, Italy, Spain) should use German Bund rate.
+    All countries use German Bund rate (EUR) since all stock returns and market returns
+    are converted to EUR. Interest rates are percentages and should NOT be multiplied
+    by exchange rates.
     
     Parameters
     ----------
     country : str
-        Country name
+        Country name (all countries will receive German Bund rate)
     start_date : str
         Start date
     end_date : str
@@ -422,54 +424,25 @@ def get_country_riskfree_rate(
     Returns
     -------
     pd.Series or None
-        Risk-free rate series
+        German Bund rate series (EUR) for all countries
     """
-    currency = COUNTRIES[country].currency
-    
-    # EUR countries use German Bund rate
-    if currency == "EUR":
-        if country == "Germany":
-            # Get German rate
-            if "Germany" in country_rates:
-                return country_rates["Germany"][0].copy()
-            else:
-                # Try to fetch German rate
-                result = find_fred_series_id("Germany", start_date, end_date)
-                if result:
-                    series, url = result
-                    country_rates["Germany"] = (series, url)
-                    return series.copy()
-                else:
-                    logger.warning("German Bund rate not found - EUR countries will use placeholder")
-                    return None
-        else:
-            # Other EUR countries use German rate
-            logger.info(f"{country} (EUR) - using German Bund rate")
-            if "Germany" in country_rates:
-                return country_rates["Germany"][0].copy()
-            else:
-                # Fetch German rate first
-                result = find_fred_series_id("Germany", start_date, end_date)
-                if result:
-                    series, url = result
-                    country_rates["Germany"] = (series, url)
-                    return series.copy()
-                else:
-                    logger.warning(f"German Bund rate not found - {country} will use placeholder")
-                    return None
+    # All countries use German Bund rate (EUR)
+    # Since all stock returns and market returns are converted to EUR,
+    # all countries should use the same EUR risk-free rate
+    if "Germany" in country_rates:
+        logger.info(f"{country} - using German Bund rate (EUR)")
+        return country_rates["Germany"][0].copy()
     else:
-        # Non-EUR: use country-specific rate
-        if country in country_rates:
-            return country_rates[country][0].copy()
+        # Try to fetch German rate
+        result = find_fred_series_id("Germany", start_date, end_date)
+        if result:
+            series, url = result
+            country_rates["Germany"] = (series, url)
+            logger.info(f"{country} - using German Bund rate (EUR)")
+            return series.copy()
         else:
-            result = find_fred_series_id(country, start_date, end_date)
-            if result:
-                series, url = result
-                country_rates[country] = (series, url)
-                return series.copy()
-            else:
-                logger.warning(f"No rate found for {country}")
-                return None
+            logger.warning(f"German Bund rate not found - {country} will use placeholder")
+            return None
 
 
 # -------------------------------------------------------------------
@@ -508,38 +481,32 @@ def download_and_merge_riskfree_rates() -> pd.DataFrame:
     else:
         logger.warning("⚠️  German Bund rate not found in FRED - EUR countries will need alternative source")
     
-    # Then get rates for other countries
+    # All countries use German Bund rate (EUR)
+    # Since all stock returns and market returns are converted to EUR,
+    # all countries should use the same EUR risk-free rate
+    logger.info("\nAll countries will use German Bund rate (EUR)")
     for country in COUNTRIES.keys():
         if country == "Germany":
             continue  # Already fetched
-        
-        currency = COUNTRIES[country].currency
-        
-        if currency == "EUR":
-            # EUR countries use German rate (already fetched)
-            logger.info(f"\n{country} (EUR) - will use German Bund rate")
-            continue
-        else:
-            # Non-EUR: fetch country-specific rate
-            result = find_fred_series_id(country, start_date, end_date)
-            if result:
-                series, url = result
-                country_rates[country] = (series, url)
-                # Save to raw data
-                series.to_csv(os.path.join(DATA_RAW_DIR, f"riskfree_rate_{country}.csv"))
-                logger.info(f"✅ Saved {country} rate to data/raw/riskfree_rate_{country}.csv")
+        logger.info(f"{country} - will use German Bund rate (EUR)")
     
-    # Step 2: Create mapping for all countries
-    logger.info("\nStep 2: Creating country-to-rate mapping...")
+    # Step 2: Create mapping for all countries (all use German Bund)
+    logger.info("\nStep 2: Creating country-to-rate mapping (all countries use German Bund)...")
     country_to_rate = {}
     
+    # Get German Bund rate for all countries
+    german_rate = None
+    if "Germany" in country_rates:
+        german_rate = country_rates["Germany"][0]
+        logger.info(f"✅ German Bund rate: {len(german_rate)} months")
+    
+    if german_rate is None:
+        raise ValueError("German Bund rate not found - required for all countries")
+    
+    # All countries use German Bund rate
     for country in COUNTRIES.keys():
-        rate_series = get_country_riskfree_rate(country, start_date, end_date, country_rates)
-        if rate_series is not None:
-            country_to_rate[country] = rate_series
-            logger.info(f"✅ {country}: {len(rate_series)} months")
-        else:
-            logger.warning(f"⚠️  {country}: No rate available - will use placeholder")
+        country_to_rate[country] = german_rate
+        logger.info(f"✅ {country}: Using German Bund rate ({len(german_rate)} months)")
     
     if not country_to_rate:
         raise ValueError("No risk-free rates found for any country!")

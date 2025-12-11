@@ -5,16 +5,17 @@ Functions to fetch and process risk-free rates (3-month government bonds)
 for CAPM analysis.
 
 Per methodology:
-- Eurozone countries (Germany, France, Italy, Spain): German 3-month Bund (EUR)
-- Sweden: Swedish 3-month government bond (SEK)
-- UK: UK 3-month Treasury Bill (GBP)
-- Switzerland: Swiss 3-month government bond (CHF)
+- All countries use German 3-month Bund (EUR) as the risk-free rate
+- Since all stock returns and market returns are converted to EUR,
+  all countries should use the same EUR risk-free rate (German Bund)
+- Interest rates are percentages and should NOT be multiplied by exchange rates
 
 Data Sources (in order of preference):
-1. ECB API - For EUR countries (free, no API key required)
-2. FRED API - For all countries (free, requires API key)
-3. WRDS - For academic users with WRDS access
-4. Yahoo Finance - Limited availability (fallback)
+1. CSV files (processed risk-free rate files, primary source)
+2. ECB API - For EUR countries (free, no API key required)
+3. FRED API - For all countries (free, requires API key)
+4. WRDS - For academic users with WRDS access
+5. Yahoo Finance - Limited availability (fallback)
 
 Note: System requires real data - CSV files are available for all countries.
 No placeholder values are used.
@@ -485,13 +486,16 @@ def get_riskfree_rate(
     System requires real data - raises ValueError if all sources fail (no placeholder)
     
     Per methodology:
-    - EUR countries (Germany, France, Italy, Spain): German 3-month Bund (EUR)
-    - Non-EUR: Country-specific 3-month government bond
+    - All countries use German 3-month Bund (EUR) as the risk-free rate
+    - Since all stock returns and market returns are converted to EUR,
+      all countries should use the same EUR risk-free rate (German Bund)
+    - Interest rates are percentages and should NOT be multiplied by exchange rates
     
     Parameters
     ----------
     country : str
         Country name (must match COUNTRIES keys)
+        Note: All countries will receive German Bund rate regardless of input country
     start_date : str
         Start date in 'YYYY-MM-DD' format
     end_date : str
@@ -506,6 +510,7 @@ def get_riskfree_rate(
         Monthly risk-free rate in percentage form (%)
         Index: dates (monthly, month-end)
         Values: risk-free rate (%)
+        Always returns German Bund rate (EUR) for all countries
     
     Raises
     ------
@@ -515,18 +520,11 @@ def get_riskfree_rate(
     if country not in COUNTRIES:
         raise ValueError(f"Unknown country: {country}. Must be one of {list(COUNTRIES.keys())}")
     
-    country_config = COUNTRIES[country]
-    currency = country_config.currency
-    
-    # Determine which risk-free rate to use
-    if currency == "EUR":
-        # Eurozone: Use German 3-month Bund
-        logger.info(f"Using German 3-month Bund for {country} (EUR)")
-        target_country = "Germany"
-    else:
-        # Non-EUR: Use country-specific rate
-        target_country = country
-        logger.info(f"Using {country}-specific 3-month government bond ({currency})")
+    # All countries use German Bund rate (EUR)
+    # Since all stock returns and market returns are converted to EUR,
+    # all countries should use the same EUR risk-free rate
+    target_country = "Germany"
+    logger.info(f"Using German 3-month Bund (EUR) for {country} - all countries use same EUR risk-free rate")
     
     # Create monthly date range (fallback)
     date_range = pd.date_range(start=start_date, end=end_date, freq='ME')

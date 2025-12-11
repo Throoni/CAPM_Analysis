@@ -266,22 +266,20 @@ def merge_riskfree_rates_with_panel(
     logger.info(f"   Countries: {panel['country'].nunique()}")
     logger.info(f"   Date range: {panel['date'].min()} to {panel['date'].max()}")
     
-    # Fetch risk-free rates for all countries
-    logger.info("\nFetching risk-free rates from FRED CSV files...")
+    # Fetch German Bund rate (all countries use this)
+    logger.info("\nFetching German Bund rate (all countries use this EUR rate)...")
+    german_rate = fetch_riskfree_from_fred_csv("Germany", start_date, end_date)
+    
+    if german_rate is None or german_rate.empty:
+        raise ValueError("German Bund rate not found - required for all countries")
+    
+    logger.info(f"✅ German Bund rate: {len(german_rate)} months")
+    
+    # All countries use German Bund rate
     riskfree_data = {}
-    
     for country in panel['country'].unique():
-        logger.info(f"\nProcessing {country}...")
-        series = fetch_riskfree_from_fred_csv(country, start_date, end_date)
-        
-        if series is not None and not series.empty:
-            riskfree_data[country] = series
-            logger.info(f"✅ {country}: {len(series)} months")
-        else:
-            logger.warning(f"⚠️  {country}: Failed to fetch risk-free rate")
-    
-    if not riskfree_data:
-        raise ValueError("No risk-free rates fetched from FRED CSV files")
+        riskfree_data[country] = german_rate
+        logger.info(f"✅ {country}: Using German Bund rate ({len(german_rate)} months)")
     
     # Create mapping DataFrame
     logger.info("\nCreating risk-free rate mapping...")
