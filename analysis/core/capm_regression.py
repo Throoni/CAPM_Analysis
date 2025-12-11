@@ -347,10 +347,14 @@ def create_country_summaries(results_df: pd.DataFrame) -> pd.DataFrame:
     logger.info("CREATING COUNTRY-LEVEL SUMMARIES")
     logger.info("="*70)
     
+    # Filter to only valid stocks for consistency across all analyses
+    valid_results = results_df[results_df['is_valid'] == True].copy()
+    logger.info(f"  Using {len(valid_results)} valid stocks (out of {len(results_df)} total)")
+    
     summaries = []
     
-    for country in results_df['country'].unique():
-        country_data = results_df[results_df['country'] == country]
+    for country in valid_results['country'].unique():
+        country_data = valid_results[valid_results['country'] == country]
         
         # Basic counts
         n_stocks = len(country_data)

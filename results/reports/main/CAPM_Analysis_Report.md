@@ -343,14 +343,14 @@ Key findings by country (after currency and risk-free rate conversion):
 4. **Currency conversion impact:** Converting all returns to EUR significantly improved R² for GBP stocks (0.203 → 0.258) and SEK stocks (0.264 → 0.323), demonstrating that currency mismatch was a major source of noise.
 
 5. **Remaining low R² stocks:** 30.2% of stocks still have R² < 0.15. Analysis shows these are primarily:
-   - Stocks with very low betas (mean 0.575 vs overall 0.905), suggesting weak market sensitivity
+   - Stocks with very low betas (mean 0.575 vs overall 0.917), suggesting weak market sensitivity
    - Some with non-significant betas (29.7% have p > 0.05), indicating truly idiosyncratic returns
    - Concentrated in certain countries (Spain: 16 stocks, UK: 17 stocks) and sectors
    - This is expected - not all stocks should have high R² with a single market factor
 
 **Conclusion:** While CAPM has moderate time-series explanatory power (R² ≈ 0.24), it leaves substantial return variation unexplained. Currency conversion (stocks and market index) and risk-free rate conversion (GBP/SEK/CHF to EUR) improved the fit significantly (especially for GBP and SEK stocks), but the remaining low R² reflects the inherent limitation of a single-factor model. 
 
-**R² of 0.20-0.30 is typical for CAPM** in finance literature. The fact that 70% of stocks have R² > 0.15 demonstrates that the model has meaningful explanatory power. Further improvements would require multi-factor models (Fama-French 3-factor, Carhart 4-factor) that incorporate size, value, quality, and momentum factors beyond market beta alone.
+**R² of 0.20-0.30 is typical for CAPM** in finance literature. The fact that 70% of stocks have R² > 0.15 demonstrates that the model has meaningful explanatory power. After currency and risk-free rate conversion to EUR, average R² improved to 0.236, showing the importance of consistent currency treatment. Further improvements would require multi-factor models (Fama-French 3-factor, Carhart 4-factor) that incorporate size, value, quality, and momentum factors beyond market beta alone.
 
 **For detailed R² analysis, see:** `results/reports/R2_improvements_analysis.md`
 

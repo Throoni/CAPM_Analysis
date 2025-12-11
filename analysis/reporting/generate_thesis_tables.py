@@ -95,9 +95,13 @@ def generate_table1_capm_timeseries() -> pd.DataFrame:
     country_summary = pd.read_csv(os.path.join(RESULTS_REPORTS_DIR, "capm_by_country.csv"))
     capm_results = pd.read_csv(os.path.join(RESULTS_DATA_DIR, "capm_results.csv"))
     
-    # Calculate % significant betas per country
-    significant_betas = capm_results.groupby('country').apply(
-        lambda x: (x['pvalue_beta'] < 0.05).sum() / len(x) * 100
+    # Filter to only valid stocks for consistency
+    valid_results = capm_results[capm_results['is_valid'] == True].copy()
+    
+    # Calculate % significant betas per country (only for valid stocks)
+    significant_betas = valid_results.groupby('country').apply(
+        lambda x: (x['pvalue_beta'] < 0.05).sum() / len(x) * 100,
+        include_groups=False
     ).reset_index()
     significant_betas.columns = ['country', 'pct_significant_betas']
     
@@ -377,7 +381,10 @@ def generate_table6_descriptive() -> pd.DataFrame:
     panel = pd.read_csv(os.path.join(DATA_PROCESSED_DIR, "returns_panel.csv"), parse_dates=['date'])
     
     # Get stock counts and date ranges by country
-    stock_counts = capm_results.groupby('country')['ticker'].nunique()
+    # Filter to only valid stocks for consistency
+    valid_results = capm_results[capm_results['is_valid'] == True].copy()
+    
+    stock_counts = valid_results.groupby('country')['ticker'].nunique()
     date_ranges = panel.groupby('country')['date'].agg(['min', 'max'])
     
     # Create table
@@ -392,19 +399,18 @@ def generate_table6_descriptive() -> pd.DataFrame:
         else:
             date_range = "2021-01 to 2025-11"
         
-        msci_ticker = MSCI_INDEX_TICKERS.get(country, "N/A")
-        
-        # Risk-free rate source
+        # Market proxy: All countries now use MSCI Europe (IEUR)
+        # Risk-free rate: Converted to EUR for all countries
         if COUNTRIES[country].currency == "EUR":
-            rf_source = "German 3-month Bund"
+            rf_source = "German 3-month Bund (EUR)"
         else:
-            rf_source = f"{country} 3-month government bond"
+            rf_source = f"{country} 3-month government bond (converted to EUR)"
         
         table6_data.append({
             'Country': country,
             'N Stocks': n_stocks,
             'Date Range': date_range,
-            'Market Proxy': f"MSCI {country} (via {msci_ticker})",
+            'Market Proxy': "MSCI Europe (IEUR, EUR)",
             'Risk-Free Rate': rf_source
         })
     

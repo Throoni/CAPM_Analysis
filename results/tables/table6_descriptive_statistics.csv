@@ -1,8 +1,8 @@
 Country,N Stocks,Date Range,Market Proxy,Risk-Free Rate
-France,38,2021-01 to 2025-11,MSCI France (via EWQ),German 3-month Bund
-Germany,40,2021-01 to 2025-11,MSCI Germany (via EWG),German 3-month Bund
-Italy,27,2021-01 to 2025-11,MSCI Italy (via EWI),German 3-month Bund
-Spain,35,2021-01 to 2025-11,MSCI Spain (via EWP),German 3-month Bund
-Sweden,27,2021-01 to 2025-11,MSCI Sweden (via EWD),Sweden 3-month government bond
-Switzerland,16,2021-01 to 2025-11,MSCI Switzerland (via EWL),Switzerland 3-month government bond
-UnitedKingdom,66,2021-01 to 2025-11,MSCI UnitedKingdom (via EWU),UnitedKingdom 3-month government bond
+France,37,2021-01 to 2025-11,"MSCI Europe (IEUR, EUR)",German 3-month Bund (EUR)
+Germany,39,2021-01 to 2025-11,"MSCI Europe (IEUR, EUR)",German 3-month Bund (EUR)
+Italy,27,2021-01 to 2025-11,"MSCI Europe (IEUR, EUR)",German 3-month Bund (EUR)
+Spain,35,2021-01 to 2025-11,"MSCI Europe (IEUR, EUR)",German 3-month Bund (EUR)
+Sweden,27,2021-01 to 2025-11,"MSCI Europe (IEUR, EUR)",Sweden 3-month government bond (converted to EUR)
+Switzerland,16,2021-01 to 2025-11,"MSCI Europe (IEUR, EUR)",Switzerland 3-month government bond (converted to EUR)
+UnitedKingdom,64,2021-01 to 2025-11,"MSCI Europe (IEUR, EUR)",UnitedKingdom 3-month government bond (converted to EUR)
