@@ -9,8 +9,8 @@ European Stock Markets, 2021-2025
 
 Time-series regressions show moderate explanatory power:
 - Average R²: 0.232 (beta explains approximately 23.2% of return variation)
-- Median beta: 0.870 (plausible for developed European markets)
-- Average alpha: -0.038% (slightly positive, suggesting CAPM under-predicts returns)
+- Median beta: 0.866 (plausible for developed European markets)
+- Average alpha: -0.049% (slightly positive, suggesting CAPM under-predicts returns)
 
 Interpretation:
 The time-series regressions indicate that market beta has moderate explanatory power
@@ -24,16 +24,16 @@ stocks, on average, earn returns higher than what CAPM predicts based on their b
 --------------------------------------------------------------------------------
 
 Fama-MacBeth cross-sectional test results:
-- Average market price of risk (gamma_1): -0.5278
-- t-statistic: -0.808
-- p-value: 0.4225
-- Intercept (gamma_0): 1.2740 (t=3.985)
+- Average market price of risk (gamma_1): -0.5747
+- t-statistic: -0.880
+- p-value: 0.3825
+- Intercept (gamma_0): 1.3167 (t=4.112)
 
 Interpretation:
 The Fama-MacBeth test REJECTS the CAPM's main prediction. The market price of risk
-(gamma_1) is -0.5278, which is NOT statistically
+(gamma_1) is -0.5747, which is NOT statistically
 significant. This indicates that beta does NOT explain cross-sectional variation in
-returns. The positive and significant intercept (gamma_0 = 1.2740) suggests
+returns. The positive and significant intercept (gamma_0 = 1.3167) suggests
 that the zero-beta rate exceeds the risk-free rate, further contradicting CAPM predictions.
 
 
@@ -68,8 +68,8 @@ c) Market conditions (2021-2025):
 --------------------------------------------------------------------------------
 
 Subperiod Analysis:
-- Period A (2021-2022): gamma_1 = -0.7996 (t=-0.685)
-- Period B (2023-2025): gamma_1 = -0.3413 (t=-0.443)
+- Period A (2021-2022): gamma_1 = -0.7727 (t=-0.660)
+- Period B (2023-2025): gamma_1 = -0.4389 (t=-0.571)
 
 The CAPM rejection is robust across subperiods, indicating that the failure is not
 driven by specific market conditions in any single year.
