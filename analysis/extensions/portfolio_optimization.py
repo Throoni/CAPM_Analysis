@@ -402,7 +402,9 @@ def plot_efficient_frontier(
     frontier_df_unconstrained: pd.DataFrame,
     min_var_port_constrained: Tuple[float, float],
     min_var_port_unconstrained: Tuple[float, float],
-    tangency_port: Tuple[float, float],
+    tangency_port_constrained: Tuple[float, float],
+    tangency_port_unconstrained: Tuple[float, float],
+    equal_weighted_port: Tuple[float, float],
     expected_returns: pd.Series,
     cov_matrix: pd.DataFrame,
     market_index_return: float,
@@ -433,8 +435,12 @@ def plot_efficient_frontier(
         (return, volatility) for constrained minimum-variance portfolio (long-only)
     min_var_port_unconstrained : tuple
         (return, volatility) for unconstrained minimum-variance portfolio (with short selling)
-    tangency_port : tuple
-        (return, volatility) for tangency portfolio
+    tangency_port_constrained : tuple
+        (return, volatility) for constrained tangency portfolio (long-only)
+    tangency_port_unconstrained : tuple
+        (return, volatility) for unconstrained tangency portfolio (with short selling)
+    equal_weighted_port : tuple
+        (return, volatility) for equal-weighted portfolio
     expected_returns : pd.Series
         Expected returns for all individual stocks
     cov_matrix : pd.DataFrame
@@ -487,17 +493,25 @@ def plot_efficient_frontier(
     ax.plot(min_var_port_unconstrained[1], min_var_port_unconstrained[0], 
             'rs', markersize=12, label='Min-Variance Portfolio (With Short Selling)', zorder=5)
     
-    # Plot tangency portfolio
-    ax.plot(tangency_port[1], tangency_port[0], 
-            'go', markersize=12, label='Optimal Risky Portfolio (Tangency)', zorder=5)
+    # Plot constrained tangency portfolio (long-only, green circle)
+    ax.plot(tangency_port_constrained[1], tangency_port_constrained[0], 
+            'go', markersize=12, label='Optimal Risky Portfolio (Tangency, Long-Only)', zorder=5)
+    
+    # Plot unconstrained tangency portfolio (with short selling, green square)
+    ax.plot(tangency_port_unconstrained[1], tangency_port_unconstrained[0], 
+            'gs', markersize=12, label='Optimal Risky Portfolio (Tangency, With Short Selling)', zorder=5)
+    
+    # Plot equal-weighted portfolio (purple diamond)
+    ax.plot(equal_weighted_port[1], equal_weighted_port[0], 
+            'mD', markersize=12, label='Equal-Weighted Portfolio', zorder=5)
     
     # Plot risk-free rate
     ax.axhline(y=risk_free_rate, color='k', linestyle='--', linewidth=1, 
               label=f'Risk-Free Rate ({risk_free_rate:.2f}%)', zorder=3)
     
-    # Plot capital market line (from risk-free rate through tangency portfolio)
-    if tangency_port[1] > 0:
-        cml_slope = (tangency_port[0] - risk_free_rate) / tangency_port[1]
+    # Plot capital market line (from risk-free rate through constrained tangency portfolio)
+    if tangency_port_constrained[1] > 0:
+        cml_slope = (tangency_port_constrained[0] - risk_free_rate) / tangency_port_constrained[1]
         max_vol = max(
             frontier_df_constrained['volatility'].max() if len(frontier_df_constrained) > 0 else 0,
             frontier_df_unconstrained['volatility'].max() if len(frontier_df_unconstrained) > 0 else 0,
@@ -606,9 +620,15 @@ def run_portfolio_optimization() -> Dict:
     )
     
     # Find tangency portfolio (constrained - long-only, more realistic for investment)
-    logger.info("Calculating tangency portfolio (long-only)...")
-    tangency_weights, tangency_return, tangency_vol = find_tangency_portfolio(
+    logger.info("Calculating constrained tangency portfolio (long-only)...")
+    tangency_weights_constrained, tangency_return_constrained, tangency_vol_constrained = find_tangency_portfolio(
         expected_returns, cov_matrix, avg_rf_rate, allow_short=False
+    )
+    
+    # Find tangency portfolio (unconstrained - with short selling)
+    logger.info("Calculating unconstrained tangency portfolio (with short selling)...")
+    tangency_weights_unconstrained, tangency_return_unconstrained, tangency_vol_unconstrained = find_tangency_portfolio(
+        expected_returns, cov_matrix, avg_rf_rate, allow_short=True
     )
     
     # Calculate efficient frontier (unconstrained - with short selling)
@@ -623,8 +643,14 @@ def run_portfolio_optimization() -> Dict:
         expected_returns, cov_matrix, n_points=50, allow_short=False
     )
     
-    # Calculate diversification benefits
+    # Calculate diversification benefits (includes equal-weighted portfolio)
     div_benefits = calculate_diversification_benefits(expected_returns, cov_matrix)
+    
+    # Calculate equal-weighted portfolio explicitly for plotting
+    n_stocks = len(expected_returns)
+    equal_weights = np.ones(n_stocks) / n_stocks
+    equal_weighted_return = portfolio_return(equal_weights, expected_returns)
+    equal_weighted_vol = np.sqrt(portfolio_variance(equal_weights, cov_matrix))
     
     # Calculate market index (MSCI Europe) return and volatility from panel
     # Market index returns are in the 'msci_index_return' column (already in percentage form)
@@ -641,7 +667,9 @@ def run_portfolio_optimization() -> Dict:
         frontier_df_unconstrained,
         (min_var_return_constrained, min_var_vol_constrained),
         (min_var_return_unconstrained, min_var_vol_unconstrained),
-        (tangency_return, tangency_vol),
+        (tangency_return_constrained, tangency_vol_constrained),
+        (tangency_return_unconstrained, tangency_vol_unconstrained),
+        (equal_weighted_return, equal_weighted_vol),
         expected_returns,
         cov_matrix,
         market_index_return,
@@ -655,20 +683,23 @@ def run_portfolio_optimization() -> Dict:
         'portfolio': [
             'Minimum-Variance (Constrained)', 
             'Minimum-Variance (Unconstrained)', 
-            'Optimal Risky (Tangency)', 
+            'Optimal Risky (Tangency, Constrained)', 
+            'Optimal Risky (Tangency, Unconstrained)',
             'Equal-Weighted'
         ],
         'expected_return': [
             min_var_return_constrained,
             min_var_return_unconstrained,
-            tangency_return,
-            div_benefits['portfolio_return']
+            tangency_return_constrained,
+            tangency_return_unconstrained,
+            equal_weighted_return
         ],
         'volatility': [
             min_var_vol_constrained,
             min_var_vol_unconstrained,
-            tangency_vol,
-            div_benefits['portfolio_volatility']
+            tangency_vol_constrained,
+            tangency_vol_unconstrained,
+            equal_weighted_vol
         ],
         'sharpe_ratio': [
             # Constrained min-var
@@ -677,10 +708,12 @@ def run_portfolio_optimization() -> Dict:
             # the Sharpe ratio becomes meaningless. Set to NaN to indicate not meaningful.
             # In practice, such low volatility is impossible due to transaction costs and constraints.
             (min_var_return_unconstrained / min_var_vol_unconstrained if min_var_vol_unconstrained >= 0.1 else np.nan) if min_var_vol_unconstrained > 0 else 0,
-            # Tangency portfolio
-            (tangency_return - avg_rf_rate) / tangency_vol if tangency_vol > 0 else 0,
+            # Constrained tangency portfolio
+            (tangency_return_constrained - avg_rf_rate) / tangency_vol_constrained if tangency_vol_constrained > 0 else 0,
+            # Unconstrained tangency portfolio
+            (tangency_return_unconstrained - avg_rf_rate) / tangency_vol_unconstrained if tangency_vol_unconstrained > 0 else 0,
             # Equal-weighted
-            div_benefits['portfolio_return'] / div_benefits['portfolio_volatility'] if div_benefits['portfolio_volatility'] > 0 else 0
+            (equal_weighted_return - avg_rf_rate) / equal_weighted_vol if equal_weighted_vol > 0 else 0
         ]
     })
     
@@ -705,10 +738,20 @@ def run_portfolio_optimization() -> Dict:
             'return': min_var_return_unconstrained,
             'volatility': min_var_vol_unconstrained
         },
-        'tangency_portfolio': {
-            'weights': tangency_weights,
-            'return': tangency_return,
-            'volatility': tangency_vol
+        'tangency_portfolio_constrained': {
+            'weights': tangency_weights_constrained,
+            'return': tangency_return_constrained,
+            'volatility': tangency_vol_constrained
+        },
+        'tangency_portfolio_unconstrained': {
+            'weights': tangency_weights_unconstrained,
+            'return': tangency_return_unconstrained,
+            'volatility': tangency_vol_unconstrained
+        },
+        'equal_weighted_portfolio': {
+            'weights': equal_weights,
+            'return': equal_weighted_return,
+            'volatility': equal_weighted_vol
         },
         'efficient_frontier_constrained': frontier_df_constrained,
         'efficient_frontier_unconstrained': frontier_df_unconstrained,
