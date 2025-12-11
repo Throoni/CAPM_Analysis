@@ -290,6 +290,88 @@ class RiskFreeRateAudit:
             'summary': f"Date alignment: {len(issues_found)} issues found"
         }
     
+    def check_processed_panel_consistency(self) -> Dict:
+        """Check that all countries have same risk-free rate in processed panel."""
+        logger.info("="*70)
+        logger.info("Checking processed panel risk-free rate consistency")
+        logger.info("="*70)
+        
+        issues_found = []
+        
+        # Load processed panel
+        from analysis.config import DATA_PROCESSED_DIR
+        panel_file = os.path.join(DATA_PROCESSED_DIR, "returns_panel.csv")
+        if not os.path.exists(panel_file):
+            self.log_issue('critical', "Processed returns panel not found")
+            return {'passed': False, 'issues': ['Panel file missing']}
+        
+        panel = pd.read_csv(panel_file, parse_dates=['date'])
+        
+        # Check that all countries have the same risk-free rate (should all use German Bund)
+        country_rates = {}
+        for country in sorted(panel['country'].unique()):
+            country_data = panel[panel['country'] == country]
+            rf_rates = country_data['riskfree_rate'].dropna()
+            if len(rf_rates) > 0:
+                country_rates[country] = rf_rates.mean()
+        
+        if len(country_rates) == 0:
+            self.log_issue('critical', "No risk-free rates found in processed panel")
+            return {'passed': False, 'issues': ['No risk-free rates in panel']}
+        
+        # Check if all countries have the same rate (within small tolerance)
+        rates_list = list(country_rates.values())
+        mean_rate = np.mean(rates_list)
+        max_diff = max(abs(r - mean_rate) for r in rates_list)
+        
+        # Tolerance: rates should be within 0.0001% of each other
+        if max_diff > 0.0001:
+            for country, rate in country_rates.items():
+                diff = abs(rate - mean_rate)
+                if diff > 0.0001:
+                    issues_found.append({
+                        'country': country,
+                        'issue': f'Risk-free rate differs from mean: {rate:.6f}% vs {mean_rate:.6f}% (diff: {diff:.6f}%)',
+                        'rate': rate,
+                        'mean_rate': mean_rate,
+                        'diff': diff
+                    })
+                    self.log_issue('critical',
+                                 f"{country}: Risk-free rate {rate:.6f}% differs from mean {mean_rate:.6f}% (diff: {diff:.6f}%)")
+        else:
+            self.log_pass(f"All countries have consistent risk-free rate: {mean_rate:.6f}% (max diff: {max_diff:.8f}%)")
+        
+        # Additional check: verify non-EUR countries use German Bund (not converted rates)
+        # If rates are very different, it suggests incorrect conversion
+        if len(country_rates) > 1:
+            eur_countries = [c for c in country_rates.keys() if COUNTRIES.get(c, {}).currency == "EUR"]
+            non_eur_countries = [c for c in country_rates.keys() if COUNTRIES.get(c, {}).currency != "EUR"]
+            
+            if eur_countries and non_eur_countries:
+                eur_mean = np.mean([country_rates[c] for c in eur_countries])
+                non_eur_mean = np.mean([country_rates[c] for c in non_eur_countries])
+                diff = abs(eur_mean - non_eur_mean)
+                
+                if diff > 0.0001:
+                    issues_found.append({
+                        'issue': f'EUR vs non-EUR rate difference: {diff:.6f}% (suggests incorrect conversion)',
+                        'eur_mean': eur_mean,
+                        'non_eur_mean': non_eur_mean,
+                        'diff': diff
+                    })
+                    self.log_issue('critical',
+                                 f"EUR countries ({eur_mean:.6f}%) vs non-EUR ({non_eur_mean:.6f}%) differ by {diff:.6f}%")
+                    self.log_issue('critical',
+                                 "This suggests risk-free rates were incorrectly converted by exchange rates")
+                    self.log_issue('critical',
+                                 "All countries should use German Bund rate (EUR) - no conversion needed")
+        
+        return {
+            'passed': len(issues_found) == 0,
+            'issues': issues_found,
+            'summary': f"Processed panel consistency: {len(issues_found)} issues found"
+        }
+    
     def run_all_checks(self) -> Dict:
         """Run all risk-free rate validation checks."""
         logger.info("\n" + "="*70)
@@ -300,7 +382,8 @@ class RiskFreeRateAudit:
             'conversion_formula': self.verify_conversion_formula(),
             'rate_ranges': self.check_rate_ranges(),
             'eur_consistency': self.check_eur_consistency(),
-            'date_alignment': self.check_date_alignment()
+            'date_alignment': self.check_date_alignment(),
+            'processed_panel_consistency': self.check_processed_panel_consistency()
         }
         
         total_issues = sum(len(r.get('issues', [])) for r in results.values())

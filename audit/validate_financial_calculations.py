@@ -206,6 +206,78 @@ class FinancialCalculationsAudit:
             'summary': f"Risk-free conversion: {len(issues_found)} issues found"
         }
     
+    def check_currency_conversion_logic(self) -> Dict:
+        """Verify currency conversions are applied correctly to prices vs rates."""
+        logger.info("="*70)
+        logger.info("Checking currency conversion logic")
+        logger.info("="*70)
+        
+        issues_found = []
+        
+        # Load processed panel to check actual values
+        from analysis.config import DATA_PROCESSED_DIR
+        panel_file = os.path.join(DATA_PROCESSED_DIR, "returns_panel.csv")
+        if not os.path.exists(panel_file):
+            self.log_issue('critical', "Processed returns panel not found")
+            return {'passed': False, 'issues': ['Panel file missing']}
+        
+        panel = pd.read_csv(panel_file, parse_dates=['date'])
+        
+        # Check 1: Verify risk-free rates are NOT converted by exchange rates
+        # All countries should have the same risk-free rate (German Bund)
+        country_rf_means = {}
+        for country in sorted(panel['country'].unique()):
+            country_data = panel[panel['country'] == country]
+            rf_rates = country_data['riskfree_rate'].dropna()
+            if len(rf_rates) > 0:
+                country_rf_means[country] = rf_rates.mean()
+        
+        if len(country_rf_means) == 0:
+            self.log_issue('critical', "No risk-free rates found in processed panel")
+            return {'passed': False, 'issues': ['No risk-free rates in panel']}
+        
+        # Check if all countries have the same rate (within small tolerance)
+        rates_list = list(country_rf_means.values())
+        mean_rate = np.mean(rates_list)
+        max_diff = max(abs(r - mean_rate) for r in rates_list)
+        
+        # Tolerance: rates should be within 0.0001% of each other
+        if max_diff > 0.0001:
+            # Check if non-EUR countries have different rates (suggests conversion error)
+            from analysis.config import COUNTRIES
+            eur_countries = [c for c in country_rf_means.keys() if COUNTRIES.get(c, {}).currency == "EUR"]
+            non_eur_countries = [c for c in country_rf_means.keys() if COUNTRIES.get(c, {}).currency != "EUR"]
+            
+            if eur_countries and non_eur_countries:
+                eur_mean = np.mean([country_rf_means[c] for c in eur_countries])
+                non_eur_mean = np.mean([country_rf_means[c] for c in non_eur_countries])
+                diff = abs(eur_mean - non_eur_mean)
+                
+                if diff > 0.0001:
+                    issues_found.append({
+                        'issue': 'Risk-free rates differ between EUR and non-EUR countries',
+                        'details': f'EUR countries: {eur_mean:.6f}%, non-EUR: {non_eur_mean:.6f}% (diff: {diff:.6f}%)',
+                        'severity': 'critical'
+                    })
+                    self.log_issue('critical',
+                                 f"Currency conversion error detected: EUR countries ({eur_mean:.6f}%) vs non-EUR ({non_eur_mean:.6f}%) differ by {diff:.6f}%")
+                    self.log_issue('critical',
+                                 "Risk-free rates should NOT be multiplied by exchange rates")
+                    self.log_issue('critical',
+                                 "All countries should use German Bund rate (EUR) - no conversion needed")
+                else:
+                    self.log_pass("Risk-free rates are consistent across countries")
+            else:
+                self.log_pass("Risk-free rates are consistent")
+        else:
+            self.log_pass(f"All countries have consistent risk-free rate (max diff: {max_diff:.8f}%)")
+        
+        return {
+            'passed': len(issues_found) == 0,
+            'issues': issues_found,
+            'summary': f"Currency conversion logic: {len(issues_found)} issues found"
+        }
+    
     def test_excess_return_formula(self) -> Dict:
         """Test excess return calculation formula."""
         logger.info("="*70)
@@ -262,6 +334,7 @@ class FinancialCalculationsAudit:
             'return_calculations': self.test_return_calculations(),
             'simple_vs_log': self.verify_simple_vs_log_returns(),
             'riskfree_conversion': self.test_riskfree_conversion(),
+            'currency_conversion_logic': self.check_currency_conversion_logic(),
             'excess_return_formula': self.test_excess_return_formula()
         }
         

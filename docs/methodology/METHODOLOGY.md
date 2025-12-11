@@ -123,31 +123,37 @@ CAPM is derived under the following assumptions:
 - Account for correlation in residuals across time
 - Provide correct inference even with estimated betas
 
-### 2.3 Country-Specific Risk-Free Rates Justification
+### 2.3 Risk-Free Rate Selection Justification
 
-**Why Not Use Single Rate:**
+**Why Use Single EUR Rate for All Countries:**
 
 **Currency Matching:**
-- Stocks are denominated in local currency (EUR, GBP, SEK, CHF)
-- Risk-free rates should match currency to avoid currency exposure
-- Using USD rate would introduce currency risk into beta
+- All stock returns and market returns are converted to EUR
+- Risk-free rates must match the currency of returns (EUR)
+- Using country-specific rates in local currencies would introduce currency mismatch
+- Since all returns are in EUR, all countries should use EUR risk-free rate
+
+**Conceptual Correctness:**
+- Interest rates are percentages (returns), not currency amounts
+- Interest rates should **NOT** be multiplied by exchange rates
+- A 2% bond in GBP does NOT become 2.2% in EUR when multiplied by exchange rate
+- Currency conversion only applies to currency amounts (prices, principal), not returns
 
 **Economic Relevance:**
-- Each country has its own monetary policy
-- Interest rates differ across countries
-- Risk-free rates reflect country-specific economic conditions
+- For a German investor, the relevant risk-free rate is the EUR rate
+- All investments are evaluated in EUR terms
+- Using a single EUR rate provides consistent benchmark across all countries
 
 **Academic Best Practice:**
-- International asset pricing studies use country-specific rates
-- Fama-French international studies use local risk-free rates
-- Standard in academic literature
+- When all returns are in a common currency, use that currency's risk-free rate
+- International studies with currency-converted returns use the target currency's risk-free rate
+- Standard approach when returns are standardized to a single currency
 
 **Our Implementation:**
-- EUR countries (Germany, France, Italy, Spain): German 3-month Bund
-- Non-EUR: Country-specific 3-month government bonds
+- **All countries use German Bund rate (EUR):** Since all stock returns and market returns are converted to EUR, all countries use the same EUR risk-free rate (German 3-month Bund)
 - Monthly conversion: $(1 + R_{annual})^{1/12} - 1$ (compounding formula)
-- **Important:** All risk-free rate conversions use compounding consistently
-- **Verification:** Unit tests confirm correct implementation
+- **Important:** Interest rates are percentages and should **NOT** be multiplied by exchange rates
+- **Verification:** Unit tests and audit checks confirm correct implementation
 
 ### 2.4 Robustness Checks Importance
 
@@ -225,6 +231,12 @@ CAPM is derived under the following assumptions:
   
   **Note:** System requires real data - no placeholder values. CSV files are available for all countries.
 - Conversion: Annual rates converted to monthly using $(1 + R_{annual})^{1/12} - 1$
+
+**Risk-Free Rate Currency Handling:**
+- **All countries use German Bund rate (EUR):** Since all stock returns and market returns are converted to EUR, all countries use the same EUR risk-free rate (German Bund).
+- **Important:** Interest rates are percentages (returns), not currency amounts. They should **NOT** be multiplied by exchange rates.
+- **Correct approach:** Use German Bund rate for all countries (no currency conversion needed for interest rates).
+- **Incorrect approach:** Multiplying interest rates by exchange rates (this treats percentages as currency amounts, which is a conceptual error).
 
 **Data Quality Controls:**
 - Minimum 59 months of data required

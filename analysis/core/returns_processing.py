@@ -423,79 +423,68 @@ def convert_riskfree_rate_to_eur(
     country: str
 ) -> pd.Series:
     """
-    Convert risk-free rate from local currency to EUR.
+    Get EUR risk-free rate for all countries.
     
-    For GBP: RF_EUR = RF_GBP × GBP_EUR_Rate
-    For SEK: RF_EUR = RF_SEK × SEK_EUR_Rate
-    For CHF: RF_EUR = RF_CHF × CHF_EUR_Rate
-    For EUR: No conversion needed
+    Since all stock returns and market returns are in EUR,
+    all countries should use the EUR risk-free rate (German Bund).
+    Interest rates are percentages and should NOT be multiplied by exchange rates.
     
-    Note: Risk-free rates are in monthly percentage form. The conversion
-    accounts for the fact that if a bond pays X% in local currency,
-    the EUR equivalent return is X% × (Local/EUR_Rate).
+    CORRECT APPROACH: Use German Bund rate for all countries (no conversion needed)
+    WRONG APPROACH: Multiply interest rate by exchange rate (treats percentage as currency)
     
     Parameters
     ----------
     riskfree_rate : pd.Series
-        Risk-free rate in local currency (monthly, percentage form)
+        Risk-free rate (ignored, kept for compatibility)
         Index should be dates
     country : str
-        Country name (determines currency)
+        Country name
     
     Returns
     -------
     pd.Series
-        Risk-free rate in EUR (monthly, percentage form), same index
+        German Bund rate in EUR (monthly, percentage form), same index as input
     """
-    country_config = COUNTRIES.get(country)
-    if country_config is None:
-        logger.warning(f"Unknown country {country}, skipping risk-free rate conversion")
-        return riskfree_rate
+    # For all countries, use German Bund rate (EUR)
+    # Interest rates are percentages and should NOT be converted by exchange rates
+    from analysis.data.riskfree_helper import get_riskfree_rate
+    from analysis.utils.config import ANALYSIS_SETTINGS
     
-    currency = country_config.currency
+    logger.info(f"Using German Bund rate (EUR) for {country} - all countries use same EUR risk-free rate")
     
-    # EUR countries don't need conversion
-    if currency == "EUR":
-        logger.debug(f"{country} risk-free rate already in EUR, no conversion needed")
-        return riskfree_rate
+    german_rate = get_riskfree_rate(
+        "Germany",
+        ANALYSIS_SETTINGS.start_date,
+        ANALYSIS_SETTINGS.end_date
+    )
     
-    # Load appropriate exchange rate
-    try:
-        exchange_rates = load_exchange_rates_from_ecb(currency, "EUR")
-        logger.info(f"Converting {country} risk-free rate from {currency} to EUR...")
-    except FileNotFoundError as e:
-        logger.error(f"Could not load {currency}/EUR exchange rates: {e}")
-        logger.error(f"Skipping risk-free rate conversion for {country} - currency mismatch will affect results")
-        return riskfree_rate
-    
-    # Align exchange rates with risk-free rate dates
-    riskfree_rate.index = pd.to_datetime(riskfree_rate.index)
-    exchange_rates.index = pd.to_datetime(exchange_rates.index)
-    
-    # Convert to month-end for alignment
-    rf_dates_month_end = riskfree_rate.index.to_period('M').to_timestamp('M')
-    rates_month_end = exchange_rates.index.to_period('M').to_timestamp('M')
-    
-    # Reindex exchange rates to match risk-free rate dates
-    aligned_rates = exchange_rates.reindex(rf_dates_month_end)
-    aligned_rates = aligned_rates.ffill().bfill()  # Forward and backward fill
-    
-    # Handle any remaining NaN
-    if aligned_rates.isna().any():
-        aligned_rates = aligned_rates.fillna(exchange_rates.iloc[0])
-    
-    # Convert risk-free rate: RF_EUR = RF_Local × (Local/EUR_Rate)
-    # Exchange rate is "local currency per EUR", so multiply
-    eur_riskfree = riskfree_rate * aligned_rates.values
-    
-    # Update index to match original
-    eur_riskfree.index = riskfree_rate.index
-    
-    logger.info(f"Converted {country} risk-free rate from {currency} to EUR")
+    # Align dates with input riskfree_rate if needed
     if len(riskfree_rate) > 0:
-        logger.info(f"  Sample: {riskfree_rate.iloc[0]:.4f}% {currency} → {eur_riskfree.iloc[0]:.4f}% EUR")
+        german_rate.index = pd.to_datetime(german_rate.index)
+        riskfree_rate.index = pd.to_datetime(riskfree_rate.index)
+        
+        # Convert to month-end for alignment
+        rf_dates_month_end = riskfree_rate.index.to_period('M').to_timestamp('M')
+        german_dates_month_end = german_rate.index.to_period('M').to_timestamp('M')
+        
+        # Reindex German rate to match input dates
+        german_rate_aligned = german_rate.reindex(rf_dates_month_end)
+        german_rate_aligned = german_rate_aligned.ffill().bfill()
+        
+        # Handle any remaining NaN
+        if german_rate_aligned.isna().any():
+            german_rate_aligned = german_rate_aligned.fillna(german_rate.iloc[0])
+        
+        # Update index to match original input
+        german_rate_aligned.index = riskfree_rate.index
+        
+        logger.info(f"Aligned German Bund rate for {country}: {len(german_rate_aligned)} months")
+        if len(german_rate_aligned) > 0:
+            logger.info(f"  Sample: {german_rate_aligned.iloc[0]:.4f}% EUR (German Bund)")
+        
+        return german_rate_aligned
     
-    return eur_riskfree
+    return german_rate
 
 
 def convert_usd_prices_to_eur(
