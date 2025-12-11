@@ -398,8 +398,10 @@ def calculate_diversification_benefits(
 
 
 def plot_efficient_frontier(
-    frontier_df: pd.DataFrame,
-    min_var_port: Tuple[float, float],
+    frontier_df_constrained: pd.DataFrame,
+    frontier_df_unconstrained: pd.DataFrame,
+    min_var_port_constrained: Tuple[float, float],
+    min_var_port_unconstrained: Tuple[float, float],
     tangency_port: Tuple[float, float],
     expected_returns: pd.Series,
     cov_matrix: pd.DataFrame,
@@ -415,17 +417,22 @@ def plot_efficient_frontier(
     - X-axis: Volatility (standard deviation)
     - Y-axis: Expected return
     - All individual stocks as scatter points
-    - Efficient frontier
+    - Constrained efficient frontier (long-only, solid line)
+    - Unconstrained efficient frontier (with short selling, dashed line)
     - Market index (MSCI Europe) point
     - Interpretation: If efficient frontier overlaps well with market index, CAPM holds.
                      If not, CAPM does not hold (opposite).
     
     Parameters
     ----------
-    frontier_df : pd.DataFrame
-        Efficient frontier data with 'volatility' and 'return' columns
-    min_var_port : tuple
-        (return, volatility) for minimum-variance portfolio
+    frontier_df_constrained : pd.DataFrame
+        Constrained efficient frontier data (long-only) with 'volatility' and 'return' columns
+    frontier_df_unconstrained : pd.DataFrame
+        Unconstrained efficient frontier data (with short selling) with 'volatility' and 'return' columns
+    min_var_port_constrained : tuple
+        (return, volatility) for constrained minimum-variance portfolio (long-only)
+    min_var_port_unconstrained : tuple
+        (return, volatility) for unconstrained minimum-variance portfolio (with short selling)
     tangency_port : tuple
         (return, volatility) for tangency portfolio
     expected_returns : pd.Series
@@ -448,7 +455,8 @@ def plot_efficient_frontier(
     individual_volatilities = np.sqrt(np.diag(cov_matrix.values))
     logger.info(f"  Unit check - Individual stock volatilities: min={individual_volatilities.min():.2f}%, max={individual_volatilities.max():.2f}%")
     logger.info(f"  Unit check - Expected returns: min={expected_returns.min():.2f}%, max={expected_returns.max():.2f}%")
-    logger.info(f"  Unit check - Frontier volatility: min={frontier_df['volatility'].min():.2f}%, max={frontier_df['volatility'].max():.2f}%")
+    logger.info(f"  Unit check - Constrained frontier volatility: min={frontier_df_constrained['volatility'].min():.2f}%, max={frontier_df_constrained['volatility'].max():.2f}%")
+    logger.info(f"  Unit check - Unconstrained frontier volatility: min={frontier_df_unconstrained['volatility'].min():.2f}%, max={frontier_df_unconstrained['volatility'].max():.2f}%")
     logger.info(f"  Unit check - Market index: return={market_index_return:.2f}%, vol={market_index_vol:.2f}%")
     
     fig, ax = plt.subplots(figsize=(14, 10))
@@ -458,18 +466,26 @@ def plot_efficient_frontier(
               alpha=0.4, s=30, color='gray', label=f'Individual Stocks (n={len(expected_returns)})',
               edgecolors='black', linewidths=0.3)
     
-    # Plot efficient frontier
-    ax.plot(frontier_df['volatility'], frontier_df['return'], 
-            'b-', linewidth=2.5, label='Efficient Frontier', zorder=5)
+    # Plot constrained efficient frontier (long-only, solid line)
+    ax.plot(frontier_df_constrained['volatility'], frontier_df_constrained['return'], 
+            'b-', linewidth=2.5, label='Efficient Frontier (Long-Only)', zorder=5)
+    
+    # Plot unconstrained efficient frontier (with short selling, dashed line)
+    ax.plot(frontier_df_unconstrained['volatility'], frontier_df_unconstrained['return'], 
+            'b--', linewidth=2.0, alpha=0.8, label='Efficient Frontier (With Short Selling)', zorder=5)
     
     # Plot market index (MSCI Europe)
     ax.scatter(market_index_vol, market_index_return, 
               s=200, marker='*', color='red', edgecolors='darkred', linewidths=2,
               label='Market Index (MSCI Europe)', zorder=6)
     
-    # Plot minimum-variance portfolio
-    ax.plot(min_var_port[1], min_var_port[0], 
-            'ro', markersize=12, label='Minimum-Variance Portfolio', zorder=5)
+    # Plot constrained minimum-variance portfolio (long-only, red circle)
+    ax.plot(min_var_port_constrained[1], min_var_port_constrained[0], 
+            'ro', markersize=12, label='Min-Variance Portfolio (Long-Only)', zorder=5)
+    
+    # Plot unconstrained minimum-variance portfolio (with short selling, red square)
+    ax.plot(min_var_port_unconstrained[1], min_var_port_unconstrained[0], 
+            'rs', markersize=12, label='Min-Variance Portfolio (With Short Selling)', zorder=5)
     
     # Plot tangency portfolio
     ax.plot(tangency_port[1], tangency_port[0], 
@@ -482,21 +498,31 @@ def plot_efficient_frontier(
     # Plot capital market line (from risk-free rate through tangency portfolio)
     if tangency_port[1] > 0:
         cml_slope = (tangency_port[0] - risk_free_rate) / tangency_port[1]
-        x_cml = np.linspace(0, max(frontier_df['volatility'].max(), individual_volatilities.max()) * 1.1, 100)
+        max_vol = max(
+            frontier_df_constrained['volatility'].max() if len(frontier_df_constrained) > 0 else 0,
+            frontier_df_unconstrained['volatility'].max() if len(frontier_df_unconstrained) > 0 else 0,
+            individual_volatilities.max()
+        )
+        x_cml = np.linspace(0, max_vol * 1.1, 100)
         y_cml = risk_free_rate + cml_slope * x_cml
         ax.plot(x_cml, y_cml, 'g--', linewidth=1.5, alpha=0.7, label='Capital Market Line', zorder=4)
     
     # Add interpretation text about CAPM
-    # Calculate distance between market index and efficient frontier
-    # Find closest point on efficient frontier to market index
-    frontier_distances = np.sqrt(
-        (frontier_df['volatility'] - market_index_vol)**2 + 
-        (frontier_df['return'] - market_index_return)**2
-    )
-    min_distance = frontier_distances.min()
-    closest_idx = frontier_distances.idxmin()
-    closest_point_vol = frontier_df.loc[closest_idx, 'volatility']
-    closest_point_ret = frontier_df.loc[closest_idx, 'return']
+    # Calculate distance between market index and constrained efficient frontier (more realistic)
+    # Find closest point on constrained efficient frontier to market index
+    if len(frontier_df_constrained) > 0:
+        frontier_distances = np.sqrt(
+            (frontier_df_constrained['volatility'] - market_index_vol)**2 + 
+            (frontier_df_constrained['return'] - market_index_return)**2
+        )
+        min_distance = frontier_distances.min()
+        closest_idx = frontier_distances.idxmin()
+        closest_point_vol = frontier_df_constrained.loc[closest_idx, 'volatility']
+        closest_point_ret = frontier_df_constrained.loc[closest_idx, 'return']
+    else:
+        min_distance = np.inf
+        closest_point_vol = 0
+        closest_point_ret = 0
     
     # Interpretation: If market index is close to efficient frontier, CAPM holds
     # Threshold: if distance is less than 5% of market volatility, consider it "close"
@@ -559,26 +585,41 @@ def run_portfolio_optimization() -> Dict:
     avg_rf_rate = panel_df['riskfree_rate'].mean()
     logger.info(f"Average risk-free rate: {avg_rf_rate:.4f}% (monthly)")
     
-    # Find minimum-variance portfolio (short selling allowed)
-    min_var_weights, min_var_return, min_var_vol = find_minimum_variance_portfolio(
+    # Find minimum-variance portfolio (unconstrained - with short selling)
+    logger.info("Calculating unconstrained minimum-variance portfolio (with short selling)...")
+    min_var_weights_unconstrained, min_var_return_unconstrained, min_var_vol_unconstrained = find_minimum_variance_portfolio(
         expected_returns, cov_matrix, allow_short=True
     )
     
     # Warn if volatility is unrealistically low (theoretical result from short selling)
-    if min_var_vol < 0.1 and min_var_vol > 0:
-        logger.warning(f"⚠️  Minimum-variance portfolio has unrealistically low volatility ({min_var_vol:.6f}%)")
+    if min_var_vol_unconstrained < 0.1 and min_var_vol_unconstrained > 0:
+        logger.warning(f"⚠️  Unconstrained minimum-variance portfolio has unrealistically low volatility ({min_var_vol_unconstrained:.6f}%)")
         logger.warning("   This is a theoretical result from short selling - not achievable in practice.")
         logger.warning("   Sharpe ratio will be set to NaN as it's not meaningful when volatility approaches zero.")
         logger.warning("   In practice, transaction costs, margin requirements, and liquidity constraints")
         logger.warning("   would prevent such low volatility (expected: 0.5-1.5% monthly).")
     
-    # Find tangency portfolio
+    # Find minimum-variance portfolio (constrained - long-only)
+    logger.info("Calculating constrained minimum-variance portfolio (long-only)...")
+    min_var_weights_constrained, min_var_return_constrained, min_var_vol_constrained = find_minimum_variance_portfolio(
+        expected_returns, cov_matrix, allow_short=False
+    )
+    
+    # Find tangency portfolio (constrained - long-only, more realistic for investment)
+    logger.info("Calculating tangency portfolio (long-only)...")
     tangency_weights, tangency_return, tangency_vol = find_tangency_portfolio(
         expected_returns, cov_matrix, avg_rf_rate, allow_short=False
     )
     
-    # Calculate efficient frontier
-    frontier_df = calculate_efficient_frontier(
+    # Calculate efficient frontier (unconstrained - with short selling)
+    logger.info("Calculating unconstrained efficient frontier (with short selling)...")
+    frontier_df_unconstrained = calculate_efficient_frontier(
+        expected_returns, cov_matrix, n_points=50, allow_short=True
+    )
+    
+    # Calculate efficient frontier (constrained - long-only)
+    logger.info("Calculating constrained efficient frontier (long-only)...")
+    frontier_df_constrained = calculate_efficient_frontier(
         expected_returns, cov_matrix, n_points=50, allow_short=False
     )
     
@@ -596,8 +637,10 @@ def run_portfolio_optimization() -> Dict:
     # Create plot with all stocks and market index
     plot_path = os.path.join(RESULTS_FIGURES_DIR, "efficient_frontier.png")
     plot_efficient_frontier(
-        frontier_df,
-        (min_var_return, min_var_vol),
+        frontier_df_constrained,
+        frontier_df_unconstrained,
+        (min_var_return_constrained, min_var_vol_constrained),
+        (min_var_return_unconstrained, min_var_vol_unconstrained),
         (tangency_return, tangency_vol),
         expected_returns,
         cov_matrix,
@@ -609,23 +652,34 @@ def run_portfolio_optimization() -> Dict:
     
     # Save results
     results_df = pd.DataFrame({
-        'portfolio': ['Minimum-Variance', 'Optimal Risky (Tangency)', 'Equal-Weighted'],
+        'portfolio': [
+            'Minimum-Variance (Constrained)', 
+            'Minimum-Variance (Unconstrained)', 
+            'Optimal Risky (Tangency)', 
+            'Equal-Weighted'
+        ],
         'expected_return': [
-            min_var_return,
+            min_var_return_constrained,
+            min_var_return_unconstrained,
             tangency_return,
             div_benefits['portfolio_return']
         ],
         'volatility': [
-            min_var_vol,
+            min_var_vol_constrained,
+            min_var_vol_unconstrained,
             tangency_vol,
             div_benefits['portfolio_volatility']
         ],
         'sharpe_ratio': [
-            # For min-var with short selling: when volatility is extremely low (<0.1%),
+            # Constrained min-var
+            (min_var_return_constrained - avg_rf_rate) / min_var_vol_constrained if min_var_vol_constrained > 0 else 0,
+            # Unconstrained min-var: when volatility is extremely low (<0.1%),
             # the Sharpe ratio becomes meaningless. Set to NaN to indicate not meaningful.
             # In practice, such low volatility is impossible due to transaction costs and constraints.
-            (min_var_return / min_var_vol if min_var_vol >= 0.1 else np.nan) if min_var_vol > 0 else 0,
+            (min_var_return_unconstrained / min_var_vol_unconstrained if min_var_vol_unconstrained >= 0.1 else np.nan) if min_var_vol_unconstrained > 0 else 0,
+            # Tangency portfolio
             (tangency_return - avg_rf_rate) / tangency_vol if tangency_vol > 0 else 0,
+            # Equal-weighted
             div_benefits['portfolio_return'] / div_benefits['portfolio_volatility'] if div_benefits['portfolio_volatility'] > 0 else 0
         ]
     })
@@ -641,17 +695,23 @@ def run_portfolio_optimization() -> Dict:
     logger.info(f"✅ Saved: {div_file}")
     
     return {
-        'min_var_portfolio': {
-            'weights': min_var_weights,
-            'return': min_var_return,
-            'volatility': min_var_vol
+        'min_var_portfolio_constrained': {
+            'weights': min_var_weights_constrained,
+            'return': min_var_return_constrained,
+            'volatility': min_var_vol_constrained
+        },
+        'min_var_portfolio_unconstrained': {
+            'weights': min_var_weights_unconstrained,
+            'return': min_var_return_unconstrained,
+            'volatility': min_var_vol_unconstrained
         },
         'tangency_portfolio': {
             'weights': tangency_weights,
             'return': tangency_return,
             'volatility': tangency_vol
         },
-        'efficient_frontier': frontier_df,
+        'efficient_frontier_constrained': frontier_df_constrained,
+        'efficient_frontier_unconstrained': frontier_df_unconstrained,
         'diversification_benefits': div_benefits
     }
 
