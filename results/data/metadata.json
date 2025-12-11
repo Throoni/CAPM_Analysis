@@ -23,7 +23,7 @@
   "data_sources": {
     "stock_prices": "Yahoo Finance (yfinance)",
     "market_indices": "MSCI Europe index via iShares Core MSCI Europe ETF (IEUR)",
-    "risk_free_rates": "All countries use German 3-month Bund (EUR) - processed from historical bond yield data",
+    "risk_free_rates": "German 3-month Bund (EUR) - processed from user-provided historical bond yield data (Germany 3 Month Bond Yield Historical Data.csv)",
     "market_cap_data": "Yahoo Finance (yfinance)",
     "book_to_market_data": "Yahoo Finance (yfinance)"
   },
@@ -42,7 +42,7 @@
     "interpretation": "Beta does not explain cross-sectional variation in returns",
     "recommendation": "Active management with factor-based strategies"
   },
-  "version": "2.2",
+  "version": "2.3",
   "last_updated": "2025-12-11",
-  "notes": "Complete analysis addressing all assignment requirements. Includes market-cap weighted betas, portfolio optimization, value effects, and portfolio recommendations. All countries use German Bund rate (EUR) as risk-free rate. Note: Minimum-variance portfolio allows short selling (weights can be negative, bounded by [-1, 1]), while tangency portfolio and efficient frontier use long-only constraints (weights bounded by [0, 1])."
+  "notes": "Complete analysis addressing all assignment requirements. Includes market-cap weighted betas, portfolio optimization, value effects, and portfolio recommendations. All countries use German Bund rate (EUR) as risk-free rate, processed from user-provided historical data file. Note: Minimum-variance portfolio allows short selling (weights can be negative, bounded by [-1, 1]), while tangency portfolio and efficient frontier use long-only constraints (weights bounded by [0, 1])."
 }

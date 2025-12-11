@@ -2,9 +2,9 @@
 
 ## Executive Summary
 
-Based on comprehensive empirical analysis of 219 stocks across 7 European markets (2021-2025), this report provides a portfolio recommendation for XYZ Asset Manager's European equity fund.
+Based on comprehensive empirical analysis of 245 stocks across 7 European markets (2021-2025), this report provides a portfolio recommendation for XYZ Asset Manager's European equity fund.
 
-**Recommendation: Hybrid (Tilted Passive)**
+**Recommendation: Active**
 
 ---
 
@@ -25,9 +25,9 @@ Based on comprehensive empirical analysis of 219 stocks across 7 European market
 
 ### 3. Value Effects
 
-- **Finding:** Value effect detected
-- **Alpha Spread:** 0.0000%
-- **Implication:** Book-to-market ratios may explain return differences, but relationship is consistent with classic value theory
+- **Finding:** Reverse value effect detected
+- **Alpha Spread:** -0.5417%
+- **Implication:** Book-to-market ratios may explain return differences, but relationship is contrary to classic value theory
 
 ### 4. Diversification Benefits
 
@@ -37,31 +37,33 @@ Based on comprehensive empirical analysis of 219 stocks across 7 European market
 
 ### 5. Optimal Portfolio Characteristics
 
-- **Optimal Risky Portfolio Return:** 2.17%
-- **Optimal Portfolio Volatility:** 2.34%
-- **Sharpe Ratio:** 0.93
+- **Optimal Risky Portfolio Return:** 0.00%
+- **Optimal Portfolio Volatility:** 0.00%
+- **Sharpe Ratio:** 0.00
 
 ---
 
-## Recommendation: Hybrid (Tilted Passive)
+## Recommendation: Active
 
 ### Justification
 
-- Mixed evidence suggests a hybrid approach: passive core with active tilts to exploit identified factors.
+- Multiple lines of evidence suggest market inefficiencies that active management can exploit.
 
 ### Key Evidence
 
 - CAPM is rejected - beta does not price returns, suggesting market inefficiencies
-- Strong diversification benefits (79.5% variance reduction)
+- Negative beta-return relationship contradicts CAPM, indicating mispricing opportunities
+- Value effects exist (or reverse value effects), suggesting factor-based strategies may add value
 
 ### Implementation Strategy
 
-- Core: Market-cap weighted index (70-80% of portfolio)
-- Tilt: Factor-based ETFs or active strategies (20-30%) targeting value, quality, or low-volatility
+- Focus on factor-based strategies (value, quality, low-volatility) given CAPM failure
+- Avoid high-beta stocks given negative beta-return relationship
 
 ### Risks and Considerations
 
-- Hybrid approach balances costs and opportunities but requires careful implementation
+- Active management costs (fees, turnover) may erode returns
+- Factor exposures may not persist in future periods
 
 ---
 
@@ -96,4 +98,4 @@ This recommendation balances the evidence of market inefficiencies with the bene
 
 ---
 
-*Report generated based on comprehensive CAPM analysis of 219 stocks across 7 European markets (2021-2025)*
+*Report generated based on comprehensive CAPM analysis of 245 stocks across 7 European markets (2021-2025)*
