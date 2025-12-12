@@ -20,6 +20,8 @@ from analysis.utils.config import (
     RESULTS_DATA_DIR,
     RESULTS_FIGURES_DIR,
     RESULTS_REPORTS_DIR,
+    RESULTS_REPORTS_CONSTRAINED_DIR,
+    RESULTS_FIGURES_CONSTRAINED_DIR,
     ANALYSIS_SETTINGS
 )
 
@@ -833,6 +835,156 @@ def plot_efficient_frontier(
     logger.info(f"  CAPM status: {capm_status}")
 
 
+def plot_efficient_frontier_constrained_only(
+    frontier_df_constrained: pd.DataFrame,
+    min_var_port_constrained: Tuple[float, float],
+    tangency_port_constrained: Tuple[float, float],
+    equal_weighted_port: Tuple[float, float],
+    expected_returns: pd.Series,
+    cov_matrix: pd.DataFrame,
+    market_index_return: float,
+    market_index_vol: float,
+    risk_free_rate: float,
+    output_path: str
+) -> None:
+    """
+    Plot efficient frontier with constrained (long-only) portfolios only.
+    
+    This function creates a plot showing only the constrained efficient frontier,
+    which represents economically achievable investment opportunities. Unconstrained
+    (short-selling) portfolios are excluded as they are not economically meaningful.
+    
+    This graph shows:
+    - X-axis: Volatility (standard deviation)
+    - Y-axis: Expected return
+    - All individual stocks as scatter points
+    - Constrained efficient frontier (long-only, solid line)
+    - Market index (MSCI Europe) point
+    - Constrained minimum-variance and tangency portfolios
+    - Interpretation: If efficient frontier overlaps well with market index, CAPM holds.
+    
+    Parameters
+    ----------
+    frontier_df_constrained : pd.DataFrame
+        Constrained efficient frontier data (long-only) with 'volatility' and 'return' columns
+    min_var_port_constrained : tuple
+        (return, volatility) for constrained minimum-variance portfolio (long-only)
+    tangency_port_constrained : tuple
+        (return, volatility) for constrained tangency portfolio (long-only)
+    equal_weighted_port : tuple
+        (return, volatility) for equal-weighted portfolio
+    expected_returns : pd.Series
+        Expected returns for all individual stocks
+    cov_matrix : pd.DataFrame
+        Covariance matrix for calculating individual stock volatilities
+    market_index_return : float
+        Expected return of market index (MSCI Europe)
+    market_index_vol : float
+        Volatility of market index (MSCI Europe)
+    risk_free_rate : float
+        Risk-free rate (German 3-month Bund, EUR, for all countries)
+    output_path : str
+        Path to save plot
+    """
+    logger.info("Creating constrained-only efficient frontier plot...")
+    
+    # Verify units: returns are in percentage, covariance is in percentage²
+    individual_volatilities = np.sqrt(np.diag(cov_matrix.values))
+    logger.info(f"  Unit check - Individual stock volatilities: min={individual_volatilities.min():.2f}%, max={individual_volatilities.max():.2f}%")
+    logger.info(f"  Unit check - Expected returns: min={expected_returns.min():.2f}%, max={expected_returns.max():.2f}%")
+    logger.info(f"  Unit check - Constrained frontier volatility: min={frontier_df_constrained['volatility'].min():.2f}%, max={frontier_df_constrained['volatility'].max():.2f}%")
+    logger.info(f"  Unit check - Market index: return={market_index_return:.2f}%, vol={market_index_vol:.2f}%")
+    
+    fig, ax = plt.subplots(figsize=(14, 10))
+    
+    # Plot ALL individual stocks
+    ax.scatter(individual_volatilities, expected_returns.values, 
+              alpha=0.4, s=30, color='gray', label=f'Individual Stocks (n={len(expected_returns)})',
+              edgecolors='black', linewidths=0.3)
+    
+    # Plot constrained efficient frontier (long-only, solid line)
+    ax.plot(frontier_df_constrained['volatility'], frontier_df_constrained['return'], 
+            'b-', linewidth=2.5, label='Efficient Frontier (Long-Only)', zorder=5)
+    
+    # Plot market index (MSCI Europe)
+    ax.scatter(market_index_vol, market_index_return, 
+              s=200, marker='*', color='red', edgecolors='darkred', linewidths=2,
+              label='Market Index (MSCI Europe)', zorder=6)
+    
+    # Plot constrained minimum-variance portfolio (long-only, red circle)
+    ax.plot(min_var_port_constrained[1], min_var_port_constrained[0], 
+            'ro', markersize=12, label='Min-Variance Portfolio (Long-Only)', zorder=5)
+    
+    # Plot constrained tangency portfolio (long-only, green circle)
+    ax.plot(tangency_port_constrained[1], tangency_port_constrained[0], 
+            'go', markersize=12, label='Optimal Risky Portfolio (Tangency, Long-Only)', zorder=5)
+    
+    # Plot equal-weighted portfolio (purple diamond)
+    ax.plot(equal_weighted_port[1], equal_weighted_port[0], 
+            'mD', markersize=12, label='Equal-Weighted Portfolio', zorder=5)
+    
+    # Plot risk-free rate
+    ax.axhline(y=risk_free_rate, color='k', linestyle='--', linewidth=1, 
+              label=f'Risk-Free Rate ({risk_free_rate:.4f}%)', zorder=3)
+    
+    # Plot capital market line (from risk-free rate through constrained tangency portfolio)
+    if tangency_port_constrained[1] > 0:
+        cml_slope = (tangency_port_constrained[0] - risk_free_rate) / tangency_port_constrained[1]
+        max_vol = max(
+            frontier_df_constrained['volatility'].max() if len(frontier_df_constrained) > 0 else 0,
+            individual_volatilities.max()
+        )
+        x_cml = np.linspace(0, max_vol * 1.1, 100)
+        y_cml = risk_free_rate + cml_slope * x_cml
+        ax.plot(x_cml, y_cml, 'g--', linewidth=1.5, alpha=0.7, label='Capital Market Line', zorder=4)
+    
+    # Add interpretation text about CAPM
+    # Calculate distance between market index and constrained efficient frontier
+    if len(frontier_df_constrained) > 0:
+        frontier_distances = np.sqrt(
+            (frontier_df_constrained['volatility'] - market_index_vol)**2 + 
+            (frontier_df_constrained['return'] - market_index_return)**2
+        )
+        min_distance = frontier_distances.min()
+        closest_idx = frontier_distances.idxmin()
+        closest_point_vol = frontier_df_constrained.loc[closest_idx, 'volatility']
+        closest_point_ret = frontier_df_constrained.loc[closest_idx, 'return']
+    else:
+        min_distance = np.inf
+        closest_point_vol = 0
+        closest_point_ret = 0
+    
+    # Interpretation: If market index is close to efficient frontier, CAPM holds
+    distance_threshold = market_index_vol * 0.05
+    if min_distance < distance_threshold:
+        capm_status = "CAPM HOLDS: Market index overlaps well with efficient frontier"
+        capm_color = 'green'
+    else:
+        capm_status = "CAPM DOES NOT HOLD: Market index does not overlap with efficient frontier"
+        capm_color = 'red'
+    
+    # Add text box with interpretation
+    textstr = f'CAPM Interpretation:\n{capm_status}\n\nDistance to frontier: {min_distance:.3f}'
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.8, edgecolor=capm_color, linewidth=2)
+    ax.text(0.02, 0.98, textstr, transform=ax.transAxes, fontsize=10,
+            verticalalignment='top', bbox=props, color=capm_color, fontweight='bold')
+    
+    ax.set_xlabel('Volatility (Standard Deviation, %)', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Expected Return (%)', fontsize=12, fontweight='bold')
+    ax.set_title('Mean-Variance Efficient Frontier (Constrained, Long-Only)', 
+                fontsize=14, fontweight='bold')
+    ax.legend(loc='best', fontsize=9, framealpha=0.9)
+    ax.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    logger.info(f"✅ Saved constrained-only plot: {output_path}")
+    logger.info(f"  Market index distance to efficient frontier: {min_distance:.4f}")
+    logger.info(f"  CAPM status: {capm_status}")
+
+
 def run_portfolio_optimization() -> Dict:
     """
     Run complete portfolio optimization analysis.
@@ -880,8 +1032,10 @@ def run_portfolio_optimization() -> Dict:
     expected_returns, cov_matrix = calculate_expected_returns_and_covariance(panel_df)
     
     # Get average risk-free rate
+    # NOTE: All countries use German 3-month Bund (EUR) as the risk-free rate.
+    # This is consistent across all calculations in the analysis.
     avg_rf_rate = panel_df['riskfree_rate'].mean()
-    logger.info(f"Average risk-free rate: {avg_rf_rate:.4f}% (monthly)")
+    logger.info(f"Average risk-free rate: {avg_rf_rate:.4f}% (monthly, German 3-month Bund, EUR)")
     
     # Find minimum-variance portfolio (unconstrained - with short selling)
     # NOTE: This is computed with short-selling to show the theoretical result,
@@ -1026,6 +1180,49 @@ def run_portfolio_optimization() -> Dict:
     div_file = os.path.join(RESULTS_REPORTS_DIR, "diversification_benefits.csv")
     div_df.to_csv(div_file, index=False)
     logger.info(f"✅ Saved: {div_file}")
+    
+    # Save constrained-only results to separate folder (for paper)
+    # This contains only economically achievable portfolios (long-only, no short-selling)
+    constrained_results_df = pd.DataFrame({
+        'portfolio': [
+            'Minimum-Variance (Constrained)', 
+            'Optimal Risky (Tangency, Constrained)', 
+            'Equal-Weighted'
+        ],
+        'expected_return': [
+            min_var_return_constrained,
+            tangency_return_constrained,
+            equal_weighted_return
+        ],
+        'volatility': [
+            min_var_vol_constrained,
+            tangency_vol_constrained,
+            equal_weighted_vol
+        ],
+        'sharpe_ratio': [
+            (min_var_return_constrained - avg_rf_rate) / min_var_vol_constrained if min_var_vol_constrained > 0 else 0,
+            (tangency_return_constrained - avg_rf_rate) / tangency_vol_constrained if tangency_vol_constrained > 0 else 0,
+            (equal_weighted_return - avg_rf_rate) / equal_weighted_vol if equal_weighted_vol > 0 else 0
+        ]
+    })
+    constrained_results_file = os.path.join(RESULTS_REPORTS_CONSTRAINED_DIR, "portfolio_optimization_results.csv")
+    constrained_results_df.to_csv(constrained_results_file, index=False)
+    logger.info(f"✅ Saved constrained-only results: {constrained_results_file}")
+    
+    # Plot constrained-only efficient frontier
+    constrained_plot_path = os.path.join(RESULTS_FIGURES_CONSTRAINED_DIR, "efficient_frontier.png")
+    plot_efficient_frontier_constrained_only(
+        frontier_df_constrained,
+        (min_var_return_constrained, min_var_vol_constrained),
+        (tangency_return_constrained, tangency_vol_constrained),
+        (equal_weighted_return, equal_weighted_vol),
+        expected_returns,
+        cov_matrix,
+        market_index_return,
+        market_index_vol,
+        avg_rf_rate,
+        constrained_plot_path
+    )
     
     return {
         'min_var_portfolio_constrained': {

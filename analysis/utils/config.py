@@ -36,9 +36,11 @@ RESULTS_REPORTS_DIR = os.path.join(RESULTS_DIR, "reports")
 RESULTS_REPORTS_MAIN_DIR = os.path.join(RESULTS_REPORTS_DIR, "main")
 RESULTS_REPORTS_DATA_DIR = os.path.join(RESULTS_REPORTS_DIR, "data")
 RESULTS_REPORTS_THESIS_DIR = os.path.join(RESULTS_REPORTS_DIR, "thesis")
+RESULTS_REPORTS_CONSTRAINED_DIR = os.path.join(RESULTS_REPORTS_DIR, "constrained_only")
 RESULTS_DATA_DIR = os.path.join(RESULTS_DIR, "data")
 RESULTS_TABLES_DIR = os.path.join(RESULTS_DIR, "tables")
 RESULTS_BASELINES_DIR = os.path.join(RESULTS_DIR, "baselines")
+RESULTS_FIGURES_CONSTRAINED_DIR = os.path.join(RESULTS_DIR, "figures_constrained")
 
 # Logs directory
 LOGS_DIR = os.path.join(PROJECT_ROOT, "logs")
@@ -59,9 +61,11 @@ for path in [
     RESULTS_REPORTS_MAIN_DIR,
     RESULTS_REPORTS_DATA_DIR,
     RESULTS_REPORTS_THESIS_DIR,
+    RESULTS_REPORTS_CONSTRAINED_DIR,
     RESULTS_DATA_DIR,
     RESULTS_TABLES_DIR,
     RESULTS_BASELINES_DIR,
+    RESULTS_FIGURES_CONSTRAINED_DIR,
     LOGS_DIR,
 ]:
     os.makedirs(path, exist_ok=True)

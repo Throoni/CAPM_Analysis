@@ -100,12 +100,16 @@ def run_monthly_cross_sectional_regressions(
     """
     Run monthly cross-sectional regressions: R_{i,t} = γ_{0,t} + γ_{1,t} * β_i + u_{i,t}
     
+    NOTE: Returns used in this regression are excess returns calculated using German
+    3-month Bund (EUR) as the risk-free rate for all countries. This ensures
+    consistency with the time-series CAPM regressions.
+    
     Parameters
     ----------
     panel_df : pd.DataFrame
-        Returns panel with monthly returns
+        Returns panel with monthly returns (excess returns using German Bund)
     beta_df : pd.DataFrame
-        CAPM results with betas
+        CAPM results with betas (estimated using German Bund risk-free rate)
     
     Returns
     -------

@@ -53,11 +53,16 @@ def run_capm_regression(
     """
     Run CAPM regression for a single stock.
     
+    NOTE: Excess returns used in this regression are calculated using German 3-month Bund
+    (EUR) as the risk-free rate for all countries. This ensures consistency across
+    all CAPM regressions in the analysis.
+    
     Parameters
     ----------
     stock_data : pd.DataFrame
         DataFrame with columns [stock_excess_return, market_excess_return]
         Should have exactly 59 observations (monthly returns)
+        Excess returns are calculated using German Bund risk-free rate
     stock_excess_col : str
         Column name for stock excess returns
     market_excess_col : str

@@ -825,6 +825,9 @@ def process_all_countries() -> pd.DataFrame:
                 continue
             
             # Get risk-free rate
+            # NOTE: All countries use German 3-month Bund (EUR) as the risk-free rate.
+            # The get_riskfree_rate() function forces target_country = "Germany" for all countries,
+            # ensuring consistency across the entire analysis.
             try:
                 riskfree_rate = get_riskfree_rate(
                     country,
