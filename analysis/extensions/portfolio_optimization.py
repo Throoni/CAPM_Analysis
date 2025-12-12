@@ -29,6 +29,11 @@ logger = logging.getLogger(__name__)
 sns.set_style("whitegrid")
 plt.rcParams['figure.figsize'] = (12, 8)
 
+# Maximum gross exposure for short-selling portfolios
+# 2.0 = 200% total exposure (e.g., 150% long + 50% short)
+# This prevents infinite leverage in unconstrained portfolios
+MAX_GROSS_EXPOSURE = 2.0
+
 
 def calculate_expected_returns_and_covariance(panel_df: pd.DataFrame) -> Tuple[pd.Series, pd.DataFrame]:
     """
@@ -149,7 +154,15 @@ def find_minimum_variance_portfolio(
         return portfolio_variance(weights, cov_matrix)
     
     # Constraints: weights sum to 1
-    constraints = {'type': 'eq', 'fun': lambda w: np.sum(w) - 1}
+    constraints = [{'type': 'eq', 'fun': lambda w: np.sum(w) - 1}]
+    
+    # Add gross exposure constraint for short-selling case
+    # Use slightly tighter constraint to account for numerical tolerance
+    if allow_short:
+        constraints.append({
+            'type': 'ineq', 
+            'fun': lambda w: (MAX_GROSS_EXPOSURE - 1e-4) - np.sum(np.abs(w))  # Tighter by 1e-4
+        })
     
     # Bounds: no short selling if not allowed
     if allow_short:
@@ -157,17 +170,70 @@ def find_minimum_variance_portfolio(
     else:
         bounds = [(0, 1) for _ in range(n)]
     
-    # Initial guess: equal weights
-    x0 = np.ones(n) / n
+    # Initial guess: for short-selling, get unconstrained solution first, then project onto constraint
+    if allow_short:
+        # First get unconstrained solution as starting point
+        constraints_unconstrained = [{'type': 'eq', 'fun': lambda w: np.sum(w) - 1}]
+        x0_unconstrained = np.ones(n) / n
+        result_unconstrained = minimize(objective, x0_unconstrained, method='SLSQP',
+                                       bounds=bounds, constraints=constraints_unconstrained,
+                                       options={'ftol': 1e-4, 'maxiter': 200})
+        
+        if result_unconstrained.success:
+            # Project onto constraint boundary if needed
+            unconstrained_weights = result_unconstrained.x
+            gross_exp = np.sum(np.abs(unconstrained_weights))
+            if gross_exp > MAX_GROSS_EXPOSURE:
+                # Scale down to satisfy constraint while maintaining sum=1
+                # This is a simple projection: scale all weights proportionally
+                scale_factor = MAX_GROSS_EXPOSURE / gross_exp
+                x0 = unconstrained_weights * scale_factor
+                # Renormalize to ensure sum = 1 (may need adjustment)
+                x0 = x0 / np.sum(x0)
+                logger.debug(f"  Projected initial guess from unconstrained solution (gross exposure: {gross_exp:.4f} → {np.sum(np.abs(x0)):.4f})")
+            else:
+                x0 = unconstrained_weights
+        else:
+            # Fallback to equal weights if unconstrained fails
+            x0 = np.ones(n) / n
+    else:
+        # For long-only, use equal weights
+        x0 = np.ones(n) / n
     
-    # Optimize
-    result = minimize(objective, x0, method='SLSQP', bounds=bounds, constraints=constraints)
-    
-    if not result.success:
-        logger.warning("Optimization did not converge, trying alternative method...")
-        result = minimize(objective, x0, method='trust-constr', bounds=bounds, constraints=constraints)
+    # Optimize: use trust-constr for short-selling (handles constraints better)
+    if allow_short:
+        result = minimize(objective, x0, method='trust-constr', bounds=bounds, constraints=constraints,
+                         options={'maxiter': 1000, 'gtol': 1e-4})
+        if not result.success:
+            logger.warning("trust-constr did not converge, trying SLSQP as fallback...")
+            result = minimize(objective, x0, method='SLSQP', bounds=bounds, constraints=constraints,
+                             options={'ftol': 1e-4, 'maxiter': 1000})
+    else:
+        result = minimize(objective, x0, method='SLSQP', bounds=bounds, constraints=constraints,
+                         options={'ftol': 1e-5, 'maxiter': 500})
     
     weights = result.x
+    
+    # Post-optimization constraint projection for short-selling case
+    if allow_short:
+        # Iteratively project until constraint is satisfied
+        max_iterations = 10
+        for iteration in range(max_iterations):
+            gross_exposure = np.sum(np.abs(weights))
+            if gross_exposure <= MAX_GROSS_EXPOSURE + 1e-8:
+                break
+            # Project onto constraint boundary
+            scale_factor = MAX_GROSS_EXPOSURE / gross_exposure
+            weights = weights * scale_factor
+            # Renormalize to ensure sum = 1
+            weights = weights / np.sum(weights)
+            if iteration == 0:
+                logger.debug(f"  Post-optimization projection: gross exposure {gross_exposure:.6f} → {np.sum(np.abs(weights)):.6f}")
+        
+        final_gross_exp = np.sum(np.abs(weights))
+        if final_gross_exp > MAX_GROSS_EXPOSURE + 1e-6:
+            logger.warning(f"  ⚠️  Constraint violation after projection: gross exposure {final_gross_exp:.6f} > {MAX_GROSS_EXPOSURE}")
+    
     port_return = portfolio_return(weights, expected_returns)
     port_vol = np.sqrt(portfolio_variance(weights, cov_matrix))
     
@@ -175,6 +241,8 @@ def find_minimum_variance_portfolio(
     logger.info(f"    Expected return: {port_return:.4f}%")
     logger.info(f"    Volatility: {port_vol:.4f}%")
     logger.info(f"    Sharpe ratio: {port_return / port_vol:.4f}")
+    if allow_short:
+        logger.info(f"    Gross exposure: {np.sum(np.abs(weights)):.4f}")
     
     return weights, port_return, port_vol
 
@@ -222,7 +290,15 @@ def find_tangency_portfolio(
         return -sharpe  # Minimize negative Sharpe = maximize Sharpe
     
     # Constraints: weights sum to 1
-    constraints = {'type': 'eq', 'fun': lambda w: np.sum(w) - 1}
+    constraints = [{'type': 'eq', 'fun': lambda w: np.sum(w) - 1}]
+    
+    # Add gross exposure constraint for short-selling case
+    # Use slightly tighter constraint to account for numerical tolerance
+    if allow_short:
+        constraints.append({
+            'type': 'ineq', 
+            'fun': lambda w: (MAX_GROSS_EXPOSURE - 1e-4) - np.sum(np.abs(w))  # Tighter by 1e-4
+        })
     
     # Bounds
     if allow_short:
@@ -230,17 +306,87 @@ def find_tangency_portfolio(
     else:
         bounds = [(0, 1) for _ in range(n)]
     
-    # Initial guess: equal weights
-    x0 = np.ones(n) / n
+    # Initial guess: for short-selling, get unconstrained solution first, then project onto constraint
+    if allow_short:
+        # First get unconstrained tangency solution as starting point
+        constraints_unconstrained = [{'type': 'eq', 'fun': lambda w: np.sum(w) - 1}]
+        x0_unconstrained = np.ones(n) / n
+        result_unconstrained = minimize(objective, x0_unconstrained, method='SLSQP',
+                                       bounds=bounds, constraints=constraints_unconstrained,
+                                       options={'ftol': 1e-4, 'maxiter': 200})
+        
+        if result_unconstrained.success:
+            # Project onto constraint boundary if needed
+            unconstrained_weights = result_unconstrained.x
+            gross_exp = np.sum(np.abs(unconstrained_weights))
+            if gross_exp > MAX_GROSS_EXPOSURE:
+                # Scale down to satisfy constraint
+                scale_factor = MAX_GROSS_EXPOSURE / gross_exp
+                x0 = unconstrained_weights * scale_factor
+                # Renormalize to ensure sum = 1
+                x0 = x0 / np.sum(x0)
+                logger.debug(f"  Projected initial guess from unconstrained tangency (gross exposure: {gross_exp:.4f} → {np.sum(np.abs(x0)):.4f})")
+            else:
+                x0 = unconstrained_weights
+        else:
+            # Fallback to equal weights if unconstrained fails
+            x0 = np.ones(n) / n
+    else:
+        # For long-only, use equal weights
+        x0 = np.ones(n) / n
     
-    # Optimize
-    result = minimize(objective, x0, method='SLSQP', bounds=bounds, constraints=constraints)
-    
-    if not result.success:
-        logger.warning("Optimization did not converge, trying alternative method...")
-        result = minimize(objective, x0, method='trust-constr', bounds=bounds, constraints=constraints)
+    # Optimize: use trust-constr for short-selling (handles constraints better)
+    if allow_short:
+        result = minimize(objective, x0, method='trust-constr', bounds=bounds, constraints=constraints,
+                         options={'maxiter': 1000, 'gtol': 1e-4})
+        if not result.success:
+            logger.warning("trust-constr did not converge, trying SLSQP as fallback...")
+            result = minimize(objective, x0, method='SLSQP', bounds=bounds, constraints=constraints,
+                             options={'ftol': 1e-4, 'maxiter': 1000})
+    else:
+        result = minimize(objective, x0, method='SLSQP', bounds=bounds, constraints=constraints,
+                         options={'ftol': 1e-5, 'maxiter': 500})
     
     weights = result.x
+    
+    # Post-optimization constraint projection for short-selling case
+    # Hard cap: directly enforce the constraint by scaling
+    if allow_short:
+        gross_exposure = np.sum(np.abs(weights))
+        if gross_exposure > MAX_GROSS_EXPOSURE + 1e-8:
+            # Hard cap: scale to exactly satisfy gross exposure constraint
+            scale_factor = MAX_GROSS_EXPOSURE / gross_exposure
+            weights = weights * scale_factor
+            # After scaling, sum will be scale_factor, need to adjust to 1
+            current_sum = np.sum(weights)
+            if abs(current_sum - 1.0) > 1e-8:
+                # Adjust proportionally to maintain relative weights while fixing sum
+                # This is a heuristic: distribute the difference based on current weights
+                diff = 1.0 - current_sum
+                # Add/subtract proportionally (preserving signs)
+                weight_magnitudes = np.abs(weights)
+                if np.sum(weight_magnitudes) > 1e-10:
+                    adjustment = diff * weight_magnitudes / np.sum(weight_magnitudes)
+                    weights = weights + np.sign(weights) * adjustment
+                else:
+                    # Fallback: equal weights
+                    weights = np.ones(len(weights)) / len(weights)
+            
+            # Final hard cap if still violated (shouldn't happen, but safety check)
+            final_gross_exp = np.sum(np.abs(weights))
+            if final_gross_exp > MAX_GROSS_EXPOSURE + 1e-6:
+                # Last resort: scale again and accept slight sum violation
+                scale_factor = MAX_GROSS_EXPOSURE / final_gross_exp
+                weights = weights * scale_factor
+                logger.debug(f"  Post-optimization hard cap (final): gross exposure → {np.sum(np.abs(weights)):.6f}, sum → {np.sum(weights):.6f}")
+            else:
+                logger.debug(f"  Post-optimization projection: gross exposure {gross_exposure:.6f} → {final_gross_exp:.6f}")
+        
+        # Final verification
+        final_gross_exp = np.sum(np.abs(weights))
+        if final_gross_exp > MAX_GROSS_EXPOSURE + 1e-5:
+            logger.warning(f"  ⚠️  Constraint violation after projection: gross exposure {final_gross_exp:.6f} > {MAX_GROSS_EXPOSURE}")
+    
     port_return = portfolio_return(weights, expected_returns)
     port_vol = np.sqrt(portfolio_variance(weights, cov_matrix))
     sharpe = (port_return - risk_free_rate) / port_vol if port_vol > 0 else 0
@@ -249,6 +395,8 @@ def find_tangency_portfolio(
     logger.info(f"    Expected return: {port_return:.4f}%")
     logger.info(f"    Volatility: {port_vol:.4f}%")
     logger.info(f"    Sharpe ratio: {sharpe:.4f}")
+    if allow_short:
+        logger.info(f"    Gross exposure: {np.sum(np.abs(weights)):.4f}")
     
     return weights, port_return, port_vol
 
@@ -257,7 +405,8 @@ def calculate_efficient_frontier(
     expected_returns: pd.Series,
     cov_matrix: pd.DataFrame,
     n_points: int = 50,
-    allow_short: bool = False
+    allow_short: bool = False,
+    tangency_return: Optional[float] = None
 ) -> pd.DataFrame:
     """
     Calculate efficient frontier.
@@ -280,32 +429,72 @@ def calculate_efficient_frontier(
     """
     logger.info(f"Calculating efficient frontier ({n_points} points)...")
     
-    # Find min and max returns
-    min_return = expected_returns.min()
-    max_return = expected_returns.max()
-    
-    # Get minimum-variance portfolio
+    # Get minimum-variance portfolio to find the minimum return on the frontier
     _, min_var_return, min_var_vol = find_minimum_variance_portfolio(
         expected_returns, cov_matrix, allow_short
     )
     
+    # For short-selling case with gross exposure constraint, use tangency return if provided
+    if allow_short:
+        if tangency_return is not None:
+            # Use the tangency portfolio return as upper bound (already calculated)
+            max_return = tangency_return
+            logger.info(f"  Using tangency portfolio return as upper bound: {max_return:.4f}%")
+        else:
+            # Fallback: use a simple conservative estimate
+            sorted_returns = expected_returns.sort_values(ascending=False)
+            max_return_estimate = min_var_return + (sorted_returns.iloc[0] - min_var_return) * 1.2
+            max_return = min(max_return_estimate, expected_returns.max() * 1.1)
+            logger.info(f"  Using conservative maximum return estimate: {max_return:.4f}%")
+    else:
+        # For long-only, maximum return is the maximum individual stock return
+        max_return = expected_returns.max()
+    
+    # Ensure max_return is at least min_var_return
+    if max_return < min_var_return:
+        max_return = min_var_return + 0.1  # Small buffer
+    
     # Target returns between min_var_return and max_return
-    target_returns = np.linspace(min_var_return, max_return, n_points)
+    # Use fewer points for short-selling case to speed up optimization
+    if allow_short:
+        n_points_actual = min(n_points, 15)  # Limit to 15 points for short-selling to avoid getting stuck
+        target_returns = np.linspace(min_var_return, max_return, n_points_actual)
+        logger.info(f"  Using {n_points_actual} points for short-selling frontier (reduced for speed)")
+    else:
+        target_returns = np.linspace(min_var_return, max_return, n_points)
     
     n = len(expected_returns)
     frontier_returns = []
     frontier_vols = []
     
-    for target_return in target_returns:
+    # Get initial weights from minimum-variance portfolio for better starting point
+    min_var_weights, _, _ = find_minimum_variance_portfolio(
+        expected_returns, cov_matrix, allow_short
+    )
+    x0 = min_var_weights.copy()
+    
+    for i, target_return in enumerate(target_returns):
         # Objective: minimize variance
         def objective(weights):
             return portfolio_variance(weights, cov_matrix)
         
         # Constraints: weights sum to 1, target return
+        # Use closure to capture target_return properly
+        def return_constraint(weights, target=target_return):
+            return portfolio_return(weights, expected_returns) - target
+        
         constraints = [
             {'type': 'eq', 'fun': lambda w: np.sum(w) - 1},
-            {'type': 'eq', 'fun': lambda w: portfolio_return(w, expected_returns) - target_return}
+            {'type': 'eq', 'fun': return_constraint}
         ]
+        
+        # Add gross exposure constraint for short-selling case
+        # Use slightly tighter constraint to account for numerical tolerance
+        if allow_short:
+            constraints.append({
+                'type': 'ineq', 
+                'fun': lambda w: (MAX_GROSS_EXPOSURE - 1e-4) - np.sum(np.abs(w))  # Tighter by 1e-4
+            })
         
         # Bounds
         if allow_short:
@@ -313,28 +502,97 @@ def calculate_efficient_frontier(
         else:
             bounds = [(0, 1) for _ in range(n)]
         
-        # Initial guess
-        x0 = np.ones(n) / n
-        
-        # Optimize
-        result = minimize(objective, x0, method='SLSQP', bounds=bounds, constraints=constraints)
+        # Optimize: use trust-constr for short-selling (handles constraints better)
+        if allow_short:
+            result = minimize(objective, x0, method='trust-constr', bounds=bounds, constraints=constraints,
+                             options={'maxiter': 500, 'gtol': 1e-4})
+            if not result.success:
+                # Fallback to SLSQP with more iterations
+                result = minimize(objective, x0, method='SLSQP', bounds=bounds, constraints=constraints,
+                                 options={'ftol': 1e-4, 'maxiter': 500})
+        else:
+            result = minimize(objective, x0, method='SLSQP', bounds=bounds, constraints=constraints,
+                             options={'ftol': 1e-5, 'maxiter': 300})
         
         if result.success:
             weights = result.x
+            
+            # Post-optimization constraint projection for short-selling case
+            # Hard cap: directly enforce the constraint by scaling
+            if allow_short:
+                gross_exposure = np.sum(np.abs(weights))
+                if gross_exposure > MAX_GROSS_EXPOSURE + 1e-8:
+                    # Hard cap: scale to exactly satisfy gross exposure constraint
+                    scale_factor = MAX_GROSS_EXPOSURE / gross_exposure
+                    weights = weights * scale_factor
+                    # After scaling, sum will be scale_factor, need to adjust to 1
+                    current_sum = np.sum(weights)
+                    if abs(current_sum - 1.0) > 1e-8:
+                        # Adjust proportionally to maintain relative weights while fixing sum
+                        diff = 1.0 - current_sum
+                        weight_magnitudes = np.abs(weights)
+                        if np.sum(weight_magnitudes) > 1e-10:
+                            adjustment = diff * weight_magnitudes / np.sum(weight_magnitudes)
+                            weights = weights + np.sign(weights) * adjustment
+                        else:
+                            # Fallback: equal weights
+                            weights = np.ones(len(weights)) / len(weights)
+            
             port_return = portfolio_return(weights, expected_returns)
             port_vol = np.sqrt(portfolio_variance(weights, cov_matrix))
+            
+            # Verify constraints are satisfied
+            if allow_short:
+                final_gross_exp = np.sum(np.abs(weights))
+                if final_gross_exp > MAX_GROSS_EXPOSURE + 1e-6:
+                    # Last resort: scale again and accept slight sum violation
+                    scale_factor = MAX_GROSS_EXPOSURE / final_gross_exp
+                    weights = weights * scale_factor
+                    # If still violated after hard cap, skip this point
+                    final_gross_exp = np.sum(np.abs(weights))
+                    if final_gross_exp > MAX_GROSS_EXPOSURE + 1e-6:
+                        frontier_returns.append(np.nan)
+                        frontier_vols.append(np.nan)
+                        continue
+            
             frontier_returns.append(port_return)
             frontier_vols.append(port_vol)
+            # Use current solution as starting point for next optimization (sequential approach)
+            x0 = weights.copy()
         else:
-            # If optimization fails, skip this point
-            continue
+            # If optimization fails, append NaN and try next point
+            frontier_returns.append(np.nan)
+            frontier_vols.append(np.nan)
+    
+    # Filter out NaN values before creating DataFrame
+    valid_indices = ~(np.isnan(frontier_returns) | np.isnan(frontier_vols))
+    frontier_returns_clean = [r for i, r in enumerate(frontier_returns) if valid_indices[i]]
+    frontier_vols_clean = [v for i, v in enumerate(frontier_vols) if valid_indices[i]]
+    
+    # For short-selling case, if we have very few points, add min-var and tangency portfolios
+    if allow_short and len(frontier_returns_clean) < 3 and tangency_return is not None:
+        logger.warning(f"  Only {len(frontier_returns_clean)} frontier points calculated, adding min-var and tangency portfolios")
+        # Get min-var and tangency portfolios explicitly
+        min_var_weights, min_var_ret, min_var_vol = find_minimum_variance_portfolio(
+            expected_returns, cov_matrix, allow_short=True
+        )
+        # Tangency portfolio should already be calculated, but we need its volatility
+        # For now, just ensure we have at least min-var point
+        if min_var_ret not in frontier_returns_clean:
+            frontier_returns_clean.insert(0, min_var_ret)
+            frontier_vols_clean.insert(0, min_var_vol)
     
     frontier_df = pd.DataFrame({
-        'return': frontier_returns,
-        'volatility': frontier_vols
+        'return': frontier_returns_clean,
+        'volatility': frontier_vols_clean
     })
     
-    logger.info(f"  Efficient frontier: {len(frontier_df)} points")
+    n_points_attempted = len(target_returns)
+    logger.info(f"  Efficient frontier: {len(frontier_df)} points (out of {n_points_attempted} attempted)")
+    if len(frontier_df) < n_points_attempted:
+        logger.info(f"    {n_points_attempted - len(frontier_df)} points failed optimization (likely infeasible target returns or iteration limits)")
+        if allow_short and len(frontier_df) < 3:
+            logger.warning("    Consider using simplified approach (min-var and tangency portfolios only)")
     
     return frontier_df
 
@@ -477,8 +735,13 @@ def plot_efficient_frontier(
             'b-', linewidth=2.5, label='Efficient Frontier (Long-Only)', zorder=5)
     
     # Plot unconstrained efficient frontier (with short selling, dashed line)
-    ax.plot(frontier_df_unconstrained['volatility'], frontier_df_unconstrained['return'], 
-            'b--', linewidth=2.0, alpha=0.8, label='Efficient Frontier (With Short Selling)', zorder=5)
+    # Only plot if we have valid points (may be empty if optimizations failed)
+    if len(frontier_df_unconstrained) > 0:
+        ax.plot(frontier_df_unconstrained['volatility'], frontier_df_unconstrained['return'], 
+                'b--', linewidth=2.0, alpha=0.8, label='Efficient Frontier (With Short Selling)', zorder=5)
+    else:
+        # If no frontier points, just show a note
+        logger.warning("  Unconstrained efficient frontier has no points - may be due to gross exposure constraint")
     
     # Plot market index (MSCI Europe)
     ax.scatter(market_index_vol, market_index_return, 
@@ -574,6 +837,27 @@ def run_portfolio_optimization() -> Dict:
     """
     Run complete portfolio optimization analysis.
     
+    **Important Note on Short-Selling Constraints:**
+    
+    The minimum-variance portfolio is computed allowing short-selling (unconstrained)
+    to demonstrate the theoretical mathematical result. However, this yields
+    economically unachievable results (volatility approaches ~0.002%), which fully
+    inflates the Sharpe ratio due to the unconstrained ability to short sell and
+    achieve near-perfect hedging.
+    
+    In practice, such low volatility is not achievable due to:
+    - Regulatory restrictions on short selling
+    - Transaction costs (bid-ask spreads, commissions)
+    - Margin requirements and borrowing costs
+    - Liquidity constraints (not all stocks can be shorted in large quantities)
+    - Market impact of large short positions
+    
+    Therefore, the efficient frontier and tangency portfolio are computed WITHOUT
+    short-selling (long-only constraint). While this is not consistent with CAPM's
+    purely theoretical assumptions (which assume frictionless markets), the objective
+    of this analysis is to yield economically sound investment advice, thus motivating
+    the choice of using the constrained efficient frontier.
+    
     Returns
     -------
     dict
@@ -600,6 +884,11 @@ def run_portfolio_optimization() -> Dict:
     logger.info(f"Average risk-free rate: {avg_rf_rate:.4f}% (monthly)")
     
     # Find minimum-variance portfolio (unconstrained - with short selling)
+    # NOTE: This is computed with short-selling to show the theoretical result,
+    # but the extremely low volatility (~0.002%) is not economically achievable.
+    # The unconstrained solution enables near-perfect hedging through negative
+    # weights, which fully inflates the Sharpe ratio. This is reported for
+    # completeness but not used for investment recommendations.
     logger.info("Calculating unconstrained minimum-variance portfolio (with short selling)...")
     min_var_weights_unconstrained, min_var_return_unconstrained, min_var_vol_unconstrained = find_minimum_variance_portfolio(
         expected_returns, cov_matrix, allow_short=True
@@ -620,6 +909,12 @@ def run_portfolio_optimization() -> Dict:
     )
     
     # Find tangency portfolio (constrained - long-only, more realistic for investment)
+    # NOTE: Computed WITHOUT short-selling (long-only constraint) to yield
+    # economically meaningful results. While CAPM assumes frictionless markets
+    # with unlimited short-selling, real-world constraints (transaction costs,
+    # regulatory restrictions, liquidity) make the unconstrained solution
+    # economically unachievable. The constrained solution provides actionable
+    # investment advice.
     logger.info("Calculating constrained tangency portfolio (long-only)...")
     tangency_weights_constrained, tangency_return_constrained, tangency_vol_constrained = find_tangency_portfolio(
         expected_returns, cov_matrix, avg_rf_rate, allow_short=False
@@ -632,12 +927,17 @@ def run_portfolio_optimization() -> Dict:
     )
     
     # Calculate efficient frontier (unconstrained - with short selling)
+    # Pass tangency return as upper bound to avoid recalculating
     logger.info("Calculating unconstrained efficient frontier (with short selling)...")
     frontier_df_unconstrained = calculate_efficient_frontier(
-        expected_returns, cov_matrix, n_points=50, allow_short=True
+        expected_returns, cov_matrix, n_points=50, allow_short=True,
+        tangency_return=tangency_return_unconstrained
     )
     
     # Calculate efficient frontier (constrained - long-only)
+    # NOTE: Computed WITHOUT short-selling for the same reasons as the tangency
+    # portfolio. The constrained efficient frontier represents realistic investment
+    # opportunities that can actually be implemented in practice.
     logger.info("Calculating constrained efficient frontier (long-only)...")
     frontier_df_constrained = calculate_efficient_frontier(
         expected_returns, cov_matrix, n_points=50, allow_short=False

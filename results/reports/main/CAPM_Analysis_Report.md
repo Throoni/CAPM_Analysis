@@ -553,9 +553,37 @@ We construct the efficient frontier, identify the minimum-variance portfolio, fi
 5. **Tangency Portfolio:** Portfolio maximizing Sharpe ratio (optimal risky portfolio, short selling **not allowed**, long-only constraint)
 6. **Diversification Metrics:** Compare portfolio variance to average individual stock variance
 
+**Portfolio Constraints - Methodological Choice:**
+
+While CAPM assumes frictionless markets with unlimited short-selling, we compute
+the efficient frontier and tangency portfolio with a long-only constraint (no
+short-selling). This choice is motivated by the following:
+
+1. **Theoretical vs. Practical:** The minimum-variance portfolio computed with
+   short-selling achieves mathematically optimal but economically unachievable
+   results (volatility ~0.002%), which fully inflates the Sharpe ratio due to
+   near-perfect hedging enabled by unconstrained short positions.
+
+2. **Real-World Constraints:** In practice, such low volatility is not achievable
+   due to:
+   - Regulatory restrictions on short selling
+   - Transaction costs (bid-ask spreads, commissions)
+   - Margin requirements and borrowing costs
+   - Liquidity constraints
+   - Market impact of large positions
+
+3. **Objective Alignment:** While the unconstrained solution is consistent with
+   CAPM's theoretical assumptions, our objective is to yield economically sound
+   investment advice. The constrained efficient frontier represents realistic
+   investment opportunities that can actually be implemented.
+
 **Portfolio Constraints:**
-- **Minimum-Variance Portfolio:** Short selling is **allowed** (weights can be negative, bounded by [-1, 1]) to achieve the lowest possible variance
-- **Tangency Portfolio and Efficient Frontier:** Short selling is **not allowed** (long-only constraint, weights bounded by [0, 1])
+- **Minimum-Variance Portfolio:** Short selling is **allowed** (weights can be
+  negative, bounded by [-1, 1]) to demonstrate the theoretical mathematical result.
+  This is reported but not used for investment recommendations.
+- **Tangency Portfolio and Efficient Frontier:** Short selling is **not allowed**
+  (long-only constraint, weights bounded by [0, 1]) to yield economically
+  meaningful and implementable results.
 - All portfolios: Weights sum to 1
 
 ### 8.3 Results

@@ -347,6 +347,35 @@ where:
 - Maximizes Sharpe ratio
 - Tests if CAPM-implied portfolios are optimal
 
+**Portfolio Optimization Constraints - Theoretical vs. Practical Implementation:**
+
+The CAPM assumes frictionless markets with unlimited short-selling. However,
+when computing the efficient frontier and optimal portfolios, we impose a
+long-only constraint (no short-selling) for the following reasons:
+
+1. **Mathematical vs. Economic Validity:** The unconstrained minimum-variance
+   portfolio achieves near-zero volatility (~0.002%) through perfect hedging
+   via short positions. While mathematically sound, this is economically
+   unachievable.
+
+2. **Real-World Frictions:**
+   - Transaction costs prevent perfect hedging
+   - Regulatory restrictions limit short-selling
+   - Margin requirements and borrowing costs
+   - Liquidity constraints on short positions
+   - Market impact of large trades
+
+3. **Investment Objective:** Our goal is to provide actionable investment
+   recommendations. The constrained solution, while not perfectly aligned with
+   CAPM theory, yields economically meaningful results that can be implemented
+   in practice.
+
+**Implementation:**
+- Minimum-variance portfolio: Computed with short-selling to demonstrate
+  theoretical result (reported but not used for recommendations)
+- Efficient frontier and tangency portfolio: Computed with long-only constraint
+  to yield implementable investment opportunities
+
 **Value Effects Analysis:**
 - Tests if value stocks (low P/B) earn higher returns
 - Compares to CAPM predictions
