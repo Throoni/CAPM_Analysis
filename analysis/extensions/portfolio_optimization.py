@@ -673,32 +673,35 @@ def plot_efficient_frontier(
     output_path: str
 ) -> None:
     """
-    Plot efficient frontier with all individual stocks and market index.
+    Plot efficient frontier with all individual stocks and market index (long-only only).
     
-    This graph shows:
+    This graph shows only constrained (long-only) portfolios, as unconstrained portfolios
+    achieve economically unachievable results. The plot includes:
     - X-axis: Volatility (standard deviation)
     - Y-axis: Expected return
     - All individual stocks as scatter points
     - Constrained efficient frontier (long-only, solid line)
-    - Unconstrained efficient frontier (with short selling, dashed line)
     - Market index (MSCI Europe) point
+    - Constrained minimum-variance and tangency portfolios
     - Interpretation: If efficient frontier overlaps well with market index, CAPM holds.
                      If not, CAPM does not hold (opposite).
+    
+    Note: Unconstrained parameters are kept for backward compatibility but are ignored.
     
     Parameters
     ----------
     frontier_df_constrained : pd.DataFrame
         Constrained efficient frontier data (long-only) with 'volatility' and 'return' columns
     frontier_df_unconstrained : pd.DataFrame
-        Unconstrained efficient frontier data (with short selling) with 'volatility' and 'return' columns
+        Unconstrained efficient frontier data (ignored, kept for backward compatibility)
     min_var_port_constrained : tuple
         (return, volatility) for constrained minimum-variance portfolio (long-only)
     min_var_port_unconstrained : tuple
-        (return, volatility) for unconstrained minimum-variance portfolio (with short selling)
+        Unconstrained minimum-variance portfolio (ignored, kept for backward compatibility)
     tangency_port_constrained : tuple
         (return, volatility) for constrained tangency portfolio (long-only)
     tangency_port_unconstrained : tuple
-        (return, volatility) for unconstrained tangency portfolio (with short selling)
+        Unconstrained tangency portfolio (ignored, kept for backward compatibility)
     equal_weighted_port : tuple
         (return, volatility) for equal-weighted portfolio
     expected_returns : pd.Series
@@ -710,7 +713,7 @@ def plot_efficient_frontier(
     market_index_vol : float
         Volatility of market index (MSCI Europe)
     risk_free_rate : float
-        Risk-free rate
+        Risk-free rate (German 3-month Bund, EUR, for all countries)
     output_path : str
         Path to save plot
     """
@@ -722,7 +725,6 @@ def plot_efficient_frontier(
     logger.info(f"  Unit check - Individual stock volatilities: min={individual_volatilities.min():.2f}%, max={individual_volatilities.max():.2f}%")
     logger.info(f"  Unit check - Expected returns: min={expected_returns.min():.2f}%, max={expected_returns.max():.2f}%")
     logger.info(f"  Unit check - Constrained frontier volatility: min={frontier_df_constrained['volatility'].min():.2f}%, max={frontier_df_constrained['volatility'].max():.2f}%")
-    logger.info(f"  Unit check - Unconstrained frontier volatility: min={frontier_df_unconstrained['volatility'].min():.2f}%, max={frontier_df_unconstrained['volatility'].max():.2f}%")
     logger.info(f"  Unit check - Market index: return={market_index_return:.2f}%, vol={market_index_vol:.2f}%")
     
     fig, ax = plt.subplots(figsize=(14, 10))
@@ -736,15 +738,6 @@ def plot_efficient_frontier(
     ax.plot(frontier_df_constrained['volatility'], frontier_df_constrained['return'], 
             'b-', linewidth=2.5, label='Efficient Frontier (Long-Only)', zorder=5)
     
-    # Plot unconstrained efficient frontier (with short selling, dashed line)
-    # Only plot if we have valid points (may be empty if optimizations failed)
-    if len(frontier_df_unconstrained) > 0:
-        ax.plot(frontier_df_unconstrained['volatility'], frontier_df_unconstrained['return'], 
-                'b--', linewidth=2.0, alpha=0.8, label='Efficient Frontier (With Short Selling)', zorder=5)
-    else:
-        # If no frontier points, just show a note
-        logger.warning("  Unconstrained efficient frontier has no points - may be due to gross exposure constraint")
-    
     # Plot market index (MSCI Europe)
     ax.scatter(market_index_vol, market_index_return, 
               s=200, marker='*', color='red', edgecolors='darkred', linewidths=2,
@@ -754,17 +747,9 @@ def plot_efficient_frontier(
     ax.plot(min_var_port_constrained[1], min_var_port_constrained[0], 
             'ro', markersize=12, label='Min-Variance Portfolio (Long-Only)', zorder=5)
     
-    # Plot unconstrained minimum-variance portfolio (with short selling, red square)
-    ax.plot(min_var_port_unconstrained[1], min_var_port_unconstrained[0], 
-            'rs', markersize=12, label='Min-Variance Portfolio (With Short Selling)', zorder=5)
-    
     # Plot constrained tangency portfolio (long-only, green circle)
     ax.plot(tangency_port_constrained[1], tangency_port_constrained[0], 
             'go', markersize=12, label='Optimal Risky Portfolio (Tangency, Long-Only)', zorder=5)
-    
-    # Plot unconstrained tangency portfolio (with short selling, green square)
-    ax.plot(tangency_port_unconstrained[1], tangency_port_unconstrained[0], 
-            'gs', markersize=12, label='Optimal Risky Portfolio (Tangency, With Short Selling)', zorder=5)
     
     # Plot equal-weighted portfolio (purple diamond)
     ax.plot(equal_weighted_port[1], equal_weighted_port[0], 
@@ -779,7 +764,6 @@ def plot_efficient_frontier(
         cml_slope = (tangency_port_constrained[0] - risk_free_rate) / tangency_port_constrained[1]
         max_vol = max(
             frontier_df_constrained['volatility'].max() if len(frontier_df_constrained) > 0 else 0,
-            frontier_df_unconstrained['volatility'].max() if len(frontier_df_unconstrained) > 0 else 0,
             individual_volatilities.max()
         )
         x_cml = np.linspace(0, max_vol * 1.1, 100)
@@ -821,7 +805,7 @@ def plot_efficient_frontier(
     
     ax.set_xlabel('Volatility (Standard Deviation, %)', fontsize=12, fontweight='bold')
     ax.set_ylabel('Expected Return (%)', fontsize=12, fontweight='bold')
-    ax.set_title('Mean-Variance Efficient Frontier with All Stocks and Market Index', 
+    ax.set_title('Mean-Variance Efficient Frontier (Long-Only) with All Stocks and Market Index', 
                 fontsize=14, fontweight='bold')
     ax.legend(loc='best', fontsize=9, framealpha=0.9)
     ax.grid(True, alpha=0.3)
