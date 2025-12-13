@@ -160,7 +160,7 @@ class FinancialCalculationsAudit:
         
         issues_found = []
         
-        from analysis.riskfree_helper import convert_annual_pct_to_monthly_pct
+        from analysis.data.riskfree_helper import convert_annual_pct_to_monthly_pct
         
         # Test case 1: 3% annual → monthly
         annual_3pct = 3.0
