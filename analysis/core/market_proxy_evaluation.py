@@ -9,22 +9,13 @@ import os
 import logging
 import pandas as pd
 import numpy as np
-from typing import Dict, Tuple
+# Note: Dict, Tuple not currently used but kept for type hints
 
 from analysis.utils.config import (
-    DATA_RAW_DIR,
     DATA_PROCESSED_DIR,
     RESULTS_REPORTS_DIR,
     COUNTRIES,
 )
-from analysis.core.returns_processing import (
-    load_price_data,
-    prices_to_returns,
-    convert_stock_prices_to_eur,
-    convert_usd_prices_to_eur,
-    load_usd_eur_exchange_rates,
-)
-from analysis.core.capm_regression import run_capm_regression
 
 logger = logging.getLogger(__name__)
 
@@ -65,25 +56,34 @@ def compare_market_proxies() -> pd.DataFrame:
             continue
         
         # Load country-specific MSCI index
+        # Note: These functions are not currently implemented
+        # This module is kept for future use when country-specific indices are available
         try:
-            msci_country_prices = load_price_data(country, "msci")
-            # Convert to EUR if needed (country indices are USD-denominated)
-            msci_country_prices.index = pd.to_datetime(msci_country_prices.index)
-            if (msci_country_prices.index.day == 1).all():
-                msci_country_prices.index = msci_country_prices.index.to_period('M').to_timestamp('M')
+            # TODO: Implement load_price_data, load_usd_eur_exchange_rates, 
+            # convert_usd_prices_to_eur, and prices_to_returns functions
+            # For now, skip country-specific index evaluation
+            logger.warning(f"Country-specific MSCI index evaluation not yet implemented for {country}")
+            continue
             
-            # Convert USD to EUR
-            try:
-                usd_eur_rates = load_usd_eur_exchange_rates()
-                if len(msci_country_prices.columns) > 0:
-                    price_series_usd = msci_country_prices.iloc[:, 0]
-                    price_series_eur = convert_usd_prices_to_eur(price_series_usd, usd_eur_rates)
-                    msci_country_prices = pd.DataFrame({price_series_eur.name: price_series_eur})
-                    msci_country_prices.index = price_series_eur.index
-            except Exception as e:
-                logger.warning(f"Could not convert {country} MSCI index to EUR: {e}")
-            
-            msci_country_returns = prices_to_returns(msci_country_prices)
+            # Placeholder code (commented out until functions are implemented):
+            # msci_country_prices = load_price_data(country, "msci")
+            # # Convert to EUR if needed (country indices are USD-denominated)
+            # msci_country_prices.index = pd.to_datetime(msci_country_prices.index)
+            # if (msci_country_prices.index.day == 1).all():
+            #     msci_country_prices.index = msci_country_prices.index.to_period('M').to_timestamp('M')
+            # 
+            # # Convert USD to EUR
+            # try:
+            #     usd_eur_rates = load_usd_eur_exchange_rates()
+            #     if len(msci_country_prices.columns) > 0:
+            #         price_series_usd = msci_country_prices.iloc[:, 0]
+            #         price_series_eur = convert_usd_prices_to_eur(price_series_usd, usd_eur_rates)
+            #         msci_country_prices = pd.DataFrame({price_series_eur.name: price_series_eur})
+            #         msci_country_prices.index = price_series_eur.index
+            # except Exception as e:
+            #     logger.warning(f"Could not convert {country} MSCI index to EUR: {e}")
+            # 
+            # msci_country_returns = prices_to_returns(msci_country_prices)
             if len(msci_country_returns.columns) > 0:
                 msci_country_returns_series = msci_country_returns.iloc[:, 0]
             else:
@@ -112,7 +112,7 @@ def compare_market_proxies() -> pd.DataFrame:
             # Calculate R² with country index
             try:
                 from scipy import stats
-                slope, intercept, r_value, p_value, std_err = stats.linregress(
+                _, _, r_value, _, _ = stats.linregress(
                     aligned['country_index_return'], aligned['stock_return']
                 )
                 r2_country = r_value ** 2

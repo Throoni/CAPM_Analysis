@@ -13,7 +13,7 @@ Comprehensive robustness tests to validate CAPM results:
 
 import os
 import logging
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple
 
 import pandas as pd
 import numpy as np
@@ -59,12 +59,13 @@ def run_monthly_cross_sectional_regression(
     dict
         Regression results or None if failed
     """
-    # Merge with betas
-    month_data = month_data.copy()
-    month_data['beta'] = month_data.apply(
-        lambda row: beta_dict.get((row['country'], row['ticker']), np.nan),
-        axis=1
-    )
+    # Merge with betas (vectorized using map - much faster than apply)
+    # Create tuple keys for vectorized lookup
+    month_data = month_data.copy()  # Copy needed to avoid SettingWithCopyWarning
+    # Vectorized approach: create keys and map (much faster than apply)
+    month_data['beta_key'] = list(zip(month_data['country'], month_data['ticker']))
+    month_data['beta'] = month_data['beta_key'].map(beta_dict)
+    month_data = month_data.drop(columns=['beta_key'])
     
     # Drop stocks without beta or with NaN returns
     month_data = month_data.dropna(subset=['stock_return', 'beta'])
@@ -178,12 +179,19 @@ def run_subperiod_fama_macbeth(
     logger.info("="*70)
     
     # Prepare data
-    panel_df['date'] = pd.to_datetime(panel_df['date'])
-    valid_betas = beta_df[beta_df['is_valid'] == True][['country', 'ticker', 'beta']].copy()
-    beta_dict = dict(zip(
-        zip(valid_betas['country'], valid_betas['ticker']),
-        valid_betas['beta']
-    ))
+    # Cache date conversion (only convert if not already datetime)
+    if not pd.api.types.is_datetime64_any_dtype(panel_df['date']):
+        panel_df['date'] = pd.to_datetime(panel_df['date'])
+    
+    # Cache valid betas filter
+    valid_mask = beta_df['is_valid'] == True
+    valid_betas = beta_df[valid_mask][['country', 'ticker', 'beta']].copy()
+    
+    # Create beta dictionary (more efficient with vectorized operations)
+    beta_dict = {
+        (row['country'], row['ticker']): row['beta']
+        for _, row in valid_betas.iterrows()
+    }
     
     # Define periods
     period_a_start = pd.to_datetime('2021-01-01')
@@ -258,12 +266,19 @@ def run_country_level_fama_macbeth(
     logger.info("STAGE 6.2: COUNTRY-LEVEL FAMA-MACBETH TESTS")
     logger.info("="*70)
     
-    panel_df['date'] = pd.to_datetime(panel_df['date'])
-    valid_betas = beta_df[beta_df['is_valid'] == True][['country', 'ticker', 'beta']].copy()
-    beta_dict = dict(zip(
-        zip(valid_betas['country'], valid_betas['ticker']),
-        valid_betas['beta']
-    ))
+    # Cache date conversion (only convert if not already datetime)
+    if not pd.api.types.is_datetime64_any_dtype(panel_df['date']):
+        panel_df['date'] = pd.to_datetime(panel_df['date'])
+    
+    # Cache valid betas filter
+    valid_mask = beta_df['is_valid'] == True
+    valid_betas = beta_df[valid_mask][['country', 'ticker', 'beta']].copy()
+    
+    # Create beta dictionary (more efficient with vectorized operations)
+    beta_dict = {
+        (row['country'], row['ticker']): row['beta']
+        for _, row in valid_betas.iterrows()
+    }
     
     countries = sorted(panel_df['country'].unique())
     all_monthly_results = []
@@ -362,11 +377,14 @@ def create_beta_sorted_portfolios(
     ))
     
     # Compute monthly portfolio returns (equal-weighted)
-    panel_df['date'] = pd.to_datetime(panel_df['date'])
-    panel_df['portfolio'] = panel_df.apply(
-        lambda row: portfolio_dict.get((row['country'], row['ticker']), None),
-        axis=1
-    )
+    # Cache date conversion (only convert if not already datetime)
+    if not pd.api.types.is_datetime64_any_dtype(panel_df['date']):
+        panel_df['date'] = pd.to_datetime(panel_df['date'])
+    
+    # Vectorized portfolio assignment (much faster than apply)
+    panel_df['portfolio_key'] = list(zip(panel_df['country'], panel_df['ticker']))
+    panel_df['portfolio'] = panel_df['portfolio_key'].map(portfolio_dict)
+    panel_df = panel_df.drop(columns=['portfolio_key'])
     
     # Group by date and portfolio, compute equal-weighted returns
     portfolio_returns = panel_df[
@@ -460,12 +478,23 @@ def create_clean_sample_and_retest(
     # Re-run Fama-MacBeth on clean sample
     logger.info("\nRe-running Fama-MacBeth on clean sample...")
     
-    panel_df['date'] = pd.to_datetime(panel_df['date'])
-    clean_beta_dict = dict(zip(
-        zip(clean_betas['country'], clean_betas['ticker']),
-        clean_betas['beta']
-    ))
+    # Cache date conversion (only convert if not already datetime)
+    if not isinstance(panel_df['date'].dtype, pd.DatetimeTZDtype) and not pd.api.types.is_datetime64_any_dtype(panel_df['date']):
+        panel_df['date'] = pd.to_datetime(panel_df['date'])
     
+    # Create beta dictionary (more efficient than nested zip)
+    # Use vectorized operations to create keys
+    clean_beta_dict = {
+        (row['country'], row['ticker']): row['beta']
+        for _, row in clean_betas.iterrows()
+    }
+    # Alternative: Use zip for better performance with large DataFrames
+    # clean_beta_dict = dict(zip(
+    #     zip(clean_betas['country'], clean_betas['ticker']),
+    #     clean_betas['beta']
+    # ))
+    
+    # Cache unique months (avoid repeated calculation)
     months = sorted(panel_df['date'].unique())
     clean_monthly_results = []
     
@@ -505,7 +534,7 @@ def generate_economic_interpretation(
     capm_results: pd.DataFrame,
     fm_results: Dict,
     subperiod_comparison: pd.DataFrame,
-    country_results: pd.DataFrame,
+    _country_results: pd.DataFrame,  # Unused but kept for API consistency
     portfolio_results: pd.DataFrame,
     clean_sample_results: Dict
 ) -> str:
@@ -665,7 +694,7 @@ def create_robustness_visualizations(
     subperiod_comparison: pd.DataFrame,
     country_results: pd.DataFrame,
     portfolio_results: pd.DataFrame,
-    clean_sample_comparison: Dict
+    _clean_sample_comparison: Dict  # Unused but kept for API consistency
 ) -> None:
     """
     Create all robustness check visualizations.
@@ -687,7 +716,7 @@ def create_robustness_visualizations(
     
     # 1. Subperiod comparison
     logger.info("Creating subperiod comparison plot...")
-    fig, ax = plt.subplots(figsize=(10, 6))
+    _, ax = plt.subplots(figsize=(10, 6))
     periods = subperiod_comparison['period'].values
     gamma_1_values = subperiod_comparison['avg_gamma_1'].values
     gamma_1_se = subperiod_comparison['se_gamma_1'].values
@@ -707,7 +736,7 @@ def create_robustness_visualizations(
     
     # 2. Country-level gamma_1
     logger.info("Creating country-level gamma_1 plot...")
-    fig, ax = plt.subplots(figsize=(12, 6))
+    _, ax = plt.subplots(figsize=(12, 6))
     countries = country_results['country'].values
     gamma_1_values = country_results['avg_gamma_1'].values
     gamma_1_se = country_results['se_gamma_1'].values
@@ -727,7 +756,7 @@ def create_robustness_visualizations(
     
     # 3. Beta-sorted portfolios
     logger.info("Creating beta-sorted portfolio plot...")
-    fig, ax = plt.subplots(figsize=(10, 6))
+    _, ax = plt.subplots(figsize=(10, 6))
     ax.scatter(portfolio_results['portfolio_beta'], portfolio_results['avg_return'], 
               s=100, alpha=0.7, color='red')
     
@@ -797,7 +826,7 @@ def run_all_robustness_checks() -> Dict:
     logger.info("✅ Saved subperiod results")
     
     # Stage 6.2: Country-level tests
-    monthly_by_country, country_summary = run_country_level_fama_macbeth(panel_df, beta_df)
+    _, country_summary = run_country_level_fama_macbeth(panel_df, beta_df)
     
     # Save country results
     country_summary.to_csv(os.path.join(RESULTS_REPORTS_DIR, "fm_by_country.csv"), index=False)

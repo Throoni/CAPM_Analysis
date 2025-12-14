@@ -1,0 +1,5 @@
+portfolio,expected_return,volatility,sharpe_ratio,gross_exposure,has_errors
+Minimum-Variance (Realistic Short-Selling),1.0405177926979592,0.0039429532662388555,231.22952104157474,2.4995852515896115,True
+"Optimal Risky (Tangency, Realistic Short-Selling)",0.0,0.0,0.0,1.0000000000000002,True
+"Minimum-Variance (Theoretical, Unconstrained)",1.1662909839926423,0.34126026914344465,3.0419606793701996,1.9967861093151118,True
+"Optimal Risky (Tangency, Theoretical, Unconstrained)",1.2320331827230953,0.12128117078789248,9.101516020377167,2.0,True

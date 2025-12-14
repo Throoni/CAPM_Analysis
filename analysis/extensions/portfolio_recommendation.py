@@ -10,7 +10,11 @@ import logging
 import pandas as pd
 from typing import Dict
 
-from analysis.utils.config import RESULTS_DATA_DIR, RESULTS_REPORTS_DIR
+from analysis.utils.config import (
+    RESULTS_DATA_DIR,
+    RESULTS_REPORTS_DIR,
+    RESULTS_REPORTS_MAIN_DIR
+)
 
 logger = logging.getLogger(__name__)
 
@@ -357,9 +361,13 @@ def run_portfolio_recommendation() -> Dict:
     # Generate report
     report = generate_recommendation_report(findings, recommendation)
     
-    # Save report
-    report_file = os.path.join(RESULTS_REPORTS_DIR, "Portfolio_Recommendation.md")
+    # Save report to new organized structure
+    report_file = os.path.join(RESULTS_REPORTS_MAIN_DIR, "Portfolio_Recommendation.md")
     with open(report_file, 'w') as f:
+        f.write(report)
+    # Also save to legacy location
+    legacy_report = os.path.join(RESULTS_REPORTS_DIR, "Portfolio_Recommendation.md")
+    with open(legacy_report, 'w') as f:
         f.write(report)
     
     logger.info(f"✅ Saved: {report_file}")

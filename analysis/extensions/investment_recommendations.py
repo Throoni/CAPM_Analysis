@@ -8,13 +8,13 @@ Focuses on currency risk, country allocation, sector implications, and factor-ba
 import os
 import logging
 import pandas as pd
-import numpy as np
-from typing import Dict, List, Tuple
+from typing import Dict
 
 from analysis.utils.config import (
     RESULTS_DATA_DIR,
     RESULTS_REPORTS_DIR,
     RESULTS_REPORTS_DATA_DIR,
+    RESULTS_REPORTS_INVESTMENT_DIR,
     COUNTRIES,
     MSCI_INDEX_TICKERS
 )
@@ -86,7 +86,7 @@ def load_all_results() -> Dict:
     return results
 
 
-def analyze_currency_exposure(results: Dict) -> Dict:
+def analyze_currency_exposure(_results: Dict) -> Dict:
     """
     Analyze currency exposure implications for USD-based investors.
     
@@ -197,18 +197,26 @@ def analyze_country_allocation(results: Dict) -> Dict:
     
     if 'capm' in results and results['capm'] is not None:
         capm = results['capm']
-        valid = capm[capm['is_valid'] == True]
+        # Cache boolean mask to avoid repeated filtering
+        valid_mask = capm['is_valid'] == True
+        valid = capm[valid_mask]
         
-        # Calculate country-level statistics
+        # Calculate country-level statistics (vectorized where possible)
+        # Pre-filter by country to avoid repeated filtering in loop
         for country in COUNTRIES.keys():
-            country_data = valid[valid['country'] == country]
+            country_mask = valid['country'] == country
+            country_data = valid[country_mask]
             if len(country_data) > 0:
+                # Cache calculations
+                n_stocks = len(country_data)
+                pvalue_beta_lt_005 = (country_data['pvalue_beta'] < 0.05).sum()
+                
                 allocation['country_stats'][country] = {
-                    'n_stocks': len(country_data),
+                    'n_stocks': n_stocks,
                     'avg_beta': country_data['beta'].mean(),
                     'avg_alpha': country_data['alpha'].mean(),
                     'avg_r_squared': country_data['r_squared'].mean(),
-                    'pct_significant_betas': (country_data['pvalue_beta'] < 0.05).sum() / len(country_data) * 100
+                    'pct_significant_betas': pvalue_beta_lt_005 / n_stocks * 100 if n_stocks > 0 else 0
                 }
     
     # Generate recommendations based on findings
@@ -258,13 +266,15 @@ def analyze_factor_strategy(results: Dict) -> Dict:
     if 'portfolios' in results and results['portfolios'] is not None:
         portfolios = results['portfolios']
         if len(portfolios) >= 2:
+            # Cache iloc calls
             low_beta_return = portfolios.iloc[0]['avg_return']
             high_beta_return = portfolios.iloc[-1]['avg_return']
+            spread = low_beta_return - high_beta_return
             
             strategy['low_beta'] = {
                 'low_beta_return': low_beta_return,
                 'high_beta_return': high_beta_return,
-                'spread': low_beta_return - high_beta_return,
+                'spread': spread,
                 'recommendation': 'Overweight low-beta stocks' if low_beta_return > high_beta_return else 'Neutral'
             }
     
@@ -272,10 +282,16 @@ def analyze_factor_strategy(results: Dict) -> Dict:
     if 'value_effects' in results and results['value_effects'] is not None:
         value = results['value_effects']
         if len(value) > 0:
+            # Cache column checks and iloc calls
+            has_alpha_spread = 'alpha_spread' in value.columns
+            has_regression_slope = 'regression_slope' in value.columns
+            alpha_spread = value['alpha_spread'].iloc[0] if has_alpha_spread else None
+            regression_slope = value['regression_slope'].iloc[0] if has_regression_slope else None
+            
             strategy['value'] = {
-                'alpha_spread': value['alpha_spread'].iloc[0] if 'alpha_spread' in value.columns else None,
-                'regression_slope': value['regression_slope'].iloc[0] if 'regression_slope' in value.columns else None,
-                'recommendation': 'Value tilt' if value.get('regression_slope', pd.Series([0])).iloc[0] > 0 else 'Growth tilt or neutral'
+                'alpha_spread': alpha_spread,
+                'regression_slope': regression_slope,
+                'recommendation': 'Value tilt' if (regression_slope is not None and regression_slope > 0) else 'Growth tilt or neutral'
             }
     
     # Factor recommendations
@@ -309,7 +325,7 @@ def analyze_factor_strategy(results: Dict) -> Dict:
     return strategy
 
 
-def generate_portfolio_construction(results: Dict) -> Dict:
+def generate_portfolio_construction(_results: Dict) -> Dict:
     """
     Generate specific portfolio construction recommendations.
     
@@ -426,11 +442,11 @@ def generate_investment_report(
     """
     
     # Get key statistics
-    capm_rejected = False
+    _ = False  # capm_rejected not used in current implementation
     if 'fama_macbeth' in results and results['fama_macbeth'] is not None:
         fm = results['fama_macbeth']
         if len(fm) > 0 and 'pvalue_gamma_1' in fm.columns:
-            capm_rejected = fm['pvalue_gamma_1'].iloc[0] > 0.05
+            _ = fm['pvalue_gamma_1'].iloc[0] > 0.05  # capm_rejected not used in current implementation
     
     diversification_benefit = None
     if 'diversification' in results and results['diversification'] is not None:
@@ -780,9 +796,13 @@ def run_investment_recommendations() -> Dict:
         results
     )
     
-    # Save report
-    report_file = os.path.join(RESULTS_REPORTS_DIR, "Investment_Recommendations_US_Investor.md")
+    # Save report to new organized structure
+    report_file = os.path.join(RESULTS_REPORTS_INVESTMENT_DIR, "Investment_Recommendations_US_Investor.md")
     with open(report_file, 'w') as f:
+        f.write(report)
+    # Also save to legacy location
+    legacy_report = os.path.join(RESULTS_REPORTS_DIR, "Investment_Recommendations_US_Investor.md")
+    with open(legacy_report, 'w') as f:
         f.write(report)
     
     logger.info(f"✅ Saved: {report_file}")

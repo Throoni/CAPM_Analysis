@@ -85,24 +85,24 @@ class IntegrationAudit:
         
         issues_found = []
         
-        # Check key data flow paths
+        # Check key data flow paths (updated for new folder structure)
         data_flow_paths = [
             {
                 'source': 'data/raw/prices_stocks_*.csv',
-                'processor': 'analysis/returns_processing.py',
+                'processor': 'analysis/core/returns_processing.py',
                 'output': 'data/processed/returns_panel.csv',
                 'description': 'Stock prices → Returns processing → Returns panel'
             },
             {
                 'source': 'data/processed/returns_panel.csv',
-                'processor': 'analysis/capm_regression.py',
+                'processor': 'analysis/core/capm_regression.py',
                 'output': 'results/data/capm_results.csv',
                 'description': 'Returns panel → CAPM regression → CAPM results'
             },
             {
                 'source': 'results/data/capm_results.csv',
-                'processor': 'analysis/fama_macbeth.py',
-                'output': 'results/reports/fama_macbeth_summary.csv',
+                'processor': 'analysis/core/fama_macbeth.py',
+                'output': 'results/capm_analysis/cross_sectional/summary.csv',
                 'description': 'CAPM results → Fama-MacBeth → FM summary'
             }
         ]
@@ -146,11 +146,11 @@ class IntegrationAudit:
         
         issues_found = []
         modules_to_check = [
-            'analysis.config',
-            'analysis.returns_processing',
-            'analysis.capm_regression',
-            'analysis.fama_macbeth',
-            'analysis.riskfree_helper'
+            'analysis.utils.config',
+            'analysis.core.returns_processing',
+            'analysis.core.capm_regression',
+            'analysis.core.fama_macbeth',
+            'analysis.data.riskfree_helper'
         ]
         
         failed_imports = []
@@ -186,11 +186,11 @@ class IntegrationAudit:
         
         issues_found = []
         
-        # Key files that should exist
+        # Key files that should exist (updated for new structure)
         required_files = [
-            'analysis/config.py',
-            'analysis/returns_processing.py',
-            'analysis/capm_regression.py',
+            'analysis/utils/config.py',
+            'analysis/core/returns_processing.py',
+            'analysis/core/capm_regression.py',
             'data/processed/returns_panel.csv'  # May not exist, but directory should
         ]
         

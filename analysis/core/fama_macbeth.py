@@ -15,6 +15,7 @@ Methodology:
 
 import os
 import logging
+import shutil
 from typing import Dict, Tuple
 
 import pandas as pd
@@ -29,7 +30,8 @@ from analysis.utils.config import (
     RESULTS_DATA_DIR,
     RESULTS_REPORTS_DIR,
     RESULTS_FIGURES_DIR,
-    RESULTS_FIGURES_DIR,  # Backward compatibility
+    RESULTS_CAPM_CROSSSECTIONAL_DIR,
+    RESULTS_CAPM_CROSSSECTIONAL_FIGURES_DIR,
 )
 
 logger = logging.getLogger(__name__)
@@ -73,8 +75,9 @@ def prepare_cross_sectional_data(
     logger.info(f"Computed average returns for {len(avg_returns)} stocks")
     
     # Merge with betas
-    # Only use valid stocks (is_valid == True)
-    valid_betas = beta_df[beta_df['is_valid'] == True][['country', 'ticker', 'beta']].copy()
+    # Only use valid stocks (is_valid == True) - cache boolean mask
+    valid_mask = beta_df['is_valid'] == True
+    valid_betas = beta_df[valid_mask][['country', 'ticker', 'beta']].copy()
     
     cross_sectional = avg_returns.merge(
         valid_betas,
@@ -122,17 +125,19 @@ def run_monthly_cross_sectional_regressions(
     logger.info("STEP 2: RUNNING MONTHLY CROSS-SECTIONAL REGRESSIONS")
     logger.info("="*70)
     
-    # Get valid betas
-    valid_betas = beta_df[beta_df['is_valid'] == True][['country', 'ticker', 'beta']].copy()
+    # Get valid betas - cache boolean mask
+    valid_mask = beta_df['is_valid'] == True
+    valid_betas = beta_df[valid_mask][['country', 'ticker', 'beta']].copy()
     
-    # Create beta lookup dictionary
+    # Create beta lookup dictionary (vectorized - more efficient than iterrows)
     beta_dict = dict(zip(
         zip(valid_betas['country'], valid_betas['ticker']),
         valid_betas['beta']
     ))
     
-    # Get unique months
-    panel_df['date'] = pd.to_datetime(panel_df['date'])
+    # Get unique months - cache date conversion (only convert if not already datetime)
+    if not pd.api.types.is_datetime64_any_dtype(panel_df['date']):
+        panel_df['date'] = pd.to_datetime(panel_df['date'])
     months = sorted(panel_df['date'].unique())
     
     logger.info(f"Running regressions for {len(months)} months")
@@ -140,14 +145,15 @@ def run_monthly_cross_sectional_regressions(
     monthly_results = []
     
     for month in months:
-        # Get returns for this month
-        month_data = panel_df[panel_df['date'] == month].copy()
+        # Get returns for this month (no need to copy if we're not modifying)
+        month_mask = panel_df['date'] == month
+        month_data = panel_df[month_mask]
         
-        # Merge with betas
-        month_data['beta'] = month_data.apply(
-            lambda row: beta_dict.get((row['country'], row['ticker']), np.nan),
-            axis=1
-        )
+        # Merge with betas (vectorized lookup instead of apply)
+        # Create MultiIndex for efficient lookup
+        month_data_indexed = month_data.set_index(['country', 'ticker'])
+        month_data['beta'] = month_data_indexed.index.map(beta_dict).values
+        month_data = month_data.reset_index(drop=True)
         
         # Drop stocks without beta or with NaN returns
         month_data = month_data.dropna(subset=['stock_return', 'beta'])
@@ -377,7 +383,12 @@ def create_fama_macbeth_visualizations(
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(os.path.join(RESULTS_FIGURES_DIR, "gamma1_timeseries.png"), dpi=300, bbox_inches='tight')
+    # Save to new organized structure
+    gamma1_ts_path = os.path.join(RESULTS_CAPM_CROSSSECTIONAL_FIGURES_DIR, "gamma1_timeseries.png")
+    plt.savefig(gamma1_ts_path, dpi=300, bbox_inches='tight')
+    # Also save to legacy location
+    legacy_gamma1_ts = os.path.join(RESULTS_FIGURES_DIR, "gamma1_timeseries.png")
+    shutil.copy2(gamma1_ts_path, legacy_gamma1_ts)
     plt.close()
     logger.info("✅ Saved: gamma1_timeseries.png")
     
@@ -394,7 +405,12 @@ def create_fama_macbeth_visualizations(
     plt.legend()
     plt.grid(True, alpha=0.3, axis='y')
     plt.tight_layout()
-    plt.savefig(os.path.join(RESULTS_FIGURES_DIR, "gamma1_histogram.png"), dpi=300, bbox_inches='tight')
+    # Save to new organized structure
+    gamma1_hist_path = os.path.join(RESULTS_CAPM_CROSSSECTIONAL_FIGURES_DIR, "gamma1_histogram.png")
+    plt.savefig(gamma1_hist_path, dpi=300, bbox_inches='tight')
+    # Also save to legacy location
+    legacy_gamma1_hist = os.path.join(RESULTS_FIGURES_DIR, "gamma1_histogram.png")
+    shutil.copy2(gamma1_hist_path, legacy_gamma1_hist)
     plt.close()
     logger.info("✅ Saved: gamma1_histogram.png")
     
@@ -402,10 +418,14 @@ def create_fama_macbeth_visualizations(
     logger.info("Creating beta vs return scatter plot...")
     plt.figure(figsize=(12, 8))
     
-    # Color by country
+    # Color by country - pre-compute country data to avoid repeated filtering
     countries = beta_avg_returns_df['country'].unique()
+    country_data_dict = {
+        country: beta_avg_returns_df[beta_avg_returns_df['country'] == country]
+        for country in countries
+    }
     for country in countries:
-        country_data = beta_avg_returns_df[beta_avg_returns_df['country'] == country]
+        country_data = country_data_dict[country]
         plt.scatter(country_data['beta'], country_data['avg_return'], 
                    label=country, alpha=0.6, s=50)
     
@@ -422,20 +442,25 @@ def create_fama_macbeth_visualizations(
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(os.path.join(RESULTS_FIGURES_DIR, "beta_vs_return_scatter.png"), 
-                dpi=300, bbox_inches='tight')
+    # Save to new organized structure
+    beta_return_path = os.path.join(RESULTS_CAPM_CROSSSECTIONAL_FIGURES_DIR, "beta_vs_return_scatter.png")
+    plt.savefig(beta_return_path, dpi=300, bbox_inches='tight')
+    # Also save to legacy location
+    legacy_beta_return = os.path.join(RESULTS_FIGURES_DIR, "beta_vs_return_scatter.png")
+    shutil.copy2(beta_return_path, legacy_beta_return)
     plt.close()
     logger.info("✅ Saved: beta_vs_return_scatter.png")
     
     # 4. Cross-country summary (optional)
     logger.info("Creating cross-country summary...")
-    country_summary = beta_avg_returns_df.groupby('country').agg({
+    # Note: country_summary computed but not used - kept for potential future use
+    _ = beta_avg_returns_df.groupby('country').agg({
         'beta': ['mean', 'std'],
         'avg_return': ['mean', 'std']
     }).round(3)
     
     # Create a simple summary plot
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+    _, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
     
     # Average beta by country
     country_avg_beta = beta_avg_returns_df.groupby('country')['beta'].mean().sort_values()
@@ -456,8 +481,12 @@ def create_fama_macbeth_visualizations(
     ax2.grid(True, alpha=0.3, axis='x')
     
     plt.tight_layout()
-    plt.savefig(os.path.join(RESULTS_FIGURES_DIR, "fama_macbeth_by_country.png"), 
-                dpi=300, bbox_inches='tight')
+    # Save to new organized structure
+    fm_country_path = os.path.join(RESULTS_CAPM_CROSSSECTIONAL_FIGURES_DIR, "fama_macbeth_by_country.png")
+    plt.savefig(fm_country_path, dpi=300, bbox_inches='tight')
+    # Also save to legacy location
+    legacy_fm_country = os.path.join(RESULTS_FIGURES_DIR, "fama_macbeth_by_country.png")
+    shutil.copy2(fm_country_path, legacy_fm_country)
     plt.close()
     logger.info("✅ Saved: fama_macbeth_by_country.png")
     
@@ -489,20 +518,29 @@ def generate_fama_macbeth_report(
     logger.info("GENERATING FAMA-MACBETH REPORTS")
     logger.info("="*70)
     
-    # 1. Monthly coefficients
-    monthly_path = os.path.join(RESULTS_REPORTS_DIR, "fama_macbeth_monthly_coefficients.csv")
+    # 1. Monthly coefficients - save to new organized structure
+    monthly_path = os.path.join(RESULTS_CAPM_CROSSSECTIONAL_DIR, "monthly_coefficients.csv")
     monthly_coefs_df.to_csv(monthly_path, index=False)
+    # Also save to legacy location
+    legacy_monthly = os.path.join(RESULTS_REPORTS_DIR, "fama_macbeth_monthly_coefficients.csv")
+    monthly_coefs_df.to_csv(legacy_monthly, index=False)
     logger.info(f"✅ Saved: {monthly_path}")
     
-    # 2. Summary statistics
+    # 2. Summary statistics - save to new organized structure
     summary_df = pd.DataFrame([tstats])
-    summary_path = os.path.join(RESULTS_REPORTS_DIR, "fama_macbeth_summary.csv")
+    summary_path = os.path.join(RESULTS_CAPM_CROSSSECTIONAL_DIR, "summary.csv")
     summary_df.to_csv(summary_path, index=False)
+    # Also save to legacy location
+    legacy_summary = os.path.join(RESULTS_REPORTS_DIR, "fama_macbeth_summary.csv")
+    summary_df.to_csv(legacy_summary, index=False)
     logger.info(f"✅ Saved: {summary_path}")
     
-    # 3. Beta vs average returns
-    beta_returns_path = os.path.join(RESULTS_REPORTS_DIR, "fama_macbeth_beta_returns.csv")
+    # 3. Beta vs average returns - save to new organized structure
+    beta_returns_path = os.path.join(RESULTS_CAPM_CROSSSECTIONAL_DIR, "beta_returns.csv")
     beta_avg_returns_df.to_csv(beta_returns_path, index=False)
+    # Also save to legacy location
+    legacy_beta_returns = os.path.join(RESULTS_REPORTS_DIR, "fama_macbeth_beta_returns.csv")
+    beta_avg_returns_df.to_csv(legacy_beta_returns, index=False)
     logger.info(f"✅ Saved: {beta_returns_path}")
     
     logger.info("\n✅ All reports generated successfully")
@@ -544,8 +582,8 @@ def run_fama_macbeth_test() -> Tuple[pd.DataFrame, Dict, pd.DataFrame]:
     # Step 2: Run monthly regressions
     monthly_coefs_df = run_monthly_cross_sectional_regressions(panel_df, beta_df)
     
-    # Step 3: Compute averages
-    avg_coefs = compute_fama_macbeth_averages(monthly_coefs_df)
+    # Step 3: Compute averages (stored in tstats dict below)
+    _ = compute_fama_macbeth_averages(monthly_coefs_df)
     
     # Step 4: Compute t-statistics
     tstats = compute_fama_macbeth_tstats(monthly_coefs_df)

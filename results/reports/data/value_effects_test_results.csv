@@ -1,2 +1,0 @@
-correlation,pvalue_correlation,value_alpha,growth_alpha,alpha_spread,regression_slope,regression_intercept,regression_r_squared,regression_pvalue,interpretation
--0.5095096369580725,0.38054986495045795,-0.42345068742191555,-0.09995027587135485,-0.3235004115505607,-0.3047411891549103,0.31693410111038556,0.25960007015314684,0.3805498649504579,Reverse value effect: High B/M stocks have lower alphas (contrary to theory)

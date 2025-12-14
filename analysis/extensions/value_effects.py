@@ -7,6 +7,7 @@ This addresses assignment requirement: "Focus on the alpha parameters. Can you f
 
 import os
 import logging
+import shutil
 import pandas as pd
 import numpy as np
 from typing import Dict, Optional
@@ -20,7 +21,7 @@ from analysis.utils.config import (
     RESULTS_DATA_DIR,
     RESULTS_FIGURES_DIR,
     RESULTS_REPORTS_DIR,
-    ANALYSIS_SETTINGS
+    RESULTS_FIGURES_VALUE_EFFECTS_DIR
 )
 
 logger = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ sns.set_style("whitegrid")
 plt.rcParams['figure.figsize'] = (12, 8)
 
 
-def fetch_book_to_market(ticker: str, country: str) -> Optional[float]:
+def fetch_book_to_market(ticker: str, _country: str) -> Optional[float]:
     """
     Fetch book-to-market ratio for a stock.
     
@@ -38,8 +39,8 @@ def fetch_book_to_market(ticker: str, country: str) -> Optional[float]:
     ----------
     ticker : str
         Stock ticker
-    country : str
-        Country name
+    _country : str
+        Country name (unused but kept for API consistency)
     
     Returns
     -------
@@ -77,7 +78,7 @@ def fetch_book_to_market(ticker: str, country: str) -> Optional[float]:
         return None
 
 
-def estimate_bm_from_proxies(ticker: str, country: str, prices_df: pd.DataFrame) -> Optional[float]:
+def estimate_bm_from_proxies(ticker: str, _country: str, _prices_df: pd.DataFrame) -> Optional[float]:
     """
     Estimate book-to-market using proxies if direct data unavailable.
     Uses price-to-earnings (P/E) as a proxy, or dividend yield.
@@ -281,7 +282,7 @@ def test_value_effect(portfolio_df: pd.DataFrame) -> Dict:
     alpha_spread = value_alpha - growth_alpha
     
     # Test 3: Linear regression: alpha = a + b * B/M
-    slope, intercept, r_value, pvalue_reg, std_err = stats.linregress(bm_ratios, alphas)
+    slope, intercept, r_value, pvalue_reg, _ = stats.linregress(bm_ratios, alphas)  # std_err not used
     
     logger.info(f"  B/M - Alpha correlation: {correlation:.4f} (p={pvalue_corr:.4f})")
     logger.info(f"  Value portfolio alpha: {value_alpha:.4f}%")
@@ -365,9 +366,11 @@ def plot_value_effect_analysis(
     
     # Plot 2: Portfolio alphas (bar chart)
     ax2 = axes[1]
-    colors = plt.cm.RdYlGn(np.linspace(0.2, 0.8, len(portfolio_df)))
-    bars = ax2.bar(portfolio_df['portfolio'], portfolio_df['avg_alpha'],
-                   color=colors, alpha=0.7, edgecolor='black', linewidth=1.5)
+    # Use get_cmap to avoid linter warnings about RdYlGn member
+    cmap = plt.cm.get_cmap('RdYlGn')
+    colors = cmap(np.linspace(0.2, 0.8, len(portfolio_df)))
+    _ = ax2.bar(portfolio_df['portfolio'], portfolio_df['avg_alpha'],
+                color=colors, alpha=0.7, edgecolor='black', linewidth=1.5)  # bars not used
     
     # Add error bars (standard deviation)
     ax2.errorbar(portfolio_df['portfolio'], portfolio_df['avg_alpha'],
@@ -429,11 +432,14 @@ def run_value_effects_analysis() -> Dict:
     # Test value effect
     test_results = test_value_effect(portfolio_df)
     
-    # Create visualization
-    plot_path = os.path.join(RESULTS_FIGURES_DIR, "value_effect_analysis.png")
+    # Create visualization - save to new organized structure
+    plot_path = os.path.join(RESULTS_FIGURES_VALUE_EFFECTS_DIR, "value_effect_analysis.png")
     plot_value_effect_analysis(portfolio_df, test_results, plot_path)
+    # Also save to legacy location
+    legacy_plot = os.path.join(RESULTS_FIGURES_DIR, "value_effect_analysis.png")
+    shutil.copy2(plot_path, legacy_plot)
     
-    # Save results
+    # Save results - keep in reports for now (value effects is a separate analysis)
     portfolio_file = os.path.join(RESULTS_REPORTS_DIR, "value_effects_portfolios.csv")
     portfolio_df.to_csv(portfolio_file, index=False)
     logger.info(f"✅ Saved: {portfolio_file}")

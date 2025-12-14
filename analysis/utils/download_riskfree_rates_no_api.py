@@ -255,7 +255,7 @@ def scrape_alternative_source(country: str, start_date: str, end_date: str) -> O
     
     # Try Trading Economics
     te_data = scrape_trading_economics(country, start_date, end_date)
-    if te_data is not None:
+    if te_data is not None and not te_data.empty:
         return te_data
     
     # If no alternative source works, provide instructions

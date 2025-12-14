@@ -13,10 +13,9 @@ Per methodology:
 
 import os
 import logging
-from typing import Optional
+# Note: Optional not currently used but kept for type hints
 
 import pandas as pd
-import numpy as np
 
 from analysis.utils.config import (
     ANALYSIS_SETTINGS,
@@ -24,7 +23,6 @@ from analysis.utils.config import (
     DATA_PROCESSED_DIR,
     DATA_RAW_EXCHANGE_DIR,
     COUNTRIES,
-    MSCI_EUROPE_TICKER,
 )
 from analysis.utils.universe import load_stock_universe
 from analysis.data.riskfree_helper import get_riskfree_rate, align_riskfree_with_returns
@@ -393,7 +391,6 @@ def convert_stock_prices_to_eur(
     
     # Convert to month-end for alignment
     prices_month_end = stock_prices.index.to_period('M').to_timestamp('M')
-    rates_month_end = exchange_rates.index.to_period('M').to_timestamp('M')
     
     # Reindex exchange rates to match price dates
     aligned_rates = exchange_rates.reindex(prices_month_end)
@@ -405,10 +402,9 @@ def convert_stock_prices_to_eur(
     
     # Convert prices: EUR = Local_Currency × (Local_Currency/EUR_Rate)
     # Exchange rate is "local currency per EUR", so multiply
-    # Create DataFrame with EUR prices
-    eur_prices = stock_prices.copy()
-    for col in eur_prices.columns:
-        eur_prices[col] = stock_prices[col].values * aligned_rates.values
+    # Vectorized conversion (much faster than loop)
+    # Broadcast aligned_rates.values across all columns
+    eur_prices = stock_prices.mul(aligned_rates.values, axis=0)
     
     logger.info(f"Converted {len(stock_prices.columns)} {country} stocks from {currency} to EUR")
     if len(stock_prices) > 0:
@@ -465,7 +461,6 @@ def convert_riskfree_rate_to_eur(
         
         # Convert to month-end for alignment
         rf_dates_month_end = riskfree_rate.index.to_period('M').to_timestamp('M')
-        german_dates_month_end = german_rate.index.to_period('M').to_timestamp('M')
         
         # Reindex German rate to match input dates
         german_rate_aligned = german_rate.reindex(rf_dates_month_end)
@@ -518,7 +513,6 @@ def convert_usd_prices_to_eur(
     
     # Convert both to month-end for alignment
     usd_prices_month_end = usd_prices.index.to_period('M').to_timestamp('M')
-    exchange_rates_month_end = exchange_rates.index.to_period('M').to_timestamp('M')
     
     # Reindex exchange rates to match price dates (forward fill for missing)
     aligned_rates = exchange_rates.reindex(usd_prices_month_end)
@@ -713,28 +707,32 @@ def create_country_panel(country: str) -> pd.DataFrame:
     # Re-align MSCI returns to match stock dates
     msci_aligned = msci_returns_series.reindex(aligned_stock_returns.index)
     
-    # Convert to long format panel
-    panel_list = []
+    # Convert to long format panel (vectorized using stack/melt - much faster than loop)
+    # Reset index to get dates as column, then stack to create long format
+    aligned_stock_returns_reset = aligned_stock_returns.reset_index()
+    aligned_stock_returns_reset.columns = ['date'] + list(aligned_stock_returns.columns)
     
-    for ticker in aligned_stock_returns.columns:
-        stock_ret = aligned_stock_returns[ticker]
-        
-        # Create DataFrame for this stock
-        stock_panel = pd.DataFrame({
-            'date': stock_ret.index,
-            'ticker': ticker,
-            'stock_return': stock_ret.values,
-            'msci_index_return': msci_aligned.values,
-            'country': country,
-        })
-        
-        panel_list.append(stock_panel)
+    # Melt to long format (vectorized operation)
+    country_panel = aligned_stock_returns_reset.melt(
+        id_vars=['date'],
+        var_name='ticker',
+        value_name='stock_return'
+    )
     
-    if not panel_list:
+    # Add MSCI index returns (align by date)
+    msci_aligned_reset = msci_aligned.reset_index()
+    msci_aligned_reset.columns = ['date', 'msci_index_return']
+    country_panel = country_panel.merge(msci_aligned_reset, on='date', how='left')
+    
+    # Add country column
+    country_panel['country'] = country
+    
+    # Drop rows with missing data
+    country_panel = country_panel.dropna(subset=['stock_return', 'msci_index_return'])
+    
+    if country_panel.empty:
         logger.warning(f"No valid data for {country}")
         return pd.DataFrame()
-    
-    country_panel = pd.concat(panel_list, ignore_index=True)
     
     logger.info(f"Created panel for {country}: {len(country_panel)} rows, {len(aligned_stock_returns.columns)} stocks")
     logger.info(f"  Using MSCI Europe index (IEUR) as market proxy")
@@ -849,12 +847,19 @@ def process_all_countries() -> pd.DataFrame:
                 riskfree_aligned_eur = convert_riskfree_rate_to_eur(riskfree_aligned, country)
                 
                 # Create mapping: convert panel dates to month-end for lookup
+                # Cache date conversion to avoid repeated operations
                 country_panel_dates = pd.to_datetime(country_panel['date'])
-                # Convert to DatetimeIndex for to_period operation
                 country_panel_dates_dt = pd.DatetimeIndex(country_panel_dates)
                 country_panel_dates_month_end = country_panel_dates_dt.to_period('M').to_timestamp('M')
-                riskfree_dict = dict(zip(riskfree_aligned_eur.index, riskfree_aligned_eur.values))
-                country_panel['riskfree_rate'] = country_panel_dates_month_end.map(riskfree_dict)
+                
+                # Use reindex for faster lookup (more efficient than dict + map)
+                # Set month-end dates as index temporarily for alignment
+                country_panel_indexed = country_panel.set_index(country_panel_dates_month_end)
+                riskfree_aligned_eur_indexed = riskfree_aligned_eur.reindex(country_panel_indexed.index, method='ffill')
+                country_panel['riskfree_rate'] = riskfree_aligned_eur_indexed.values
+                # Reset index if needed (country_panel should keep original index)
+                if country_panel.index.name is not None or not country_panel.index.equals(pd.RangeIndex(len(country_panel))):
+                    country_panel = country_panel.reset_index(drop=True)
                 
             except Exception as e:
                 logger.error(f"Error fetching risk-free rate for {country}: {e}")

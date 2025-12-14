@@ -562,6 +562,7 @@ def get_riskfree_rate(
         
         elif src == "yfinance":
             result = fetch_riskfree_from_yfinance(target_country, start_date, end_date)
+            # fetch_riskfree_from_yfinance returns Optional[pd.Series], check properly
             if result is not None and not result.empty:
                 return result
     

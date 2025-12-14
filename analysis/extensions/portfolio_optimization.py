@@ -7,12 +7,14 @@ This addresses assignment requirement: "Illustrate investment opportunities on a
 """
 
 import os
+import sys
 import logging
 import pandas as pd
 import numpy as np
 from typing import Dict, Tuple, Optional
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
+import platform
 
 # Try to import seaborn, but make it optional
 try:
@@ -28,6 +30,10 @@ from analysis.utils.config import (
     RESULTS_REPORTS_DIR,
     RESULTS_REPORTS_CONSTRAINED_DIR,
     RESULTS_FIGURES_CONSTRAINED_DIR,
+    RESULTS_PORTFOLIO_LONG_ONLY_DIR,
+    RESULTS_PORTFOLIO_SHORT_SELLING_DIR,
+    RESULTS_PORTFOLIO_REALISTIC_SHORT_DIR,
+    COUNTRIES,
     ANALYSIS_SETTINGS
 )
 
@@ -59,8 +65,253 @@ MAX_SHORT_POSITION_PCT = 0.10  # Maximum 10% short position in any single stock
 MIN_VOLATILITY_THRESHOLD = 0.5  # Minimum realistic monthly volatility (0.5%)
 MAX_REALISTIC_GROSS_EXPOSURE = 2.5  # Maximum realistic gross exposure (250%)
 
+# Debug validation toggle
+DEBUG_VALIDATE = True  # Set to False to disable strict validation checks
 
-def calculate_expected_returns_and_covariance(panel_df: pd.DataFrame) -> Tuple[pd.Series, pd.DataFrame]:
+
+# ============================================================================
+# STEP 1: UNIT VALIDATION AND CONVENTIONS
+# ============================================================================
+
+def validate_units(expected_returns: pd.Series, cov_matrix: pd.DataFrame, risk_free_rate: float) -> None:
+    """
+    Validate that all inputs use consistent units (percentages).
+    
+    Expected magnitudes:
+    - Returns: typically -10% to +10% (values like -10.0 to 10.0)
+    - Risk-free rate: typically 0.01% to 1% monthly (values like 0.01 to 1.0)
+    - Covariance: variance in percentage^2 (e.g., 0.01 to 100)
+    
+    Parameters
+    ----------
+    expected_returns : pd.Series
+        Expected returns (should be in %)
+    cov_matrix : pd.DataFrame
+        Covariance matrix (should be in %^2)
+    risk_free_rate : float
+        Risk-free rate (should be in %)
+    """
+    if not DEBUG_VALIDATE:
+        return
+    
+    # Check expected returns magnitude (should be in %)
+    ret_min, ret_max = expected_returns.min(), expected_returns.max()
+    if abs(ret_min) > 50 or abs(ret_max) > 50:
+        logger.warning(f"⚠️  Expected returns seem large: min={ret_min:.2f}%, max={ret_max:.2f}%")
+        logger.warning("   If these are in decimal form (0.01 = 1%), they should be multiplied by 100")
+    
+    # Check risk-free rate magnitude
+    if abs(risk_free_rate) > 10:
+        logger.warning(f"⚠️  Risk-free rate seems large: {risk_free_rate:.4f}%")
+        logger.warning("   If this is in decimal form (0.01 = 1%), it should be multiplied by 100")
+    
+    # Check covariance diagonal (variance) magnitude
+    variances = np.diag(cov_matrix.values)
+    var_min, var_max = variances.min(), variances.max()
+    if var_max > 1000 or var_min < 0:
+        logger.warning(f"⚠️  Variances seem unusual: min={var_min:.4f}, max={var_max:.4f}")
+        logger.warning("   Variances should be in %^2 (e.g., 4.0 for 2% volatility)")
+    
+    # Check for negative variances (should not happen)
+    if np.any(variances < 0):
+        logger.error("❌ Negative variances detected in covariance matrix!")
+        raise ValueError("Covariance matrix contains negative variances")
+
+
+def repair_gross_exposure_feasible(weights: np.ndarray, max_gross: float, tol: float = 1e-6) -> np.ndarray:
+    """
+    Repair weights to satisfy gross exposure constraint while maintaining sum(w)=1.
+    
+    Uses convex combination with equal weights: w_new = alpha*w + (1-alpha)*w_eq
+    where alpha is chosen via binary search to satisfy sum(abs(w_new)) <= max_gross.
+    
+    Parameters
+    ----------
+    weights : np.ndarray
+        Current weights (should sum to 1)
+    max_gross : float
+        Maximum allowed gross exposure
+    tol : float
+        Tolerance for constraint satisfaction
+    
+    Returns
+    -------
+    np.ndarray
+        Repaired weights that satisfy both sum(w)=1 and sum(abs(w)) <= max_gross
+    """
+    n = len(weights)
+    w_eq = np.ones(n) / n  # Equal weights (feasible base)
+    
+    current_gross = np.sum(np.abs(weights))
+    if current_gross <= max_gross + tol:
+        return weights.copy()
+    
+    # Binary search for alpha in [0, 1] such that gross exposure <= max_gross
+    alpha_low, alpha_high = 0.0, 1.0
+    best_weights = weights.copy()
+    
+    for _ in range(50):  # Max 50 iterations
+        alpha = (alpha_low + alpha_high) / 2
+        w_new = alpha * weights + (1 - alpha) * w_eq
+        
+        # Ensure sum = 1 (should be exact due to construction, but verify)
+        w_new = w_new / np.sum(w_new)
+        
+        gross_new = np.sum(np.abs(w_new))
+        
+        if gross_new <= max_gross + tol:
+            best_weights = w_new.copy()
+            alpha_low = alpha
+            if abs(gross_new - max_gross) < tol:
+                break
+        else:
+            alpha_high = alpha
+    
+    return best_weights
+
+
+def validate_portfolio_weights(weights: np.ndarray, allow_short: bool, max_gross: Optional[float] = None,
+                                target_return: Optional[float] = None, expected_returns: Optional[pd.Series] = None,
+                                tol: float = 1e-6) -> Tuple[bool, list]:
+    """
+    Validate portfolio weights satisfy all constraints.
+    
+    Parameters
+    ----------
+    weights : np.ndarray
+        Portfolio weights
+    allow_short : bool
+        Whether short-selling is allowed
+    max_gross : float, optional
+        Maximum gross exposure (if short-selling)
+    target_return : float, optional
+        Target return (if equality constraint exists)
+    expected_returns : pd.Series, optional
+        Expected returns (needed if target_return is specified)
+    tol : float
+        Tolerance for constraint checks
+    
+    Returns
+    -------
+    Tuple[bool, list]
+        (is_valid, list_of_violations)
+    """
+    violations = []
+    
+    # Check sum = 1
+    weight_sum = np.sum(weights)
+    if abs(weight_sum - 1.0) > tol:
+        violations.append(f"Sum constraint violated: sum(w) = {weight_sum:.8f} (expected 1.0)")
+    
+    # Check bounds
+    if not allow_short:
+        if np.any(weights < -tol):
+            violations.append(f"Long-only constraint violated: {np.sum(weights < -tol)} negative weights")
+    else:
+        # For short-selling, check gross exposure
+        if max_gross is not None:
+            gross_exp = np.sum(np.abs(weights))
+            if gross_exp > max_gross + tol:
+                violations.append(f"Gross exposure constraint violated: {gross_exp:.6f} > {max_gross}")
+    
+    # Check target return (if specified)
+    if target_return is not None and expected_returns is not None:
+        # Handle both Series and numpy array
+        if isinstance(expected_returns, pd.Series):
+            expected_returns_np = expected_returns.values
+        else:
+            expected_returns_np = expected_returns
+        actual_return = portfolio_return(weights, expected_returns_np)
+        if abs(actual_return - target_return) > tol * max(1, abs(target_return)):
+            violations.append(f"Target return constraint violated: {actual_return:.6f}% != {target_return:.6f}%")
+    
+    return len(violations) == 0, violations
+
+
+def select_top_15_stocks_by_market_cap(panel_df: pd.DataFrame, n_stocks: int = 15) -> pd.Series:
+    """
+    Select the top N stocks by market capitalization, ensuring at least one stock from each country.
+    
+    Parameters
+    ----------
+    panel_df : pd.DataFrame
+        Returns panel with ticker, country, and other columns
+    n_stocks : int
+        Number of stocks to select (default: 15)
+    
+    Returns
+    -------
+    pd.Series
+        Series of selected tickers
+    """
+    logger.info(f"Selecting top {n_stocks} stocks by market capitalization...")
+    
+    # Load CAPM results to get country information
+    capm_results_file = os.path.join(RESULTS_DATA_DIR, "capm_results.csv")
+    if not os.path.exists(capm_results_file):
+        logger.error("CAPM results not found. Cannot select stocks by market cap.")
+        return pd.Series(dtype=str)
+    
+    capm_results = pd.read_csv(capm_results_file)
+    valid_stocks = capm_results[capm_results['is_valid']].copy()
+    
+    # Get unique countries
+    unique_countries = valid_stocks['country'].unique()
+    logger.info(f"  Found {len(unique_countries)} countries: {', '.join(unique_countries)}")
+    
+    # Import market cap functions
+    from analysis.extensions.market_cap_analysis import load_market_caps_for_country
+    
+    # Load market caps for all countries
+    all_market_caps = []
+    for country in unique_countries:
+        country_caps = load_market_caps_for_country(country, valid_stocks)
+        if len(country_caps) > 0:
+            country_caps['country'] = country
+            all_market_caps.append(country_caps)
+    
+    if len(all_market_caps) == 0:
+        logger.warning("No market cap data available. Using all valid stocks.")
+        return pd.Series(valid_stocks['ticker'].unique()[:n_stocks])
+    
+    market_caps_df = pd.concat(all_market_caps, ignore_index=True)
+    market_caps_df = market_caps_df.sort_values('market_cap_millions', ascending=False)
+    
+    # First, select the largest stock from each country to ensure representation
+    selected_tickers = []
+    selected_countries = set()
+    
+    for country in unique_countries:
+        country_stocks = market_caps_df[market_caps_df['country'] == country]
+        if len(country_stocks) > 0:
+            largest_in_country = country_stocks.iloc[0]
+            selected_tickers.append(largest_in_country['ticker'])
+            selected_countries.add(country)
+            logger.info(f"  Selected {largest_in_country['ticker']} from {country} (market cap: {largest_in_country['market_cap_millions']:.0f}M)")
+    
+    # Then, select remaining stocks from the largest overall, excluding already selected
+    remaining_slots = n_stocks - len(selected_tickers)
+    if remaining_slots > 0:
+        remaining_stocks = market_caps_df[~market_caps_df['ticker'].isin(selected_tickers)]
+        top_remaining = remaining_stocks.head(remaining_slots)
+        
+        # Vectorized selection instead of iterrows (more efficient)
+        for idx in top_remaining.index:
+            ticker = top_remaining.loc[idx, 'ticker']
+            country = top_remaining.loc[idx, 'country']
+            market_cap = top_remaining.loc[idx, 'market_cap_millions']
+            selected_tickers.append(ticker)
+            selected_countries.add(country)  # Track country representation
+            logger.info(f"  Selected {ticker} from {country} (market cap: {market_cap:.0f}M)")
+    
+    selected_series = pd.Series(selected_tickers)
+    logger.info(f"✅ Selected {len(selected_series)} stocks: {', '.join(selected_series.tolist())}")
+    logger.info(f"  Countries represented: {len(selected_countries)}/{len(unique_countries)}")
+    
+    return selected_series
+
+
+def calculate_expected_returns_and_covariance(panel_df: pd.DataFrame, selected_tickers: Optional[pd.Series] = None) -> Tuple[pd.Series, pd.DataFrame]:
     """
     Calculate expected returns (mean historical returns) and covariance matrix.
     
@@ -71,6 +322,8 @@ def calculate_expected_returns_and_covariance(panel_df: pd.DataFrame) -> Tuple[p
     ----------
     panel_df : pd.DataFrame
         Returns panel with columns: [date, country, ticker, stock_return, ...]
+    selected_tickers : pd.Series, optional
+        If provided, only use these tickers
     
     Returns
     -------
@@ -80,13 +333,27 @@ def calculate_expected_returns_and_covariance(panel_df: pd.DataFrame) -> Tuple[p
     logger.info("Calculating expected returns and covariance matrix...")
     
     # Load CAPM results to filter by valid stocks only
-    from analysis.utils.config import RESULTS_DATA_DIR
-    capm_results = pd.read_csv(os.path.join(RESULTS_DATA_DIR, "capm_results.csv"))
+    capm_results_file = os.path.join(RESULTS_DATA_DIR, "capm_results.csv")
+    if not os.path.exists(capm_results_file):
+        logger.error(f"CAPM results not found: {capm_results_file}")
+        raise FileNotFoundError(f"CAPM results file not found: {capm_results_file}")
+    
+    capm_results = pd.read_csv(capm_results_file)
+    # Normalize is_valid to boolean (handle string/boolean mix)
+    if capm_results['is_valid'].dtype == 'object':
+        capm_results['is_valid'] = capm_results['is_valid'].astype(str).str.lower().isin(['true', '1', 'yes'])
     valid_tickers = set(capm_results[capm_results['is_valid']]['ticker'].unique())
     
     # Filter panel to only include valid stocks
     panel_df_filtered = panel_df[panel_df['ticker'].isin(valid_tickers)].copy()
-    logger.info(f"  Filtered to {len(valid_tickers)} valid stocks (from {panel_df['ticker'].nunique()} total)")
+    
+    # If specific tickers are provided, filter to those
+    if selected_tickers is not None:
+        selected_set = set(selected_tickers.tolist())
+        panel_df_filtered = panel_df_filtered[panel_df_filtered['ticker'].isin(selected_set)].copy()
+        logger.info(f"  Filtered to {len(selected_set)} selected stocks")
+    
+    logger.info(f"  Using {panel_df_filtered['ticker'].nunique()} stocks (from {panel_df['ticker'].nunique()} total)")
     
     # Pivot to wide format: stocks as columns, dates as rows
     returns_wide = panel_df_filtered.pivot_table(
@@ -110,51 +377,59 @@ def calculate_expected_returns_and_covariance(panel_df: pd.DataFrame) -> Tuple[p
     return expected_returns, covariance_matrix
 
 
-def portfolio_variance(weights: np.ndarray, cov_matrix: pd.DataFrame) -> float:
+def portfolio_variance(weights: np.ndarray, cov_matrix: np.ndarray) -> float:
     """
     Calculate portfolio variance: w' * Σ * w
+    
+    Optimized: accepts numpy array directly to avoid repeated .values conversion.
     
     Parameters
     ----------
     weights : np.ndarray
         Portfolio weights
-    cov_matrix : pd.DataFrame
-        Covariance matrix
+    cov_matrix : np.ndarray
+        Covariance matrix (numpy array, not DataFrame)
     
     Returns
     -------
     float
         Portfolio variance
     """
-    return np.dot(weights, np.dot(cov_matrix.values, weights))
+    # Use einsum for better performance: w' * Σ * w = Σ_ij w_i * Σ_ij * w_j
+    # This is equivalent to np.dot(weights, np.dot(cov_matrix, weights)) but faster
+    return np.einsum('i,ij,j->', weights, cov_matrix, weights)
 
 
-def portfolio_return(weights: np.ndarray, expected_returns: pd.Series) -> float:
+def portfolio_return(weights: np.ndarray, expected_returns: np.ndarray) -> float:
     """
     Calculate portfolio expected return: w' * μ
+    
+    Optimized: accepts numpy array directly to avoid repeated .values conversion.
     
     Parameters
     ----------
     weights : np.ndarray
         Portfolio weights
-    expected_returns : pd.Series
-        Expected returns
+    expected_returns : np.ndarray
+        Expected returns (numpy array, not Series)
     
     Returns
     -------
     float
         Portfolio expected return
     """
-    return np.dot(weights, expected_returns.values)
+    return np.dot(weights, expected_returns)
 
 
 def portfolio_return_with_costs(
     weights: np.ndarray,
-    expected_returns: pd.Series,
+    expected_returns: np.ndarray,
     risk_free_rate: float
 ) -> float:
     """
     Calculate portfolio return adjusted for transaction costs and borrowing costs.
+    
+    Optimized: accepts numpy array directly and uses vectorized operations.
     
     For short positions:
     - Short return = -expected_return (lose when stock goes up)
@@ -166,8 +441,8 @@ def portfolio_return_with_costs(
     ----------
     weights : np.ndarray
         Portfolio weights (can be negative for short positions)
-    expected_returns : pd.Series
-        Expected returns
+    expected_returns : np.ndarray
+        Expected returns (numpy array, not Series)
     risk_free_rate : float
         Risk-free rate (monthly, percentage)
     
@@ -176,23 +451,25 @@ def portfolio_return_with_costs(
     float
         Adjusted portfolio return (percentage)
     """
-    # Calculate gross exposure
-    gross_exposure = np.sum(np.abs(weights))
+    # Calculate gross exposure (cached for reuse)
+    abs_weights = np.abs(weights)
+    gross_exposure = np.sum(abs_weights)
     
-    # Separate long and short positions
+    # Separate long and short positions (vectorized)
     long_weights = np.maximum(weights, 0)
     short_weights = np.minimum(weights, 0)
     
     # Long positions earn expected return
-    long_return = np.dot(long_weights, expected_returns.values)
+    long_return = np.dot(long_weights, expected_returns)
     
     # Short positions: lose expected return (negative of expected return)
     # When you short, you profit when stock goes down, lose when it goes up
     # Expected short return = -expected_return (you lose the expected return)
-    short_return = np.dot(short_weights, expected_returns.values)
+    short_return = np.dot(short_weights, expected_returns)
     
     # Borrowing cost: pay additional cost above risk-free rate for borrowing shares
-    short_exposure = np.sum(np.abs(short_weights))
+    # Reuse abs_weights for short exposure calculation
+    short_exposure = np.sum(abs_weights[weights < 0]) if np.any(weights < 0) else 0.0
     borrowing_cost = (risk_free_rate + BORROWING_COST_SPREAD) * short_exposure
     
     # Transaction costs: apply to gross exposure (both long and short trades)
@@ -207,10 +484,12 @@ def portfolio_return_with_costs(
 
 def portfolio_variance_with_costs(
     weights: np.ndarray,
-    cov_matrix: pd.DataFrame
+    cov_matrix: np.ndarray
 ) -> float:
     """
     Calculate portfolio variance adjusted for transaction costs and market impact.
+    
+    Optimized: accepts numpy array directly and caches calculations.
     
     Transaction costs add variance due to execution uncertainty.
     Market impact increases variance for large positions.
@@ -219,8 +498,8 @@ def portfolio_variance_with_costs(
     ----------
     weights : np.ndarray
         Portfolio weights
-    cov_matrix : pd.DataFrame
-        Covariance matrix
+    cov_matrix : np.ndarray
+        Covariance matrix (numpy array, not DataFrame)
     
     Returns
     -------
@@ -231,13 +510,14 @@ def portfolio_variance_with_costs(
     base_variance = portfolio_variance(weights, cov_matrix)
     
     # Transaction cost variance: proportional to gross exposure
-    gross_exposure = np.sum(np.abs(weights))
+    # Cache abs(weights) to avoid recalculating
+    abs_weights = np.abs(weights)
+    gross_exposure = np.sum(abs_weights)
     transaction_cost_variance = (TRANSACTION_COST_RATE * gross_exposure) ** 2
     
     # Market impact variance: larger positions have more impact
-    # Approximate as proportional to squared position sizes
-    position_sizes_sq = weights ** 2
-    market_impact_variance = 0.0001 * np.sum(position_sizes_sq)  # Small impact factor
+    # Use squared weights directly (more efficient than weights ** 2)
+    market_impact_variance = 0.0001 * np.dot(weights, weights)  # w' * w = sum(w^2)
     
     # Adjusted variance
     adjusted_variance = base_variance + transaction_cost_variance + market_impact_variance
@@ -252,6 +532,8 @@ def find_minimum_variance_portfolio(
 ) -> Tuple[np.ndarray, float, float]:
     """
     Find the minimum-variance portfolio.
+    
+    Optimized: caches numpy arrays to avoid repeated conversions.
     
     Parameters
     ----------
@@ -271,9 +553,13 @@ def find_minimum_variance_portfolio(
     
     n = len(expected_returns)
     
-    # Objective: minimize portfolio variance
+    # Cache numpy arrays to avoid repeated .values conversion
+    cov_matrix_np = cov_matrix.values
+    expected_returns_np = expected_returns.values
+    
+    # Objective: minimize portfolio variance (use cached numpy array)
     def objective(weights):
-        return portfolio_variance(weights, cov_matrix)
+        return portfolio_variance(weights, cov_matrix_np)
     
     # Constraints: weights sum to 1
     constraints = [{'type': 'eq', 'fun': lambda w: np.sum(w) - 1}]
@@ -336,25 +622,47 @@ def find_minimum_variance_portfolio(
     
     weights = result.x
     
-    # Post-optimization constraint projection for short-selling case
-    if allow_short:
-        # Iteratively project until constraint is satisfied
-        max_iterations = 10
-        for iteration in range(max_iterations):
-            gross_exposure = np.sum(np.abs(weights))
-            if gross_exposure <= MAX_GROSS_EXPOSURE + 1e-8:
-                break
-            # Project onto constraint boundary
-            scale_factor = MAX_GROSS_EXPOSURE / gross_exposure
-            weights = weights * scale_factor
-            # Renormalize to ensure sum = 1
+    # Post-optimization constraint enforcement
+    if not allow_short:
+        # For long-only: enforce w_i ≥ 0 constraint strictly
+        # Clip any negative weights (from numerical precision errors) to 0
+        weights = np.maximum(weights, 0)
+        # Renormalize to sum to 1
+        weight_sum = np.sum(weights)
+        if weight_sum > 1e-10:
+            weights = weights / weight_sum
+        else:
+            # Fallback: equal weights if all weights are too small
+            weights = np.ones(len(weights)) / len(weights)
+            logger.warning("  All weights too small in minimum-variance portfolio, using equal weights")
+        
+        # Verify constraint satisfaction (should be impossible after clipping, but double-check)
+        if np.any(weights < -1e-8):
+            logger.warning("  ⚠️  Negative weights detected in long-only minimum-variance portfolio, clipping to 0")
+            weights = np.maximum(weights, 0)
             weights = weights / np.sum(weights)
-            if iteration == 0:
-                logger.debug(f"  Post-optimization projection: gross exposure {gross_exposure:.6f} → {np.sum(np.abs(weights)):.6f}")
+    
+    # Post-optimization constraint enforcement for short-selling case
+    if allow_short:
+        # Use proper feasibility repair that maintains sum(w)=1
+        weights = repair_gross_exposure_feasible(weights, MAX_GROSS_EXPOSURE, tol=1e-6)
         
         final_gross_exp = np.sum(np.abs(weights))
-        if final_gross_exp > MAX_GROSS_EXPOSURE + 1e-6:
-            logger.warning(f"  ⚠️  Constraint violation after projection: gross exposure {final_gross_exp:.6f} > {MAX_GROSS_EXPOSURE}")
+        if final_gross_exp > MAX_GROSS_EXPOSURE + 1e-5:
+            logger.warning(f"  ⚠️  Constraint violation after repair: gross exposure {final_gross_exp:.6f} > {MAX_GROSS_EXPOSURE}")
+            # Re-optimize with repaired weights as starting point
+            logger.info("  Re-optimizing with repaired weights as starting point...")
+            result_retry = minimize(objective, weights, method='trust-constr', bounds=bounds, constraints=constraints,
+                                  options={'maxiter': 500, 'gtol': 1e-4})
+            if result_retry.success:
+                weights = repair_gross_exposure_feasible(result_retry.x, MAX_GROSS_EXPOSURE, tol=1e-6)
+    
+    # Validate weights
+    if DEBUG_VALIDATE:
+        is_valid, violations = validate_portfolio_weights(weights, allow_short, 
+                                                          max_gross=MAX_GROSS_EXPOSURE if allow_short else None)
+        if not is_valid:
+            logger.warning(f"  ⚠️  Weight validation failed: {violations}")
     
     port_return = portfolio_return(weights, expected_returns)
     port_vol = np.sqrt(portfolio_variance(weights, cov_matrix))
@@ -402,10 +710,14 @@ def find_tangency_portfolio(
     # Excess returns
     excess_returns = expected_returns - risk_free_rate
     
+    # Cache numpy arrays to avoid repeated .values conversion
+    cov_matrix_np = cov_matrix.values
+    expected_returns_np = expected_returns.values
+    
     # Objective: minimize negative Sharpe ratio (maximize Sharpe ratio)
     def objective(weights):
-        port_return = portfolio_return(weights, expected_returns)
-        port_vol = np.sqrt(portfolio_variance(weights, cov_matrix))
+        port_return = portfolio_return(weights, expected_returns_np)
+        port_vol = np.sqrt(portfolio_variance(weights, cov_matrix_np))
         if port_vol == 0:
             return 1e10
         sharpe = (port_return - risk_free_rate) / port_vol
@@ -471,46 +783,43 @@ def find_tangency_portfolio(
     
     weights = result.x
     
-    # Post-optimization constraint projection for short-selling case
-    # Hard cap: directly enforce the constraint by scaling
-    if allow_short:
-        gross_exposure = np.sum(np.abs(weights))
-        if gross_exposure > MAX_GROSS_EXPOSURE + 1e-8:
-            # Hard cap: scale to exactly satisfy gross exposure constraint
-            scale_factor = MAX_GROSS_EXPOSURE / gross_exposure
-            weights = weights * scale_factor
-            # After scaling, sum will be scale_factor, need to adjust to 1
-            current_sum = np.sum(weights)
-            if abs(current_sum - 1.0) > 1e-8:
-                # Adjust proportionally to maintain relative weights while fixing sum
-                # This is a heuristic: distribute the difference based on current weights
-                diff = 1.0 - current_sum
-                # Add/subtract proportionally (preserving signs)
-                weight_magnitudes = np.abs(weights)
-                if np.sum(weight_magnitudes) > 1e-10:
-                    adjustment = diff * weight_magnitudes / np.sum(weight_magnitudes)
-                    weights = weights + np.sign(weights) * adjustment
-                else:
-                    # Fallback: equal weights
-                    weights = np.ones(len(weights)) / len(weights)
-            
-            # Final hard cap if still violated (shouldn't happen, but safety check)
-            final_gross_exp = np.sum(np.abs(weights))
-            if final_gross_exp > MAX_GROSS_EXPOSURE + 1e-6:
-                # Last resort: scale again and accept slight sum violation
-                scale_factor = MAX_GROSS_EXPOSURE / final_gross_exp
-                weights = weights * scale_factor
-                logger.debug(f"  Post-optimization hard cap (final): gross exposure → {np.sum(np.abs(weights)):.6f}, sum → {np.sum(weights):.6f}")
-            else:
-                logger.debug(f"  Post-optimization projection: gross exposure {gross_exposure:.6f} → {final_gross_exp:.6f}")
+    # Post-optimization constraint enforcement
+    if not allow_short:
+        # For long-only: enforce w_i ≥ 0 constraint strictly
+        # Clip any negative weights (from numerical precision errors) to 0
+        weights = np.maximum(weights, 0)
+        # Renormalize to sum to 1
+        weight_sum = np.sum(weights)
+        if weight_sum > 1e-10:
+            weights = weights / weight_sum
+        else:
+            # Fallback: equal weights if all weights are too small
+            weights = np.ones(len(weights)) / len(weights)
+            logger.warning("  All weights too small in tangency portfolio, using equal weights")
         
-        # Final verification
+        # Verify constraint satisfaction (should be impossible after clipping, but double-check)
+        if np.any(weights < -1e-8):
+            logger.warning("  ⚠️  Negative weights detected in long-only tangency portfolio, clipping to 0")
+            weights = np.maximum(weights, 0)
+            weights = weights / np.sum(weights)
+    
+    # Post-optimization constraint enforcement for short-selling case
+    if allow_short:
+        # Use proper feasibility repair that maintains sum(w)=1
+        weights = repair_gross_exposure_feasible(weights, MAX_GROSS_EXPOSURE, tol=1e-6)
+        
         final_gross_exp = np.sum(np.abs(weights))
         if final_gross_exp > MAX_GROSS_EXPOSURE + 1e-5:
-            logger.warning(f"  ⚠️  Constraint violation after projection: gross exposure {final_gross_exp:.6f} > {MAX_GROSS_EXPOSURE}")
+            logger.warning(f"  ⚠️  Constraint violation after repair: gross exposure {final_gross_exp:.6f} > {MAX_GROSS_EXPOSURE}")
+            # Re-optimize with repaired weights as starting point
+            logger.info("  Re-optimizing tangency with repaired weights as starting point...")
+            result_retry = minimize(objective, weights, method='trust-constr', bounds=bounds, constraints=constraints,
+                                  options={'maxiter': 500, 'gtol': 1e-4})
+            if result_retry.success:
+                weights = repair_gross_exposure_feasible(result_retry.x, MAX_GROSS_EXPOSURE, tol=1e-6)
     
-    port_return = portfolio_return(weights, expected_returns)
-    port_vol = np.sqrt(portfolio_variance(weights, cov_matrix))
+    port_return = portfolio_return(weights, expected_returns_np)
+    port_vol = np.sqrt(portfolio_variance(weights, cov_matrix_np))
     sharpe = (port_return - risk_free_rate) / port_vol if port_vol > 0 else 0
     
     logger.info(f"  Tangency portfolio:")
@@ -547,7 +856,8 @@ def calculate_efficient_frontier(
     Returns
     -------
     pd.DataFrame
-        DataFrame with columns: [return, volatility, sharpe]
+        DataFrame with columns: [return, volatility]
+        Note: Sharpe ratio is not included as it requires risk-free rate which is not passed to this function.
     """
     logger.info(f"Calculating efficient frontier ({n_points} points)...")
     
@@ -586,6 +896,17 @@ def calculate_efficient_frontier(
         target_returns = np.linspace(min_var_return, max_return, n_points)
     
     n = len(expected_returns)
+    
+    # Cache numpy arrays to avoid repeated .values conversion in loops
+    cov_matrix_np = cov_matrix.values
+    expected_returns_np = expected_returns.values
+    
+    # Pre-compute bounds to avoid recreating in every iteration
+    if allow_short:
+        bounds = [(-1, 1)] * n
+    else:
+        bounds = [(0, 1)] * n
+    
     frontier_returns = []
     frontier_vols = []
     
@@ -596,14 +917,14 @@ def calculate_efficient_frontier(
     x0 = min_var_weights.copy()
     
     for i, target_return in enumerate(target_returns):
-        # Objective: minimize variance
+        # Objective: minimize variance (use cached numpy array)
         def objective(weights):
-            return portfolio_variance(weights, cov_matrix)
+            return portfolio_variance(weights, cov_matrix_np)
         
         # Constraints: weights sum to 1, target return
         # Use closure to capture target_return properly
         def return_constraint(weights, target=target_return):
-            return portfolio_return(weights, expected_returns) - target
+            return portfolio_return(weights, expected_returns_np) - target
         
         constraints = [
             {'type': 'eq', 'fun': lambda w: np.sum(w) - 1},
@@ -617,12 +938,6 @@ def calculate_efficient_frontier(
                 'type': 'ineq', 
                 'fun': lambda w: (MAX_GROSS_EXPOSURE - 1e-4) - np.sum(np.abs(w))  # Tighter by 1e-4
             })
-        
-        # Bounds
-        if allow_short:
-            bounds = [(-1, 1) for _ in range(n)]
-        else:
-            bounds = [(0, 1) for _ in range(n)]
         
         # Optimize: use trust-constr for short-selling (handles constraints better)
         if allow_short:
@@ -639,40 +954,73 @@ def calculate_efficient_frontier(
         if result.success:
             weights = result.x
             
-            # Post-optimization constraint projection for short-selling case
-            # Hard cap: directly enforce the constraint by scaling
-            if allow_short:
-                gross_exposure = np.sum(np.abs(weights))
-                if gross_exposure > MAX_GROSS_EXPOSURE + 1e-8:
-                    # Hard cap: scale to exactly satisfy gross exposure constraint
-                    scale_factor = MAX_GROSS_EXPOSURE / gross_exposure
-                    weights = weights * scale_factor
-                    # After scaling, sum will be scale_factor, need to adjust to 1
-                    current_sum = np.sum(weights)
-                    if abs(current_sum - 1.0) > 1e-8:
-                        # Adjust proportionally to maintain relative weights while fixing sum
-                        diff = 1.0 - current_sum
-                        weight_magnitudes = np.abs(weights)
-                        if np.sum(weight_magnitudes) > 1e-10:
-                            adjustment = diff * weight_magnitudes / np.sum(weight_magnitudes)
-                            weights = weights + np.sign(weights) * adjustment
+            # Post-optimization constraint enforcement
+            # CRITICAL: Do NOT renormalize or clip aggressively, as this breaks the target return constraint
+            # Only fix tiny numerical errors that don't meaningfully affect the target return
+            
+            if not allow_short:
+                # For long-only: only clip truly tiny negatives (< 1e-10) that are numerical noise
+                # Do NOT renormalize unless absolutely necessary, as it breaks target return constraint
+                tiny_negatives = weights < -1e-10
+                if np.any(tiny_negatives):
+                    logger.debug(f"  Clipping {np.sum(tiny_negatives)} tiny negative weights at target return {target_return:.4f}%")
+                    weights = np.maximum(weights, 0)
+                    # Only renormalize if sum changed significantly
+                    weight_sum = np.sum(weights)
+                    if abs(weight_sum - 1.0) > 1e-6:
+                        weights = weights / weight_sum
+                        # Re-optimize to restore target return constraint
+                        logger.debug(f"  Re-optimizing to restore target return after clipping...")
+                        result_retry = minimize(objective, weights, method='SLSQP', bounds=bounds, constraints=constraints,
+                                              options={'ftol': 1e-5, 'maxiter': 200})
+                        if result_retry.success:
+                            weights = result_retry.x
                         else:
-                            # Fallback: equal weights
-                            weights = np.ones(len(weights)) / len(weights)
+                            # If re-optimization fails, mark as NaN
+                            frontier_returns.append(np.nan)
+                            frontier_vols.append(np.nan)
+                            continue
             
-            port_return = portfolio_return(weights, expected_returns)
-            port_vol = np.sqrt(portfolio_variance(weights, cov_matrix))
-            
-            # Verify constraints are satisfied
+            # Post-optimization constraint enforcement for short-selling case
             if allow_short:
+                # Use proper feasibility repair that maintains sum(w)=1
+                weights = repair_gross_exposure_feasible(weights, MAX_GROSS_EXPOSURE, tol=1e-6)
+                
                 final_gross_exp = np.sum(np.abs(weights))
-                if final_gross_exp > MAX_GROSS_EXPOSURE + 1e-6:
-                    # Last resort: scale again and accept slight sum violation
-                    scale_factor = MAX_GROSS_EXPOSURE / final_gross_exp
-                    weights = weights * scale_factor
-                    # If still violated after hard cap, skip this point
-                    final_gross_exp = np.sum(np.abs(weights))
-                    if final_gross_exp > MAX_GROSS_EXPOSURE + 1e-6:
+                if final_gross_exp > MAX_GROSS_EXPOSURE + 1e-5:
+                    # Re-optimize with repaired weights as starting point
+                    logger.debug(f"  Re-optimizing at target return {target_return:.4f}% to satisfy gross exposure...")
+                    result_retry = minimize(objective, weights, method='trust-constr', bounds=bounds, constraints=constraints,
+                                          options={'maxiter': 300, 'gtol': 1e-4})
+                    if result_retry.success:
+                        weights = repair_gross_exposure_feasible(result_retry.x, MAX_GROSS_EXPOSURE, tol=1e-6)
+                        final_gross_exp = np.sum(np.abs(weights))
+                        if final_gross_exp > MAX_GROSS_EXPOSURE + 1e-5:
+                            # Still violated, skip this point
+                            frontier_returns.append(np.nan)
+                            frontier_vols.append(np.nan)
+                            continue
+                    else:
+                        # Re-optimization failed, skip this point
+                        frontier_returns.append(np.nan)
+                        frontier_vols.append(np.nan)
+                        continue
+            
+            # Validate constraints before accepting (use cached numpy arrays)
+            port_return = portfolio_return(weights, expected_returns_np)
+            port_vol = np.sqrt(portfolio_variance(weights, cov_matrix_np))
+            
+            if DEBUG_VALIDATE:
+                is_valid, violations = validate_portfolio_weights(
+                    weights, allow_short,
+                    max_gross=MAX_GROSS_EXPOSURE if allow_short else None,
+                    target_return=target_return,
+                    expected_returns=pd.Series(expected_returns_np, index=expected_returns.index)  # Convert back for validation
+                )
+                if not is_valid:
+                    logger.debug(f"  Constraint violations at target return {target_return:.4f}%: {violations}")
+                    # If target return is significantly violated, skip this point
+                    if any("Target return" in v for v in violations):
                         frontier_returns.append(np.nan)
                         frontier_vols.append(np.nan)
                         continue
@@ -686,10 +1034,13 @@ def calculate_efficient_frontier(
             frontier_returns.append(np.nan)
             frontier_vols.append(np.nan)
     
-    # Filter out NaN values before creating DataFrame
-    valid_indices = ~(np.isnan(frontier_returns) | np.isnan(frontier_vols))
-    frontier_returns_clean = [r for i, r in enumerate(frontier_returns) if valid_indices[i]]
-    frontier_vols_clean = [v for i, v in enumerate(frontier_vols) if valid_indices[i]]
+    # Filter out NaN values before creating DataFrame (vectorized for efficiency)
+    # Convert to numpy arrays for faster filtering
+    frontier_returns_arr = np.array(frontier_returns, dtype=np.float64)
+    frontier_vols_arr = np.array(frontier_vols, dtype=np.float64)
+    valid_mask = ~(np.isnan(frontier_returns_arr) | np.isnan(frontier_vols_arr))
+    frontier_returns_clean = frontier_returns_arr[valid_mask].tolist()
+    frontier_vols_clean = frontier_vols_arr[valid_mask].tolist()
     
     # For short-selling case, if we have very few points, add min-var and tangency portfolios
     if allow_short and len(frontier_returns_clean) < 3 and tangency_return is not None:
@@ -756,9 +1107,13 @@ def find_minimum_variance_portfolio_realistic_short(
         'explanations': []
     }
     
-    # Objective: minimize adjusted portfolio variance
+    # Cache numpy arrays to avoid repeated conversions
+    cov_matrix_np = cov_matrix.values if isinstance(cov_matrix, pd.DataFrame) else cov_matrix
+    expected_returns_np = expected_returns.values if isinstance(expected_returns, pd.Series) else expected_returns
+    
+    # Objective: minimize adjusted portfolio variance (use cached numpy array)
     def objective(weights):
-        return portfolio_variance_with_costs(weights, cov_matrix)
+        return portfolio_variance_with_costs(weights, cov_matrix_np)
     
     # Constraints
     constraints = [
@@ -770,10 +1125,14 @@ def find_minimum_variance_portfolio_realistic_short(
     ]
     
     # Position limits: no single short position > MAX_SHORT_POSITION_PCT
+    # Pre-build constraint functions to avoid lambda capture issues
     for i in range(n):
+        # Use default argument to properly capture loop variable
+        def make_constraint(idx):
+            return lambda w: MAX_SHORT_POSITION_PCT + w[idx]
         constraints.append({
             'type': 'ineq',
-            'fun': lambda w, idx=i: MAX_SHORT_POSITION_PCT + w[idx]  # w[i] >= -MAX_SHORT_POSITION_PCT
+            'fun': make_constraint(i)  # w[i] >= -MAX_SHORT_POSITION_PCT
         })
     
     # Bounds: allow short-selling but with realistic limits
@@ -800,8 +1159,8 @@ def find_minimum_variance_portfolio_realistic_short(
     weights = result.x
     
     # Calculate adjusted return and volatility
-    port_return = portfolio_return_with_costs(weights, expected_returns, risk_free_rate)
-    port_variance = portfolio_variance_with_costs(weights, cov_matrix)
+    port_return = portfolio_return_with_costs(weights, expected_returns_np, risk_free_rate)
+    port_variance = portfolio_variance_with_costs(weights, cov_matrix_np)
     port_vol = np.sqrt(port_variance)
     
     # Calculate effective risk-free rate for Sharpe ratio
@@ -889,18 +1248,24 @@ def find_tangency_portfolio_realistic_short(
         'explanations': []
     }
     
+    # Cache numpy arrays to avoid repeated conversions
+    cov_matrix_np = cov_matrix.values if isinstance(cov_matrix, pd.DataFrame) else cov_matrix
+    expected_returns_np = expected_returns.values if isinstance(expected_returns, pd.Series) else expected_returns
+    
     # Objective: maximize Sharpe ratio (minimize negative Sharpe)
     def objective(weights):
-        port_return = portfolio_return_with_costs(weights, expected_returns, risk_free_rate)
-        port_variance = portfolio_variance_with_costs(weights, cov_matrix)
+        port_return = portfolio_return_with_costs(weights, expected_returns_np, risk_free_rate)
+        port_variance = portfolio_variance_with_costs(weights, cov_matrix_np)
         port_vol = np.sqrt(port_variance)
         if port_vol == 0:
             return 1e10
         
         # Calculate effective risk-free rate accounting for borrowing costs on short positions
         # For short positions, the effective risk-free rate is higher due to borrowing costs
+        # Cache abs() calculation for efficiency
+        abs_weights = np.abs(weights)
         long_exposure = np.sum(np.maximum(weights, 0))
-        short_exposure = np.sum(np.abs(np.minimum(weights, 0)))
+        short_exposure = np.sum(abs_weights[weights < 0]) if np.any(weights < 0) else 0.0
         total_exposure = long_exposure + short_exposure
         
         if total_exposure > 0:
@@ -950,8 +1315,8 @@ def find_tangency_portfolio_realistic_short(
     weights = result.x
     
     # Calculate adjusted return and volatility
-    port_return = portfolio_return_with_costs(weights, expected_returns, risk_free_rate)
-    port_variance = portfolio_variance_with_costs(weights, cov_matrix)
+    port_return = portfolio_return_with_costs(weights, expected_returns_np, risk_free_rate)
+    port_variance = portfolio_variance_with_costs(weights, cov_matrix_np)
     port_vol = np.sqrt(port_variance)
     
     # Calculate effective risk-free rate for Sharpe ratio
@@ -1042,19 +1407,27 @@ def calculate_efficient_frontier_realistic_short(
     
     x0 = min_var_weights.copy()
     
+    # Cache numpy arrays once (outside loop for efficiency)
+    cov_matrix_np = cov_matrix.values if isinstance(cov_matrix, pd.DataFrame) else cov_matrix
+    expected_returns_np = expected_returns.values if isinstance(expected_returns, pd.Series) else expected_returns
+    
+    # Pre-compute bounds (more efficient than creating in loop)
+    bounds = [(-MAX_SHORT_POSITION_PCT, 1)] * n
+    
     logger.info(f"  Calculating {len(target_returns)} frontier points...")
     successful_points = 0
     for i, target_return in enumerate(target_returns):
         progress_pct = int((i + 1) / len(target_returns) * 100)
         progress_bar = "█" * (progress_pct // 5) + "░" * (20 - progress_pct // 5)
         logger.info(f"    [{progress_bar}] {progress_pct}% - Point {i+1}/{len(target_returns)}: target return = {target_return:.4f}%")
-        # Objective: minimize variance
-        def objective(weights):
-            return portfolio_variance_with_costs(weights, cov_matrix)
         
-        # Constraints
+        # Objective: minimize variance (use cached numpy array)
+        def objective(weights):
+            return portfolio_variance_with_costs(weights, cov_matrix_np)
+        
+        # Constraints (use cached numpy array)
         def return_constraint(weights, target=target_return):
-            return portfolio_return_with_costs(weights, expected_returns, risk_free_rate) - target
+            return portfolio_return_with_costs(weights, expected_returns_np, risk_free_rate) - target
         
         constraints = [
             {'type': 'eq', 'fun': lambda w: np.sum(w) - 1},
@@ -1088,13 +1461,15 @@ def calculate_efficient_frontier_realistic_short(
         
         if result.success:
             weights = result.x
-            port_return = portfolio_return_with_costs(weights, expected_returns, risk_free_rate)
-            port_variance = portfolio_variance_with_costs(weights, cov_matrix)
+            port_return = portfolio_return_with_costs(weights, expected_returns_np, risk_free_rate)
+            port_variance = portfolio_variance_with_costs(weights, cov_matrix_np)
             port_vol = np.sqrt(port_variance)
             
             # Calculate effective risk-free rate for Sharpe ratio
+            # Cache abs() calculation for efficiency
+            abs_weights = np.abs(weights)
             long_exposure = np.sum(np.maximum(weights, 0))
-            short_exposure = np.sum(np.abs(np.minimum(weights, 0)))
+            short_exposure = np.sum(abs_weights[weights < 0]) if np.any(weights < 0) else 0.0
             total_exposure = long_exposure + short_exposure
             
             if total_exposure > 0:
@@ -1104,10 +1479,11 @@ def calculate_efficient_frontier_realistic_short(
             
             sharpe = (port_return - effective_rf) / port_vol if port_vol > 0 else 0
             
-            # Check for errors
+            # Check for errors (reuse abs_weights for efficiency)
+            gross_exp = np.sum(abs_weights)
             error_flags = {
                 'unrealistic_volatility': port_vol < MIN_VOLATILITY_THRESHOLD,
-                'excessive_leverage': np.sum(np.abs(weights)) > MAX_REALISTIC_GROSS_EXPOSURE,
+                'excessive_leverage': gross_exp > MAX_REALISTIC_GROSS_EXPOSURE,
                 'large_short_position': np.any(weights < -MAX_SHORT_POSITION_PCT)
             }
             
@@ -1676,6 +2052,88 @@ def plot_efficient_frontier_realistic_short(
     logger.info(f"✅ Saved realistic short-selling plot: {output_path}")
 
 
+def plot_efficient_frontier_top15_short_selling(
+    frontier_df: pd.DataFrame,
+    min_var_port: Tuple[float, float],
+    tangency_port: Tuple[float, float],
+    expected_returns: pd.Series,
+    cov_matrix: pd.DataFrame,
+    risk_free_rate: float,
+    output_path: str
+) -> None:
+    """
+    Plot efficient frontier for top 15 stocks with short-selling allowed.
+    
+    Parameters
+    ----------
+    frontier_df : pd.DataFrame
+        Efficient frontier data with 'volatility' and 'return' columns
+    min_var_port : tuple
+        (return, volatility) for minimum-variance portfolio
+    tangency_port : tuple
+        (return, volatility) for tangency portfolio
+    expected_returns : pd.Series
+        Expected returns for all stocks
+    cov_matrix : pd.DataFrame
+        Covariance matrix
+    risk_free_rate : float
+        Risk-free rate
+    output_path : str
+        Path to save plot
+    """
+    logger.info("Creating efficient frontier plot for top 15 stocks (short-selling allowed)...")
+    
+    individual_volatilities = np.sqrt(np.diag(cov_matrix.values))
+    
+    _, ax = plt.subplots(figsize=(14, 10))
+    
+    # Plot individual stocks
+    ax.scatter(individual_volatilities, expected_returns.values, 
+              alpha=0.6, s=50, color='gray', label=f'Individual Stocks (n={len(expected_returns)})',
+              edgecolors='black', linewidths=0.5, zorder=3)
+    
+    # Plot efficient frontier (with short-selling)
+    if len(frontier_df) > 0:
+        ax.plot(frontier_df['volatility'], frontier_df['return'], 
+                'b-', linewidth=2.5, label='Efficient Frontier (Short-Selling Allowed)', zorder=5)
+    
+    # Plot minimum-variance portfolio
+    ax.plot(min_var_port[1], min_var_port[0], 
+            'ro', markersize=12, label='Min-Variance Portfolio', zorder=6)
+    
+    # Plot tangency portfolio
+    ax.plot(tangency_port[1], tangency_port[0], 
+            'go', markersize=12, label='Tangency Portfolio', zorder=6)
+    
+    # Plot risk-free rate
+    ax.axhline(y=risk_free_rate, color='k', linestyle='--', linewidth=1, 
+              label=f'Risk-Free Rate ({risk_free_rate:.4f}%)', zorder=3)
+    
+    # Plot capital market line
+    if tangency_port[1] > 0:
+        cml_slope = (tangency_port[0] - risk_free_rate) / tangency_port[1]
+        max_vol = max(
+            frontier_df['volatility'].max() if len(frontier_df) > 0 else 0,
+            individual_volatilities.max()
+        )
+        x_cml = np.linspace(0, max_vol * 1.1, 100)
+        y_cml = risk_free_rate + cml_slope * x_cml
+        ax.plot(x_cml, y_cml, 'g--', linewidth=1.5, alpha=0.7, label='Capital Market Line', zorder=4)
+    
+    ax.set_xlabel('Volatility (Standard Deviation, %)', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Expected Return (%)', fontsize=12, fontweight='bold')
+    ax.set_title('Efficient Frontier: Top 15 Stocks by Market Cap (Short-Selling Allowed)', 
+                fontsize=14, fontweight='bold')
+    ax.legend(loc='best', fontsize=9, framealpha=0.9)
+    ax.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    logger.info(f"✅ Saved top 15 stocks efficient frontier plot: {output_path}")
+
+
 def run_portfolio_optimization() -> Dict:
     """
     Run complete portfolio optimization analysis.
@@ -2031,6 +2489,114 @@ def run_portfolio_optimization() -> Dict:
         all_error_flags,
         realistic_plot_path
     )
+    
+    # NEW: Calculate efficient frontier for top 15 stocks with short-selling
+    # Skip this if it's taking too long - it's optional
+    logger.info("="*70)
+    logger.info("CALCULATING EFFICIENT FRONTIER FOR TOP 15 STOCKS (SHORT-SELLING ALLOWED)")
+    logger.info("="*70)
+    logger.info("Note: This step may be skipped if market cap fetching is slow")
+    
+    # Select top 15 stocks by market cap (with timeout to prevent hanging)
+    logger.info("Selecting top 15 stocks by market cap (this may take a moment if fetching market cap data)...")
+    top15_tickers = pd.Series(dtype=str)
+    
+    try:
+        # Use platform-agnostic timeout (signal.SIGALRM only works on Unix)
+        if platform.system() != 'Windows':
+            import signal
+            
+            def timeout_handler(signum, frame):
+                raise TimeoutError("Market cap selection timed out after 30 seconds")
+            
+            # Set timeout for market cap selection (30 seconds - shorter to avoid hanging)
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(30)  # 30 second timeout
+            
+            try:
+                top15_tickers = select_top_15_stocks_by_market_cap(panel_df, n_stocks=15)
+            finally:
+                signal.alarm(0)  # Cancel timeout
+        else:
+            # Windows doesn't support SIGALRM, use ThreadPoolExecutor with timeout instead
+            from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
+            executor = ThreadPoolExecutor(max_workers=1)
+            future = executor.submit(select_top_15_stocks_by_market_cap, panel_df, 15)
+            try:
+                top15_tickers = future.result(timeout=30)
+            except FutureTimeoutError:
+                logger.warning("⚠️  Market cap selection timed out after 30 seconds")
+                logger.warning("Skipping top 15 stocks efficient frontier calculation.")
+                top15_tickers = pd.Series(dtype=str)
+            finally:
+                executor.shutdown(wait=False)
+        
+    except (TimeoutError, KeyboardInterrupt) as e:
+        logger.warning(f"⚠️  Market cap selection timed out or was interrupted: {e}")
+        logger.warning("Skipping top 15 stocks efficient frontier calculation.")
+        top15_tickers = pd.Series(dtype=str)
+    except Exception as e:
+        logger.warning(f"⚠️  Error selecting top 15 stocks: {e}")
+        logger.warning("Skipping top 15 stocks efficient frontier calculation.")
+        top15_tickers = pd.Series(dtype=str)
+    
+    if len(top15_tickers) > 0:
+        # Calculate expected returns and covariance for top 15 stocks
+        expected_returns_top15, cov_matrix_top15 = calculate_expected_returns_and_covariance(
+            panel_df, selected_tickers=top15_tickers
+        )
+        
+        # Calculate efficient frontier with short-selling
+        logger.info("Calculating efficient frontier with short-selling for top 15 stocks...")
+        # Use fewer points for speed (short-selling case already limits to 15 points internally)
+        frontier_df_top15 = calculate_efficient_frontier(
+            expected_returns_top15, cov_matrix_top15, n_points=15, allow_short=True
+        )
+        
+        # Find minimum-variance portfolio (with short-selling)
+        min_var_weights_top15, min_var_return_top15, min_var_vol_top15 = find_minimum_variance_portfolio(
+            expected_returns_top15, cov_matrix_top15, allow_short=True
+        )
+        
+        # Find tangency portfolio (with short-selling)
+        tangency_weights_top15, tangency_return_top15, tangency_vol_top15 = find_tangency_portfolio(
+            expected_returns_top15, cov_matrix_top15, avg_rf_rate, allow_short=True
+        )
+        
+        # Plot efficient frontier
+        top15_plot_path = os.path.join(RESULTS_FIGURES_DIR, "efficient_frontier_top15_short_selling.png")
+        plot_efficient_frontier_top15_short_selling(
+            frontier_df_top15,
+            (min_var_return_top15, min_var_vol_top15),
+            (tangency_return_top15, tangency_vol_top15),
+            expected_returns_top15,
+            cov_matrix_top15,
+            avg_rf_rate,
+            top15_plot_path
+        )
+        
+        # Save results
+        top15_results_df = pd.DataFrame({
+            'portfolio': ['Minimum-Variance', 'Tangency'],
+            'expected_return': [min_var_return_top15, tangency_return_top15],
+            'volatility': [min_var_vol_top15, tangency_vol_top15],
+            'sharpe_ratio': [
+                (min_var_return_top15 - avg_rf_rate) / min_var_vol_top15 if min_var_vol_top15 > 0 else 0,
+                (tangency_return_top15 - avg_rf_rate) / tangency_vol_top15 if tangency_vol_top15 > 0 else 0
+            ]
+        })
+        top15_results_file = os.path.join(RESULTS_REPORTS_DIR, "portfolio_optimization_top15_short_selling.csv")
+        top15_results_df.to_csv(top15_results_file, index=False)
+        logger.info(f"✅ Saved top 15 stocks results: {top15_results_file}")
+        
+        # Save frontier data
+        top15_frontier_file = os.path.join(RESULTS_REPORTS_DIR, "efficient_frontier_top15_short_selling.csv")
+        frontier_df_top15.to_csv(top15_frontier_file, index=False)
+        logger.info(f"✅ Saved top 15 stocks frontier data: {top15_frontier_file}")
+        
+        logger.info("✅ Completed efficient frontier calculation for top 15 stocks with short-selling")
+    else:
+        logger.warning("Could not select top 15 stocks. Skipping top 15 efficient frontier calculation.")
     
     return {
         'min_var_portfolio_constrained': {

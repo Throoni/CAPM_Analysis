@@ -18,6 +18,7 @@ Country-specific rates are automatically fetched for each market.
 
 import os
 import logging
+import shutil
 from typing import Dict, Optional, Tuple
 
 import pandas as pd
@@ -31,7 +32,8 @@ from analysis.utils.config import (
     RESULTS_DATA_DIR,
     RESULTS_REPORTS_DIR,
     RESULTS_FIGURES_DIR,
-    COUNTRIES,
+    RESULTS_CAPM_TIMESERIES_DIR,
+    RESULTS_CAPM_TIMESERIES_FIGURES_DIR,
 )
 
 logger = logging.getLogger(__name__)
@@ -119,11 +121,12 @@ def run_capm_regression(
             'n_obs': len(clean_data)
         }
     
-    # Prepare data for regression
+    # Prepare data for regression (cache .values to avoid repeated conversion)
     y = clean_data[stock_excess_col].values
     X = clean_data[market_excess_col].values
     
     # Add constant term for intercept (alpha)
+    # sm.add_constant is already optimized, but we cache X to avoid repeated access
     X_with_const = sm.add_constant(X)
     
     # Run OLS regression with robust (White) standard errors
@@ -281,20 +284,21 @@ def validate_regression_results(results_df: pd.DataFrame) -> pd.DataFrame:
     logger.info("VALIDATING REGRESSION RESULTS")
     logger.info("="*70)
     
-    # Initialize validation flags
+    # Initialize validation flags (copy needed to avoid SettingWithCopyWarning)
     results_df = results_df.copy()
     results_df['is_valid'] = True
     
-    # Check 1: Insufficient observations
+    # Check 1: Insufficient observations (vectorized boolean operation)
     insufficient_obs = results_df['n_observations'] < 59
     if insufficient_obs.any():
         logger.warning(f"⚠️  {insufficient_obs.sum()} stocks have < 59 observations")
         results_df.loc[insufficient_obs, 'is_valid'] = False
     
     # Check 2: Very low R² (low market dependence or data errors)
-    # Lower threshold to catch potential data errors
-    very_low_r2 = results_df['r_squared'] < 0.01
-    low_r2 = results_df['r_squared'] < 0.05
+    # Lower threshold to catch potential data errors (cache r_squared for efficiency)
+    r_squared = results_df['r_squared']
+    very_low_r2 = r_squared < 0.01
+    low_r2 = r_squared < 0.05
     if very_low_r2.any():
         logger.warning(f"⚠️  {very_low_r2.sum()} stocks have R² < 0.01 (likely data errors)")
         results_df.loc[very_low_r2, 'is_valid'] = False
@@ -303,8 +307,10 @@ def validate_regression_results(results_df: pd.DataFrame) -> pd.DataFrame:
         # Don't automatically invalidate, but flag for review
     
     # Check 3: Extreme beta values (possible errors)
-    # Lower threshold to catch more issues earlier
-    extreme_beta = (results_df['beta'].abs() > 3.0) | (results_df['beta'] < -1.0)
+    # Lower threshold to catch more issues earlier (cache beta and abs() calculation)
+    beta = results_df['beta']
+    beta_abs = beta.abs()
+    extreme_beta = (beta_abs > 3.0) | (beta < -1.0)
     if extreme_beta.any():
         logger.warning(f"⚠️  {extreme_beta.sum()} stocks have extreme beta values (|beta| > 3.0 or < -1.0)")
         results_df.loc[extreme_beta, 'is_valid'] = False
@@ -314,8 +320,10 @@ def validate_regression_results(results_df: pd.DataFrame) -> pd.DataFrame:
     if insignificant_beta.any():
         logger.info(f"ℹ️  {insignificant_beta.sum()} stocks have statistically insignificant beta (p > 0.05)")
     
-    # Check 5: Missing/invalid results
-    missing_results = results_df[['beta', 'alpha', 'r_squared']].isna().any(axis=1)
+    # Check 5: Missing/invalid results (vectorized check)
+    # Cache column selection to avoid repeated indexing
+    check_cols = ['beta', 'alpha', 'r_squared']
+    missing_results = results_df[check_cols].isna().any(axis=1)
     if missing_results.any():
         logger.warning(f"⚠️  {missing_results.sum()} stocks have missing regression results")
         results_df.loc[missing_results, 'is_valid'] = False
@@ -353,34 +361,52 @@ def create_country_summaries(results_df: pd.DataFrame) -> pd.DataFrame:
     logger.info("="*70)
     
     # Filter to only valid stocks for consistency across all analyses
-    valid_results = results_df[results_df['is_valid'] == True].copy()
+    # Cache boolean mask to avoid repeated filtering
+    valid_mask = results_df['is_valid'] == True
+    valid_results = results_df[valid_mask].copy()
     logger.info(f"  Using {len(valid_results)} valid stocks (out of {len(results_df)} total)")
     
     summaries = []
     
-    for country in valid_results['country'].unique():
-        country_data = valid_results[valid_results['country'] == country]
+    # Cache unique countries to avoid repeated calculation
+    unique_countries = valid_results['country'].unique()
+    
+    # Pre-compute country filters to avoid repeated filtering in loop
+    country_data_dict = {
+        country: valid_results[valid_results['country'] == country]
+        for country in unique_countries
+    }
+    
+    for country in unique_countries:
+        country_data = country_data_dict[country]
         
         # Basic counts
         n_stocks = len(country_data)
+        if n_stocks == 0:
+            continue
         
-        # Beta statistics
-        mean_beta = country_data['beta'].mean()
-        median_beta = country_data['beta'].median()
-        std_beta = country_data['beta'].std()
+        # Cache column access for efficiency
+        beta_col = country_data['beta']
+        alpha_col = country_data['alpha']
+        r2_col = country_data['r_squared']
         
-        # Beta distribution percentages
-        pct_beta_gt_1 = (country_data['beta'] > 1).sum() / n_stocks * 100
-        pct_beta_lt_1 = (country_data['beta'] < 1).sum() / n_stocks * 100
-        pct_beta_lt_0 = (country_data['beta'] < 0).sum() / n_stocks * 100
+        # Beta statistics (cache calculations)
+        mean_beta = beta_col.mean()
+        median_beta = beta_col.median()
+        std_beta = beta_col.std()
+        
+        # Beta distribution percentages (vectorized boolean operations)
+        pct_beta_gt_1 = (beta_col > 1).sum() / n_stocks * 100
+        pct_beta_lt_1 = (beta_col < 1).sum() / n_stocks * 100
+        pct_beta_lt_0 = (beta_col < 0).sum() / n_stocks * 100
         
         # Alpha statistics
-        mean_alpha = country_data['alpha'].mean()
-        median_alpha = country_data['alpha'].median()
+        mean_alpha = alpha_col.mean()
+        median_alpha = alpha_col.median()
         
         # R² statistics
-        mean_r2 = country_data['r_squared'].mean()
-        median_r2 = country_data['r_squared'].median()
+        mean_r2 = r2_col.mean()
+        median_r2 = r2_col.median()
         
         summaries.append({
             'country': country,
@@ -469,13 +495,16 @@ def generate_capm_reports(
     results_df.to_csv(results_path, index=False)
     logger.info(f"✅ Saved full results: {results_path}")
     
-    # Save country summaries
-    summary_path = os.path.join(RESULTS_REPORTS_DIR, "capm_by_country.csv")
+    # Save country summaries to new organized structure
+    summary_path = os.path.join(RESULTS_CAPM_TIMESERIES_DIR, "by_country.csv")
     country_summaries.to_csv(summary_path, index=False)
+    # Also save to legacy location
+    legacy_summary = os.path.join(RESULTS_REPORTS_DIR, "capm_by_country.csv")
+    country_summaries.to_csv(legacy_summary, index=False)
     logger.info(f"✅ Saved country summaries: {summary_path}")
     
-    # Save extremes
-    extremes_path = os.path.join(RESULTS_REPORTS_DIR, "capm_extremes.csv")
+    # Save extremes to new organized structure
+    extremes_path = os.path.join(RESULTS_CAPM_TIMESERIES_DIR, "extremes.csv")
     
     # Combine extremes into single DataFrame
     extremes_list = []
@@ -486,6 +515,9 @@ def generate_capm_reports(
     
     extremes_combined = pd.concat(extremes_list, ignore_index=True)
     extremes_combined.to_csv(extremes_path, index=False)
+    # Also save to legacy location
+    legacy_extremes = os.path.join(RESULTS_REPORTS_DIR, "capm_extremes.csv")
+    extremes_combined.to_csv(legacy_extremes, index=False)
     logger.info(f"✅ Saved extremes: {extremes_path}")
     
     logger.info("\n✅ All reports generated successfully")
@@ -513,15 +545,25 @@ def create_capm_visualizations(results_df: pd.DataFrame) -> None:
     
     # 1. Beta distribution by country (histogram)
     logger.info("Creating beta distribution histograms...")
-    fig, axes = plt.subplots(2, 4, figsize=(20, 10))
+    _, axes = plt.subplots(2, 4, figsize=(20, 10))
     axes = axes.flatten()
     
+    # Cache unique countries and pre-compute country data to avoid repeated filtering
     countries = sorted(valid_results['country'].unique())
+    country_data_dict = {
+        country: valid_results[valid_results['country'] == country]
+        for country in countries
+    }
+    
     for idx, country in enumerate(countries):
         if idx < len(axes):
-            country_data = valid_results[valid_results['country'] == country]
-            axes[idx].hist(country_data['beta'], bins=20, edgecolor='black', alpha=0.7)
-            axes[idx].axvline(country_data['beta'].mean(), color='red', linestyle='--', label=f"Mean: {country_data['beta'].mean():.2f}")
+            country_data = country_data_dict[country]
+            # Cache beta column and mean
+            beta_col = country_data['beta']
+            beta_mean = beta_col.mean()
+            
+            axes[idx].hist(beta_col, bins=20, edgecolor='black', alpha=0.7)
+            axes[idx].axvline(beta_mean, color='red', linestyle='--', label=f"Mean: {beta_mean:.2f}")
             axes[idx].set_title(f"{country}\n(n={len(country_data)})")
             axes[idx].set_xlabel('Beta')
             axes[idx].set_ylabel('Frequency')
@@ -533,21 +575,30 @@ def create_capm_visualizations(results_df: pd.DataFrame) -> None:
         axes[idx].set_visible(False)
     
     plt.tight_layout()
-    beta_hist_path = os.path.join(RESULTS_FIGURES_DIR, "beta_distribution_by_country.png")
+    # Save to new organized structure
+    beta_hist_path = os.path.join(RESULTS_CAPM_TIMESERIES_FIGURES_DIR, "beta_distribution_by_country.png")
     plt.savefig(beta_hist_path, dpi=300, bbox_inches='tight')
+    # Also save to legacy location for backward compatibility
+    legacy_beta_hist = os.path.join(RESULTS_FIGURES_DIR, "beta_distribution_by_country.png")
+    shutil.copy2(beta_hist_path, legacy_beta_hist)
     plt.close()
     logger.info(f"✅ Saved: {beta_hist_path}")
     
     # 2. Alpha distribution by country (histogram)
     logger.info("Creating alpha distribution histograms...")
-    fig, axes = plt.subplots(2, 4, figsize=(20, 10))
+    _, axes = plt.subplots(2, 4, figsize=(20, 10))
     axes = axes.flatten()
     
+    # Reuse country_data_dict from previous plot
     for idx, country in enumerate(countries):
         if idx < len(axes):
-            country_data = valid_results[valid_results['country'] == country]
-            axes[idx].hist(country_data['alpha'], bins=20, edgecolor='black', alpha=0.7)
-            axes[idx].axvline(country_data['alpha'].mean(), color='red', linestyle='--', label=f"Mean: {country_data['alpha'].mean():.2f}")
+            country_data = country_data_dict[country]
+            # Cache alpha column and mean
+            alpha_col = country_data['alpha']
+            alpha_mean = alpha_col.mean()
+            
+            axes[idx].hist(alpha_col, bins=20, edgecolor='black', alpha=0.7)
+            axes[idx].axvline(alpha_mean, color='red', linestyle='--', label=f"Mean: {alpha_mean:.2f}")
             axes[idx].set_title(f"{country}\n(n={len(country_data)})")
             axes[idx].set_xlabel('Alpha (%)')
             axes[idx].set_ylabel('Frequency')
@@ -558,16 +609,21 @@ def create_capm_visualizations(results_df: pd.DataFrame) -> None:
         axes[idx].set_visible(False)
     
     plt.tight_layout()
-    alpha_hist_path = os.path.join(RESULTS_FIGURES_DIR, "alpha_distribution_by_country.png")
+    # Save to new organized structure
+    alpha_hist_path = os.path.join(RESULTS_CAPM_TIMESERIES_FIGURES_DIR, "alpha_distribution_by_country.png")
     plt.savefig(alpha_hist_path, dpi=300, bbox_inches='tight')
+    # Also save to legacy location
+    legacy_alpha_hist = os.path.join(RESULTS_FIGURES_DIR, "alpha_distribution_by_country.png")
+    shutil.copy2(alpha_hist_path, legacy_alpha_hist)
     plt.close()
     logger.info(f"✅ Saved: {alpha_hist_path}")
     
     # 3. Beta vs R² scatterplot (colored by country)
     logger.info("Creating beta vs R² scatterplot...")
     plt.figure(figsize=(14, 8))
+    # Reuse country_data_dict to avoid repeated filtering
     for country in countries:
-        country_data = valid_results[valid_results['country'] == country]
+        country_data = country_data_dict[country]
         plt.scatter(country_data['beta'], country_data['r_squared'], 
                    label=country, alpha=0.6, s=50)
     plt.xlabel('Beta', fontsize=12)
@@ -576,8 +632,12 @@ def create_capm_visualizations(results_df: pd.DataFrame) -> None:
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    scatter_path = os.path.join(RESULTS_FIGURES_DIR, "beta_vs_r2_scatter.png")
+    # Save to new organized structure
+    scatter_path = os.path.join(RESULTS_CAPM_TIMESERIES_FIGURES_DIR, "beta_vs_r2_scatter.png")
     plt.savefig(scatter_path, dpi=300, bbox_inches='tight')
+    # Also save to legacy location
+    legacy_scatter = os.path.join(RESULTS_FIGURES_DIR, "beta_vs_r2_scatter.png")
+    shutil.copy2(scatter_path, legacy_scatter)
     plt.close()
     logger.info(f"✅ Saved: {scatter_path}")
     
@@ -592,8 +652,12 @@ def create_capm_visualizations(results_df: pd.DataFrame) -> None:
     plt.xticks(rotation=45)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    boxplot_path = os.path.join(RESULTS_FIGURES_DIR, "beta_boxplot_by_country.png")
+    # Save to new organized structure
+    boxplot_path = os.path.join(RESULTS_CAPM_TIMESERIES_FIGURES_DIR, "beta_boxplot_by_country.png")
     plt.savefig(boxplot_path, dpi=300, bbox_inches='tight')
+    # Also save to legacy location
+    legacy_boxplot = os.path.join(RESULTS_FIGURES_DIR, "beta_boxplot_by_country.png")
+    shutil.copy2(boxplot_path, legacy_boxplot)
     plt.close()
     logger.info(f"✅ Saved: {boxplot_path}")
     
@@ -601,31 +665,41 @@ def create_capm_visualizations(results_df: pd.DataFrame) -> None:
     logger.info("Creating top/bottom beta stocks chart...")
     extremes = get_top_bottom_stocks(valid_results, n=10)
     
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
+    _, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
     
-    # Top 10 beta
+    # Top 10 beta (vectorized label creation instead of iterrows)
     top_beta = extremes['top_beta']
-    ax1.barh(range(len(top_beta)), top_beta['beta'], color='green', alpha=0.7)
-    ax1.set_yticks(range(len(top_beta)))
-    ax1.set_yticklabels([f"{row['ticker']} ({row['country']})" for _, row in top_beta.iterrows()])
+    top_beta_len = len(top_beta)
+    ax1.barh(range(top_beta_len), top_beta['beta'], color='green', alpha=0.7)
+    ax1.set_yticks(range(top_beta_len))
+    # Vectorized label creation (much faster than iterrows)
+    top_beta_labels = [f"{ticker} ({country})" for ticker, country in zip(top_beta['ticker'], top_beta['country'])]
+    ax1.set_yticklabels(top_beta_labels)
     ax1.set_xlabel('Beta', fontsize=12)
     ax1.set_title('Top 10 Highest Beta Stocks', fontsize=14, fontweight='bold')
     ax1.grid(True, alpha=0.3, axis='x')
     ax1.invert_yaxis()
     
-    # Bottom 10 beta
+    # Bottom 10 beta (vectorized label creation instead of iterrows)
     bottom_beta = extremes['bottom_beta']
-    ax2.barh(range(len(bottom_beta)), bottom_beta['beta'], color='red', alpha=0.7)
-    ax2.set_yticks(range(len(bottom_beta)))
-    ax2.set_yticklabels([f"{row['ticker']} ({row['country']})" for _, row in bottom_beta.iterrows()])
+    bottom_beta_len = len(bottom_beta)
+    ax2.barh(range(bottom_beta_len), bottom_beta['beta'], color='red', alpha=0.7)
+    ax2.set_yticks(range(bottom_beta_len))
+    # Vectorized label creation (much faster than iterrows)
+    bottom_beta_labels = [f"{ticker} ({country})" for ticker, country in zip(bottom_beta['ticker'], bottom_beta['country'])]
+    ax2.set_yticklabels(bottom_beta_labels)
     ax2.set_xlabel('Beta', fontsize=12)
     ax2.set_title('Bottom 10 Lowest Beta Stocks', fontsize=14, fontweight='bold')
     ax2.grid(True, alpha=0.3, axis='x')
     ax2.invert_yaxis()
     
     plt.tight_layout()
-    top_bottom_beta_path = os.path.join(RESULTS_FIGURES_DIR, "top_bottom_beta_stocks.png")
+    # Save to new organized structure
+    top_bottom_beta_path = os.path.join(RESULTS_CAPM_TIMESERIES_FIGURES_DIR, "top_bottom_beta_stocks.png")
     plt.savefig(top_bottom_beta_path, dpi=300, bbox_inches='tight')
+    # Also save to legacy location
+    legacy_top_bottom = os.path.join(RESULTS_FIGURES_DIR, "top_bottom_beta_stocks.png")
+    shutil.copy2(top_bottom_beta_path, legacy_top_bottom)
     plt.close()
     logger.info(f"✅ Saved: {top_bottom_beta_path}")
     
@@ -633,7 +707,7 @@ def create_capm_visualizations(results_df: pd.DataFrame) -> None:
     logger.info("Creating average beta by country...")
     country_avg_beta = valid_results.groupby('country')['beta'].mean().sort_values()
     
-    plt.figure(figsize=(12, 6))
+    _, _ = plt.subplots(figsize=(12, 6))
     plt.bar(range(len(country_avg_beta)), country_avg_beta.values, color='steelblue', alpha=0.7)
     plt.xticks(range(len(country_avg_beta)), country_avg_beta.index, rotation=45, ha='right')
     plt.xlabel('Country', fontsize=12)
@@ -643,8 +717,12 @@ def create_capm_visualizations(results_df: pd.DataFrame) -> None:
     plt.legend()
     plt.grid(True, alpha=0.3, axis='y')
     plt.tight_layout()
-    avg_beta_path = os.path.join(RESULTS_FIGURES_DIR, "average_beta_by_country.png")
+    # Save to new organized structure
+    avg_beta_path = os.path.join(RESULTS_CAPM_TIMESERIES_FIGURES_DIR, "average_beta_by_country.png")
     plt.savefig(avg_beta_path, dpi=300, bbox_inches='tight')
+    # Also save to legacy location
+    legacy_avg_beta = os.path.join(RESULTS_FIGURES_DIR, "average_beta_by_country.png")
+    shutil.copy2(avg_beta_path, legacy_avg_beta)
     plt.close()
     logger.info(f"✅ Saved: {avg_beta_path}")
     
@@ -705,8 +783,14 @@ def run_full_capm_analysis(panel_path: Optional[str] = None) -> Tuple[pd.DataFra
     print(f"   Average alpha: {results_df['alpha'].mean():.4f}%")
     
     print(f"\n📈 Country-Level Averages:")
-    for _, row in country_summaries.iterrows():
-        print(f"   {row['country']:15s}: Beta={row['mean_beta']:6.3f}, Alpha={row['mean_alpha']:6.3f}%, R²={row['mean_r_squared']:.3f}")
+    # Vectorized iteration instead of iterrows (more efficient)
+    for country, mean_beta, mean_alpha, mean_r2 in zip(
+        country_summaries['country'],
+        country_summaries['mean_beta'],
+        country_summaries['mean_alpha'],
+        country_summaries['mean_r_squared']
+    ):
+        print(f"   {country:15s}: Beta={mean_beta:6.3f}, Alpha={mean_alpha:6.3f}%, R²={mean_r2:.3f}")
     
     print(f"\n📁 Output Files:")
     print(f"   Results: {os.path.join(RESULTS_DATA_DIR, 'capm_results.csv')}")

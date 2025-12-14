@@ -91,8 +91,10 @@ def run_env_smoke_test():
     print("Testing yfinance download for ^GDAXI...")
 
     try:
-
-        df = download_monthly_prices("^GDAXI")
+        # download_monthly_prices requires start and end parameters
+        start_date = ANALYSIS_SETTINGS.start_date
+        end_date = ANALYSIS_SETTINGS.end_date
+        df = download_monthly_prices("^GDAXI", start=start_date, end=end_date)
 
         print("Last rows of downloaded data:\n", df.tail())
 

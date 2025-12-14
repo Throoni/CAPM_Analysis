@@ -9,9 +9,8 @@ import os
 import logging
 import pandas as pd
 import numpy as np
-from typing import Dict, Optional
+from typing import Optional
 import yfinance as yf
-from datetime import datetime
 import time
 
 from analysis.utils.config import (
@@ -25,7 +24,7 @@ from analysis.utils.config import (
 logger = logging.getLogger(__name__)
 
 
-def fetch_market_cap(ticker: str, country: str, date: Optional[str] = None) -> Optional[float]:
+def fetch_market_cap(ticker: str, _country: str, date: Optional[str] = None) -> Optional[float]:
     """
     Fetch market capitalization for a stock ticker.
     
@@ -54,17 +53,25 @@ def fetch_market_cap(ticker: str, country: str, date: Optional[str] = None) -> O
         stock = yf.Ticker(ticker)
         
         # Try to get info - sometimes this fails, so we'll retry
-        max_retries = 3
+        # Reduced retries and timeout to prevent hanging
+        max_retries = 2  # Reduced from 3 to speed up
         info = None
         for attempt in range(max_retries):
             try:
-                info = stock.info
-                if info and len(info) > 0:
-                    break
+                # Set a timeout for the info fetch (3 seconds per attempt)
+                import socket
+                old_timeout = socket.getdefaulttimeout()
+                socket.setdefaulttimeout(3)  # 3 second timeout
+                try:
+                    info = stock.info
+                    if info and len(info) > 0:
+                        break
+                finally:
+                    socket.setdefaulttimeout(old_timeout)
             except Exception as e:
                 if attempt < max_retries - 1:
                     logger.debug(f"Attempt {attempt + 1} failed for {ticker}, retrying...")
-                    time.sleep(0.5)  # Wait before retry
+                    time.sleep(0.2)  # Reduced from 0.5s to 0.2s
                     continue
                 else:
                     logger.debug(f"Could not fetch info for {ticker} after {max_retries} attempts: {e}")
@@ -110,7 +117,7 @@ def fetch_market_cap(ticker: str, country: str, date: Optional[str] = None) -> O
         return None
 
 
-def estimate_market_cap_from_price(ticker: str, country: str, prices_df: pd.DataFrame) -> Optional[float]:
+def estimate_market_cap_from_price(ticker: str, _country: str, prices_df: pd.DataFrame) -> Optional[float]:
     """
     Estimate market cap from price data (rough approximation).
     Uses average price and assumes typical shares outstanding for large-cap stocks.
@@ -187,9 +194,21 @@ def load_market_caps_for_country(country: str, capm_results: pd.DataFrame) -> pd
     successful_fetches = 0
     estimated_count = 0
     failed_count = 0
+    total_stocks = len(country_stocks)
     
-    for _, row in country_stocks.iterrows():
+    # Limit to first 30 stocks per country to avoid excessive API calls
+    max_stocks_per_country = 30
+    if total_stocks > max_stocks_per_country:
+        logger.info(f"  Limiting to top {max_stocks_per_country} stocks for {country} (out of {total_stocks}) to speed up market cap fetching")
+        country_stocks = country_stocks.head(max_stocks_per_country)
+        total_stocks = len(country_stocks)
+    
+    for idx, (_, row) in enumerate(country_stocks.iterrows(), 1):
         ticker = row['ticker']
+        
+        # Progress logging every 5 stocks
+        if idx % 5 == 0 or idx == total_stocks:
+            logger.info(f"  Processing {country} stock {idx}/{total_stocks}: {ticker}")
         
         # Try to fetch real market cap from yfinance first
         market_cap = fetch_market_cap(ticker, country)
@@ -215,7 +234,7 @@ def load_market_caps_for_country(country: str, capm_results: pd.DataFrame) -> pd
             if logger.level <= logging.DEBUG:
                 logger.debug(f"Could not determine market cap for {ticker}")
     
-    logger.info(f"  Market cap data: {successful_fetches} from yfinance, {estimated_count} estimated, {failed_count} failed")
+    logger.info(f"  Market cap data for {country}: {successful_fetches} from yfinance, {estimated_count} estimated, {failed_count} failed")
     
     return pd.DataFrame(market_caps)
 
