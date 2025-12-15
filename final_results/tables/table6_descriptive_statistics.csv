@@ -1,0 +1,8 @@
+Country,N Stocks,Date Range,Market Proxy,Risk-Free Rate
+France,37,2021-01 to 2025-11,"MSCI Europe (IEUR, EUR)",German 3-month Bund (EUR)
+Germany,39,2021-01 to 2025-11,"MSCI Europe (IEUR, EUR)",German 3-month Bund (EUR)
+Italy,27,2021-01 to 2025-11,"MSCI Europe (IEUR, EUR)",German 3-month Bund (EUR)
+Spain,35,2021-01 to 2025-11,"MSCI Europe (IEUR, EUR)",German 3-month Bund (EUR)
+Sweden,27,2021-01 to 2025-11,"MSCI Europe (IEUR, EUR)",German 3-month Bund (EUR)
+Switzerland,16,2021-01 to 2025-11,"MSCI Europe (IEUR, EUR)",German 3-month Bund (EUR)
+UnitedKingdom,64,2021-01 to 2025-11,"MSCI Europe (IEUR, EUR)",German 3-month Bund (EUR)
