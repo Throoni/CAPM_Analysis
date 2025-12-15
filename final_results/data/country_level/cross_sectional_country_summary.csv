@@ -1,0 +1,8 @@
+country,n_stocks,avg_beta,median_beta,avg_alpha_pct,avg_r_squared,significant_alphas,pct_significant
+France,37,0.8792,0.8753,-0.8511,0.2135,7,18.9
+Germany,39,0.9355,0.8585,-0.3444,0.222,4,10.3
+Italy,27,0.8259,0.7345,0.3933,0.2093,6,22.2
+Spain,35,0.7722,0.7688,0.8248,0.1829,10,28.6
+Sweden,27,1.1401,1.2173,-0.2641,0.3221,2,7.4
+Switzerland,16,0.8321,0.979,0.3178,0.246,1,6.2
+UnitedKingdom,64,0.9712,0.9608,-0.2609,0.257,7,10.9

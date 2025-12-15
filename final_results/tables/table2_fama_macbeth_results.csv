@@ -1,2 +1,3 @@
-γ₀ Mean,t(γ₀),p-value,γ₁ Mean,t(γ₁),p-value,Avg Cross-Sectional R²,N Months
-1.3167,4.112,0.0001,-0.5747,-0.88,0.3825,59,0.057
+Parameter,Estimate,Std Error,t-statistic,N Months
+γ₁ (Market Premium),-0.5747,0.6531,-0.88,59
+γ₀ (Intercept),1.3167,0.3202,4.11,59

@@ -10,6 +10,7 @@
 1. **Start Here**: Read `EXECUTIVE_SUMMARY.md` for key findings
 2. **Methodology**: See `methodology/METHODOLOGY.md` for theoretical background
 3. **Full Results**: Review `reports/EMPIRICAL_RESULTS.md` for detailed analysis
+4. **Complete Data Index**: See `DATA_INDEX.md` for full listing of 70+ data files and 29 figures
 
 ---
 
