@@ -1,14 +1,29 @@
 """
-robustness_checks.py
+Robustness Checks and Sensitivity Analysis Module.
 
-Stage 6: Robustness Checks & Economic Interpretation
+This module provides comprehensive robustness tests to validate the CAPM analysis
+and ensure results are not driven by specific time periods, countries, or outliers.
 
-Comprehensive robustness tests to validate CAPM results:
-- Subperiod Fama-MacBeth tests
-- Country-level Fama-MacBeth tests
-- Beta-sorted portfolios
-- Clean sample analysis
-- Economic interpretation
+Robustness tests implemented:
+    1. Subperiod Analysis: Split sample into two halves to test stability
+    2. Country-Level Tests: Run Fama-MacBeth regressions within each country
+    3. Beta-Sorted Portfolios: Test monotonic relationship between beta and returns
+    4. Clean Sample Analysis: Exclude outliers and re-run analysis
+    5. Economic Interpretation: Generate qualitative findings summary
+
+Each test addresses specific concerns:
+    - Time stability: Do results hold across different market conditions?
+    - Cross-sectional stability: Do results hold within individual countries?
+    - Monotonicity: Does the beta-return relationship follow theory?
+    - Outlier sensitivity: Are results driven by extreme observations?
+
+The module generates both statistical outputs (CSV files) and visualizations
+(PNG figures) to support interpretation of the robustness findings.
+
+References
+----------
+Fama, E. F., & French, K. R. (2004). The Capital Asset Pricing Model: 
+    Theory and Evidence. Journal of Economic Perspectives, 18(3), 25-46.
 """
 
 import os
@@ -231,9 +246,9 @@ def run_subperiod_fama_macbeth(
     # Create comparison
     comparison_df = pd.DataFrame([period_a_stats, period_b_stats])
     
-    logger.info(f"\n✅ Period A: {len(period_a_monthly)} months")
+    logger.info(f"\n Period A: {len(period_a_monthly)} months")
     logger.info(f"   gamma_1: {period_a_stats['avg_gamma_1']:.4f} (t={period_a_stats['tstat_gamma_1']:.3f})")
-    logger.info(f"✅ Period B: {len(period_b_monthly)} months")
+    logger.info(f" Period B: {len(period_b_monthly)} months")
     logger.info(f"   gamma_1: {period_b_stats['avg_gamma_1']:.4f} (t={period_b_stats['tstat_gamma_1']:.3f})")
     
     return period_a_monthly, period_b_monthly, comparison_df
@@ -314,7 +329,7 @@ def run_country_level_fama_macbeth(
     monthly_by_country = pd.concat(all_monthly_results, ignore_index=True)
     country_summary = pd.DataFrame(country_summaries)
     
-    logger.info(f"\n✅ Completed country-level tests for {len(countries)} countries")
+    logger.info(f"\n Completed country-level tests for {len(countries)} countries")
     
     return monthly_by_country, country_summary
 
@@ -416,7 +431,7 @@ def create_beta_sorted_portfolios(
     
     portfolio_summary = pd.DataFrame(portfolio_stats)
     
-    logger.info(f"\n✅ Created {n_portfolios} beta-sorted portfolios")
+    logger.info(f"\n Created {n_portfolios} beta-sorted portfolios")
     logger.info(f"   Portfolio betas: {portfolio_summary['portfolio_beta'].min():.3f} to "
                f"{portfolio_summary['portfolio_beta'].max():.3f}")
     
@@ -509,7 +524,7 @@ def create_clean_sample_and_retest(
     clean_monthly_df = pd.DataFrame(clean_monthly_results)
     clean_fm_stats = compute_fama_macbeth_stats(clean_monthly_df)
     
-    logger.info(f"✅ Clean sample Fama-MacBeth:")
+    logger.info(f" Clean sample Fama-MacBeth:")
     logger.info(f"   gamma_1: {clean_fm_stats['avg_gamma_1']:.4f} (t={clean_fm_stats['tstat_gamma_1']:.3f})")
     logger.info(f"   gamma_0: {clean_fm_stats['avg_gamma_0']:.4f} (t={clean_fm_stats['tstat_gamma_0']:.3f})")
     
@@ -681,7 +696,7 @@ market beta alone.
 ================================================================================
 """
     
-    logger.info("✅ Generated economic interpretation")
+    logger.info(" Generated economic interpretation")
     
     return interpretation
 
@@ -732,7 +747,7 @@ def create_robustness_visualizations(
     plt.tight_layout()
     plt.savefig(os.path.join(RESULTS_FIGURES_DIR, "fm_subperiod_comparison.png"), dpi=300, bbox_inches='tight')
     plt.close()
-    logger.info("✅ Saved: fm_subperiod_comparison.png")
+    logger.info(" Saved: fm_subperiod_comparison.png")
     
     # 2. Country-level gamma_1
     logger.info("Creating country-level gamma_1 plot...")
@@ -752,7 +767,7 @@ def create_robustness_visualizations(
     plt.tight_layout()
     plt.savefig(os.path.join(RESULTS_FIGURES_DIR, "fm_gamma1_by_country.png"), dpi=300, bbox_inches='tight')
     plt.close()
-    logger.info("✅ Saved: fm_gamma1_by_country.png")
+    logger.info(" Saved: fm_gamma1_by_country.png")
     
     # 3. Beta-sorted portfolios
     logger.info("Creating beta-sorted portfolio plot...")
@@ -776,9 +791,9 @@ def create_robustness_visualizations(
     plt.tight_layout()
     plt.savefig(os.path.join(RESULTS_FIGURES_DIR, "beta_sorted_returns.png"), dpi=300, bbox_inches='tight')
     plt.close()
-    logger.info("✅ Saved: beta_sorted_returns.png")
+    logger.info(" Saved: beta_sorted_returns.png")
     
-    logger.info("\n✅ All visualizations created successfully")
+    logger.info("\n All visualizations created successfully")
 
 
 # -------------------------------------------------------------------
@@ -823,21 +838,21 @@ def run_all_robustness_checks() -> Dict:
     period_a_monthly.to_csv(os.path.join(RESULTS_REPORTS_DIR, "fm_subperiod_A.csv"), index=False)
     period_b_monthly.to_csv(os.path.join(RESULTS_REPORTS_DIR, "fm_subperiod_B.csv"), index=False)
     subperiod_comparison.to_csv(os.path.join(RESULTS_REPORTS_DIR, "fm_subperiod_comparison.csv"), index=False)
-    logger.info("✅ Saved subperiod results")
+    logger.info(" Saved subperiod results")
     
     # Stage 6.2: Country-level tests
     _, country_summary = run_country_level_fama_macbeth(panel_df, beta_df)
     
     # Save country results
     country_summary.to_csv(os.path.join(RESULTS_REPORTS_DIR, "fm_by_country.csv"), index=False)
-    logger.info("✅ Saved country-level results")
+    logger.info(" Saved country-level results")
     
     # Stage 6.3: Beta-sorted portfolios
     portfolio_results = create_beta_sorted_portfolios(panel_df, beta_df, n_portfolios=5)
     
     # Save portfolio results
     portfolio_results.to_csv(os.path.join(RESULTS_REPORTS_DIR, "beta_sorted_portfolios.csv"), index=False)
-    logger.info("✅ Saved portfolio results")
+    logger.info(" Saved portfolio results")
     
     # Stage 6.4: Clean sample
     clean_betas, clean_fm_stats, clean_comparison = create_clean_sample_and_retest(panel_df, beta_df)
@@ -846,7 +861,7 @@ def run_all_robustness_checks() -> Dict:
     clean_betas.to_csv(os.path.join(RESULTS_REPORTS_DIR, "capm_clean_sample.csv"), index=False)
     clean_fm_df = pd.DataFrame([clean_fm_stats])
     clean_fm_df.to_csv(os.path.join(RESULTS_REPORTS_DIR, "fama_macbeth_clean_sample.csv"), index=False)
-    logger.info("✅ Saved clean sample results")
+    logger.info(" Saved clean sample results")
     
     # Stage 6.5: Economic interpretation
     interpretation_text = generate_economic_interpretation(
@@ -861,7 +876,7 @@ def run_all_robustness_checks() -> Dict:
     # Save interpretation
     with open(os.path.join(RESULTS_REPORTS_DIR, "economic_interpretation.txt"), 'w') as f:
         f.write(interpretation_text)
-    logger.info("✅ Saved economic interpretation")
+    logger.info(" Saved economic interpretation")
     
     # Create robustness summary
     robustness_summary = pd.DataFrame({
@@ -886,7 +901,7 @@ def run_all_robustness_checks() -> Dict:
         ]
     })
     robustness_summary.to_csv(os.path.join(RESULTS_REPORTS_DIR, "robustness_summary.csv"), index=False)
-    logger.info("✅ Saved robustness summary")
+    logger.info(" Saved robustness summary")
     
     # Create visualizations
     create_robustness_visualizations(
@@ -900,13 +915,13 @@ def run_all_robustness_checks() -> Dict:
     print("\n" + "="*70)
     print("STAGE 6: ROBUSTNESS CHECKS COMPLETE")
     print("="*70)
-    print("\n📊 Summary of Results:")
+    print("\n Summary of Results:")
     print(f"   Full sample gamma_1: {fm_results['avg_gamma_1']:.4f} (t={fm_results['tstat_gamma_1']:.3f})")
     print(f"   Period A gamma_1: {subperiod_comparison.iloc[0]['avg_gamma_1']:.4f} (t={subperiod_comparison.iloc[0]['tstat_gamma_1']:.3f})")
     print(f"   Period B gamma_1: {subperiod_comparison.iloc[1]['avg_gamma_1']:.4f} (t={subperiod_comparison.iloc[1]['tstat_gamma_1']:.3f})")
     print(f"   Clean sample gamma_1: {clean_fm_stats['avg_gamma_1']:.4f} (t={clean_fm_stats['tstat_gamma_1']:.3f})")
     
-    print("\n📁 Output Files Generated:")
+    print("\n Output Files Generated:")
     print("   - results/reports/fm_subperiod_A.csv")
     print("   - results/reports/fm_subperiod_B.csv")
     print("   - results/reports/fm_subperiod_comparison.csv")

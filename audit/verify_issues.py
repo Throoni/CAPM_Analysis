@@ -576,22 +576,22 @@ The discrepancy occurs because:
 
 ## Summary
 
-### Issue 1: Beta Significance ✅ RESOLVED
+### Issue 1: Beta Significance  RESOLVED
 - **84.3%** = All stocks (includes invalid)
 - **95.9%** = Valid stocks only
 - **Both correct**, use 95.9% for reporting
 
-### Issue 2: Extreme Betas ✅ VERIFIED
+### Issue 2: Extreme Betas  VERIFIED
 - ATO.PA and III.L have extreme betas due to data issues
 - **Properly excluded** from valid results
 - **No action needed**
 
-### Issue 3: Currency Mismatch ✅ ACCEPTABLE
+### Issue 3: Currency Mismatch  ACCEPTABLE
 - USD MSCI indexes vs local currency stocks
 - **Standard practice** in international finance
 - **No changes needed**, but document clearly
 
-### Issue 4: Count Discrepancy ✅ EXPLAINED
+### Issue 4: Count Discrepancy  EXPLAINED
 - Table shows all stocks (n=38)
 - Graphs show valid stocks only (n=34)
 - **Recommendation:** Make Table 1 consistent by filtering to valid stocks
@@ -600,10 +600,10 @@ The discrepancy occurs because:
 
 ## Recommended Actions
 
-1. ✅ **Document beta significance:** Note that 95.9% is for valid stocks, 84.3% includes all
-2. ✅ **No action on extreme betas:** Already properly handled
-3. ✅ **Document currency approach:** Note USD ETFs in methodology
-4. ⚠️ **Fix Table 1:** Filter to valid stocks for consistency with graphs
+1.  **Document beta significance:** Note that 95.9% is for valid stocks, 84.3% includes all
+2.  **No action on extreme betas:** Already properly handled
+3.  **Document currency approach:** Note USD ETFs in methodology
+4.  **Fix Table 1:** Filter to valid stocks for consistency with graphs
 
 ---
 
@@ -626,8 +626,8 @@ def main():
     with open(report_path, 'w', encoding='utf-8') as f:
         f.write(report)
     
-    logger.info(f"\n✅ Verification report saved to: {report_path}")
-    print(f"\n✅ Verification complete! Report saved to: {report_path}")
+    logger.info(f"\n Verification report saved to: {report_path}")
+    print(f"\n Verification complete! Report saved to: {report_path}")
 
 
 if __name__ == "__main__":

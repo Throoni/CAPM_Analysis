@@ -188,7 +188,7 @@ def generate_data_quality_report() -> Dict:
     with open(report_path, 'w') as f:
         json.dump(report_data, f, indent=2, default=str)
     
-    logger.info(f"\n✅ Data quality report saved to: {report_path}")
+    logger.info(f"\n Data quality report saved to: {report_path}")
     
     # 6. Generate Summary
     logger.info("\n" + "="*70)
@@ -217,5 +217,5 @@ if __name__ == "__main__":
     )
     
     report = generate_data_quality_report()
-    print("\n✅ Data quality report generated successfully")
+    print("\n Data quality report generated successfully")
 

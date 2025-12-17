@@ -240,7 +240,7 @@ def fetch_riskfree_from_fred(
         # Rename
         monthly_rates.name = 'riskfree_rate'
         
-        logger.info(f"✅ FRED: Fetched {len(monthly_rates)} months of data for {target_country}")
+        logger.info(f" FRED: Fetched {len(monthly_rates)} months of data for {target_country}")
         return monthly_rates
         
     except Exception as e:
@@ -353,7 +353,7 @@ def fetch_riskfree_from_wrds(
             # Resample to month-end
             series = series.resample('ME').last()
             
-            logger.info(f"✅ WRDS: Fetched {len(series)} months of data for {target_country}")
+            logger.info(f" WRDS: Fetched {len(series)} months of data for {target_country}")
             return series
             
         except Exception as e:
@@ -465,7 +465,7 @@ def load_riskfree_from_csv(
             logger.warning(f"No data in date range for {country} from CSV")
             return None
         
-        logger.info(f"✅ Loaded risk-free rate from CSV for {country}: {len(series)} months")
+        logger.info(f" Loaded risk-free rate from CSV for {country}: {len(series)} months")
         return series
         
     except Exception as e:

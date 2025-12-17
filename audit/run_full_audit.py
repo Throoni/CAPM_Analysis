@@ -118,9 +118,9 @@ def generate_audit_report(all_results: dict, output_dir: str = None) -> str:
         f.write(f"- **Total Phases:** {len(all_results)}\n\n")
         
         if total_critical == 0:
-            f.write("✅ **No critical issues found.**\n\n")
+            f.write(" **No critical issues found.**\n\n")
         else:
-            f.write(f"⚠️ **{total_critical} critical issues require attention.**\n\n")
+            f.write(f" **{total_critical} critical issues require attention.**\n\n")
         
         # Phase-by-phase results
         f.write("## Phase-by-Phase Results\n\n")
@@ -198,7 +198,7 @@ def generate_audit_report(all_results: dict, output_dir: str = None) -> str:
                         })
         
         if len(all_critical) == 0:
-            f.write("✅ No critical issues found.\n\n")
+            f.write(" No critical issues found.\n\n")
         else:
             for issue in all_critical:
                 f.write(f"- **{issue['phase']}:** {issue['message']}\n")
@@ -444,9 +444,9 @@ def run_full_audit():
     
     report_file = generate_audit_report(all_results)
     
-    logger.info(f"\n✅ Audit complete!")
-    logger.info(f"📄 Report saved to: {report_file}")
-    logger.info(f"📋 Log file: {log_file}")
+    logger.info(f"\n Audit complete!")
+    logger.info(f" Report saved to: {report_file}")
+    logger.info(f" Log file: {log_file}")
     
     # Print summary
     total_critical = sum(

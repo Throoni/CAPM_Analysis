@@ -63,7 +63,7 @@ def validate_data_date_range(df: pd.DataFrame, file_path: str, expected_start: s
     end_diff = (expected_end_dt.year - actual_end.year) * 12 + (expected_end_dt.month - actual_end.month)
     if end_diff > 3:
         issues.append(
-            f"⚠️  DATA QUALITY ISSUE: End date is {end_diff} months before expected "
+            f"  DATA QUALITY ISSUE: End date is {end_diff} months before expected "
             f"({actual_end.strftime('%Y-%m-%d')} vs {expected_end}). "
             f"This may indicate delisting or data availability issues."
         )
@@ -224,7 +224,7 @@ def collect_prices_by_country():
                 logger.warning(f"    - {detail}")
         logger.warning(f"{'='*60}\n")
     else:
-        logger.info("\n✅ All downloaded files have complete date ranges within expected parameters.")
+        logger.info("\n All downloaded files have complete date ranges within expected parameters.")
 
 
 def download_exchange_rates(base_currency: str, target_currency: str = "EUR") -> bool:
@@ -290,7 +290,7 @@ def download_exchange_rates(base_currency: str, target_currency: str = "EUR") ->
             f"{base_currency}_{target_currency}.csv"
         )
         output_df.to_csv(output_file, index=False)
-        logger.info(f"✅ Saved: {output_file}")
+        logger.info(f" Saved: {output_file}")
         logger.info(f"  Rows: {len(output_df)}, Date range: {rates.index.min()} to {rates.index.max()}")
         logger.info(f"  Rate range: [{rates.min():.4f}, {rates.max():.4f}]")
         
@@ -353,7 +353,7 @@ def collect_msci_europe_index():
                 logger.warning(f"  - {issue}")
             return False
         
-        logger.info("✅ MSCI Europe index data collection completed successfully")
+        logger.info(" MSCI Europe index data collection completed successfully")
         return True
         
     except Exception as e:

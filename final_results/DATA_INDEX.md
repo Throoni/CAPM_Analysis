@@ -4,7 +4,7 @@
 
 ---
 
-## 📊 Data Files (70 files)
+##  Data Files (70 files)
 
 ### Core Results
 
@@ -74,7 +74,7 @@
 
 ---
 
-## 📈 Figures (29 files)
+##  Figures (29 files)
 
 ### Main Figures
 
@@ -116,7 +116,7 @@
 
 ---
 
-## 📋 Documentation (5 files)
+##  Documentation (5 files)
 
 | Document | Description | Lines |
 |----------|-------------|-------|

@@ -9,21 +9,21 @@
 - **Missing risk-free rate files**: Same as above
 - **Status**: These are informational warnings, not code issues
 
-### 2. Code Quality Warnings (Fixed ✅)
-- ✅ **Unused imports**: Removed unused imports from:
+### 2. Code Quality Warnings (Fixed )
+-  **Unused imports**: Removed unused imports from:
   - `analysis/core/capm_regression.py` (COUNTRIES, RESULTS_FIGURES_CAPM_DIR)
   - `analysis/core/fama_macbeth.py` (RESULTS_FIGURES_FM_DIR)
   - `analysis/core/returns_processing.py` (numpy, MSCI_EUROPE_TICKER, Optional)
   - `analysis/core/market_proxy_evaluation.py` (unused imports)
 
-- ✅ **Unused variables**: Fixed unused variables:
+-  **Unused variables**: Fixed unused variables:
   - `fig` variables (replaced with `_` where not needed)
   - `country_summary` (replaced with `_`)
   - `avg_coefs` (replaced with `_`)
   - `rates_month_end`, `german_dates_month_end`, `exchange_rates_month_end` (removed)
   - `slope`, `intercept`, `p_value`, `std_err` in market_proxy_evaluation (replaced with `_`)
 
-- ✅ **Unused function arguments**: Documented in robustness_checks.py:
+-  **Unused function arguments**: Documented in robustness_checks.py:
   - `country_results` - kept for API consistency
   - `clean_sample_comparison` - kept for API consistency
 
@@ -64,14 +64,14 @@
 **Conclusion**: All `iterrows()` usage is either necessary (API calls) or acceptable (small DataFrames). No performance issues.
 
 ### 2. Vectorization Status
-- ✅ Most operations already use vectorized pandas operations
-- ✅ `.apply()`, `.map()`, `.groupby()` used appropriately
-- ✅ No unnecessary loops found
+-  Most operations already use vectorized pandas operations
+-  `.apply()`, `.map()`, `.groupby()` used appropriately
+-  No unnecessary loops found
 
 ### 3. Memory Optimization
-- ✅ DataFrames are properly managed
-- ✅ No memory leaks identified
-- ✅ Efficient use of `.copy()` where needed
+-  DataFrames are properly managed
+-  No memory leaks identified
+-  Efficient use of `.copy()` where needed
 
 ## Optimization Opportunities (Low Priority)
 
@@ -95,7 +95,7 @@
 
 ## Summary
 
-### Fixed Issues ✅
+### Fixed Issues 
 - All unused imports removed
 - All unused variables fixed
 - Code quality warnings addressed
@@ -106,9 +106,9 @@
 - **Code structure**: Low priority (long functions acceptable for report generation)
 
 ### Performance Status
-- ✅ **Already optimized**: Most operations use vectorized pandas
-- ✅ **iterrows() usage**: Necessary or acceptable
-- ✅ **No bottlenecks**: Code runs efficiently
+-  **Already optimized**: Most operations use vectorized pandas
+-  **iterrows() usage**: Necessary or acceptable
+-  **No bottlenecks**: Code runs efficiently
 
 ### Optimization Opportunities
 - **Low priority**: Function refactoring, caching, parallelization
@@ -116,11 +116,11 @@
 
 ## Conclusion
 
-**Code Quality**: ✅ Excellent
+**Code Quality**:  Excellent
 - All fixable warnings addressed
 - Remaining warnings are expected or informational
 
-**Performance**: ✅ Optimized
+**Performance**:  Optimized
 - Vectorized operations used where possible
 - iterrows() only where necessary
 - No performance bottlenecks

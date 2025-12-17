@@ -29,10 +29,10 @@ We tested whether the Capital Asset Pricing Model (CAPM) works in European stock
 
 **Good News:** The European stock market indexes we analyzed are already in US dollars. This means:
 
-- ✅ No currency conversion needed
-- ✅ No need to worry about exchange rates
-- ✅ Easy to buy and sell (trade on US exchanges)
-- ✅ Simple portfolio management
+-  No currency conversion needed
+-  No need to worry about exchange rates
+-  Easy to buy and sell (trade on US exchanges)
+-  Simple portfolio management
 
 **How to Invest:** Use iShares ETFs that trade in USD:
 - EWG (Germany), EWQ (France), EWI (Italy), EWP (Spain)

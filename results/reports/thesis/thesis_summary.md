@@ -88,31 +88,31 @@
 
 **France:**
 - γ₁ = -2.4455 (t=-1.962)
-- ✅ Significant
+-  Significant
 
 **Germany:**
 - γ₁ = -0.2331 (t=-0.215)
-- ❌ Not significant
+-  Not significant
 
 **Italy:**
 - γ₁ = 0.1413 (t=0.087)
-- ❌ Not significant
+-  Not significant
 
 **Spain:**
 - γ₁ = 0.1405 (t=0.117)
-- ❌ Not significant
+-  Not significant
 
 **Sweden:**
 - γ₁ = -2.4246 (t=-1.881)
-- ❌ Not significant
+-  Not significant
 
 **Switzerland:**
 - γ₁ = -0.6076 (t=-0.554)
-- ❌ Not significant
+-  Not significant
 
 **UnitedKingdom:**
 - γ₁ = -0.7563 (t=-0.808)
-- ❌ Not significant
+-  Not significant
 
 
 ---

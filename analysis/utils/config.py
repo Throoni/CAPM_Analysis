@@ -1,13 +1,26 @@
+"""
+Configuration Module for CAPM Analysis Project.
+
+This module provides centralized configuration for the entire CAPM analysis pipeline,
+including file system paths, analysis parameters, and country-specific settings.
+
+The analysis covers European equity markets with the following structure:
+    - Sample period: January 2018 to December 2023 (60 months)
+    - Countries: France, Germany, Italy, Netherlands, Spain, Switzerland, UK
+    - Market proxy: MSCI Europe Index
+    - Risk-free rate: German 3-month Treasury Bill (Bund)
+
+References
+----------
+Fama, E. F., & MacBeth, J. D. (1973). Risk, Return, and Equilibrium: 
+    Empirical Tests. Journal of Political Economy, 81(3), 607-636.
+
+Sharpe, W. F. (1964). Capital Asset Prices: A Theory of Market Equilibrium
+    under Conditions of Risk. The Journal of Finance, 19(3), 425-442.
+"""
+
 import os
 from dataclasses import dataclass
-
-"""
-config.py
-
-Central configuration for paths and global analysis parameters.
-Stage 1: file system + high-level settings.
-Later stages will extend this with tickers, indices, and RF proxies.
-"""
 
 
 # -------------------------------------------------------------------

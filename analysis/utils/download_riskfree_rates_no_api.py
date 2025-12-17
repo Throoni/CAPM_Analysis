@@ -155,7 +155,7 @@ def test_fred_series_id(series_id: str, start_date: str, end_date: str) -> Optio
                     series = df.set_index('date')['value']
                     series.name = 'riskfree_rate'
                     
-                    logger.info(f"✅ Found working series: {series_id}")
+                    logger.info(f" Found working series: {series_id}")
                     logger.info(f"   URL: {url}")
                     logger.info(f"   Data points: {len(series)}")
                     logger.info(f"   Date range: {series.index.min()} to {series.index.max()}")
@@ -259,7 +259,7 @@ def scrape_alternative_source(country: str, start_date: str, end_date: str) -> O
         return te_data
     
     # If no alternative source works, provide instructions
-    logger.warning(f"⚠️  No alternative source available for {country}")
+    logger.warning(f"  No alternative source available for {country}")
     logger.info("Manual data download required from:")
     if country == "Germany":
         logger.info("  - Bundesbank: https://www.bundesbank.de/en/statistics/money-and-capital-markets")
@@ -318,13 +318,13 @@ def find_fred_series_id(country: str, start_date: str, end_date: str) -> Optiona
         if result:
             return result
     
-    logger.warning(f"❌ No working FRED series ID found for {country}")
+    logger.warning(f" No working FRED series ID found for {country}")
     
     # Try alternative source as fallback
     logger.info(f"Trying alternative data source for {country}...")
     alt_series = scrape_alternative_source(country, start_date, end_date)
     if alt_series is not None:
-        logger.info(f"✅ Found data from alternative source for {country}")
+        logger.info(f" Found data from alternative source for {country}")
         return (alt_series, "alternative_source")
     
     return None
@@ -387,7 +387,7 @@ def download_fred_series(series_id: str, url: str, start_date: str, end_date: st
     # Resample to month-end if needed
     series_monthly = series_monthly.resample('ME').last()
     
-    logger.info(f"✅ Processed {len(series_monthly)} months of data")
+    logger.info(f" Processed {len(series_monthly)} months of data")
     logger.info(f"   Rate range: {series_monthly.min():.4f}% to {series_monthly.max():.4f}%")
     
     return series_monthly
@@ -477,9 +477,9 @@ def download_and_merge_riskfree_rates() -> pd.DataFrame:
         country_rates["Germany"] = (series, url)
         # Save to raw data
         series.to_csv(os.path.join(DATA_RAW_DIR, "riskfree_rate_Germany.csv"))
-        logger.info(f"✅ Saved German rate to data/raw/riskfree_rate_Germany.csv")
+        logger.info(f" Saved German rate to data/raw/riskfree_rate_Germany.csv")
     else:
-        logger.warning("⚠️  German Bund rate not found in FRED - EUR countries will need alternative source")
+        logger.warning("  German Bund rate not found in FRED - EUR countries will need alternative source")
     
     # All countries use German Bund rate (EUR)
     # Since all stock returns and market returns are converted to EUR,
@@ -498,7 +498,7 @@ def download_and_merge_riskfree_rates() -> pd.DataFrame:
     german_rate = None
     if "Germany" in country_rates:
         german_rate = country_rates["Germany"][0]
-        logger.info(f"✅ German Bund rate: {len(german_rate)} months")
+        logger.info(f" German Bund rate: {len(german_rate)} months")
     
     if german_rate is None:
         raise ValueError("German Bund rate not found - required for all countries")
@@ -506,7 +506,7 @@ def download_and_merge_riskfree_rates() -> pd.DataFrame:
     # All countries use German Bund rate
     for country in COUNTRIES.keys():
         country_to_rate[country] = german_rate
-        logger.info(f"✅ {country}: Using German Bund rate ({len(german_rate)} months)")
+        logger.info(f" {country}: Using German Bund rate ({len(german_rate)} months)")
     
     if not country_to_rate:
         raise ValueError("No risk-free rates found for any country!")
@@ -518,7 +518,7 @@ def download_and_merge_riskfree_rates() -> pd.DataFrame:
         raise FileNotFoundError(f"Returns panel not found: {panel_path}")
     
     panel = pd.read_csv(panel_path, parse_dates=['date'])
-    logger.info(f"✅ Loaded panel: {len(panel):,} rows")
+    logger.info(f" Loaded panel: {len(panel):,} rows")
     
     # Step 4: Merge risk-free rates
     logger.info("\nStep 4: Merging risk-free rates with panel...")
@@ -534,7 +534,7 @@ def download_and_merge_riskfree_rates() -> pd.DataFrame:
             })
     
     rf_mapping = pd.DataFrame(rf_mapping_list)
-    logger.info(f"✅ Created mapping: {len(rf_mapping)} rows")
+    logger.info(f" Created mapping: {len(rf_mapping)} rows")
     
     # Convert panel dates to month-end for matching
     panel['date_month_end'] = pd.to_datetime(panel['date']).dt.to_period('M').dt.to_timestamp('M')
@@ -570,7 +570,7 @@ def download_and_merge_riskfree_rates() -> pd.DataFrame:
     output_path = os.path.join(DATA_PROCESSED_DIR, "returns_panel_with_real_rates.csv")
     logger.info(f"\nStep 6: Saving merged panel to: {output_path}")
     panel_merged.to_csv(output_path, index=False)
-    logger.info(f"✅ Saved {len(panel_merged):,} rows")
+    logger.info(f" Saved {len(panel_merged):,} rows")
     
     return panel_merged
 
@@ -592,13 +592,13 @@ def verify_results(panel: pd.DataFrame) -> None:
     print("VERIFICATION: Merged Panel with Real Risk-Free Rates")
     print("="*70)
     
-    print(f"\n📊 Panel Summary:")
+    print(f"\n Panel Summary:")
     print(f"   Total rows: {len(panel):,}")
     print(f"   Countries: {panel['country'].nunique()}")
     print(f"   Stocks: {panel['ticker'].nunique()}")
     print(f"   Date range: {panel['date'].min()} to {panel['date'].max()}")
     
-    print(f"\n📈 Risk-Free Rates by Country:")
+    print(f"\n Risk-Free Rates by Country:")
     for country in sorted(panel['country'].unique()):
         country_data = panel[panel['country'] == country]
         rf_rates = country_data['riskfree_rate'].dropna()
@@ -606,9 +606,9 @@ def verify_results(panel: pd.DataFrame) -> None:
             print(f"   {country:15s}: {rf_rates.min():.4f}% to {rf_rates.max():.4f}% (mean: {rf_rates.mean():.4f}%)")
             print(f"                  Coverage: {len(rf_rates)}/{len(country_data)} rows ({len(rf_rates)/len(country_data)*100:.1f}%)")
         else:
-            print(f"   {country:15s}: ⚠️  No data")
+            print(f"   {country:15s}:   No data")
     
-    print(f"\n✅ Data Quality:")
+    print(f"\n Data Quality:")
     missing_rf = panel['riskfree_rate'].isna().sum()
     missing_excess = panel[['stock_excess_return', 'market_excess_return']].isna().sum().sum()
     
@@ -616,9 +616,9 @@ def verify_results(panel: pd.DataFrame) -> None:
     print(f"   Missing excess returns: {missing_excess}")
     
     if missing_rf == 0 and missing_excess == 0:
-        print("   ✅ No missing values!")
+        print("    No missing values!")
     else:
-        print("   ⚠️  Some missing values detected")
+        print("     Some missing values detected")
     
     print("\n" + "="*70)
 
@@ -631,7 +631,7 @@ if __name__ == "__main__":
         # Verify
         verify_results(merged_panel)
         
-        print("\n✅ Successfully downloaded and merged real risk-free rates!")
+        print("\n Successfully downloaded and merged real risk-free rates!")
         print(f"   Output: {DATA_PROCESSED_DIR}/returns_panel_with_real_rates.csv")
         
     except Exception as e:

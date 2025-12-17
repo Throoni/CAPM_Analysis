@@ -74,7 +74,7 @@ def validate_sharpe_ratios():
             results['passed_checks'].append(f"{portfolio}: Formula correct")
     
     if all_formulas_correct:
-        logger.info("\n✓ All Sharpe ratio formulas are correct!")
+        logger.info("\n All Sharpe ratio formulas are correct!")
     
     # Check 2: Reasonableness of values
     logger.info("\n" + "="*70)
@@ -180,9 +180,9 @@ def validate_sharpe_ratios():
     logger.info(f"Critical issues: {len(results['critical_issues'])}")
     
     if len(results['critical_issues']) == 0:
-        logger.info("\n✓ No critical issues found!")
+        logger.info("\n No critical issues found!")
     else:
-        logger.error("\n✗ Critical issues found - review required")
+        logger.error("\n Critical issues found - review required")
     
     return results
 

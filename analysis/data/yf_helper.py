@@ -163,7 +163,7 @@ def _download_single_ticker(
     
     if months_diff > 3:
         logger.warning(
-            f"⚠️  DATA QUALITY WARNING for {ticker}: "
+            f"  DATA QUALITY WARNING for {ticker}: "
             f"Data ends at {actual_end.strftime('%Y-%m-%d')}, "
             f"expected until {expected_end.strftime('%Y-%m-%d')} "
             f"({months_diff} months early). This may indicate delisting or data issues."

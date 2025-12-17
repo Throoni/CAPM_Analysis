@@ -144,7 +144,7 @@ def find_minimum_variance_portfolio(
         
         # Verify constraint satisfaction
         if np.any(weights < -1e-8):
-            logger.warning("  ⚠️  Negative weights detected, clipping to 0")
+            logger.warning("    Negative weights detected, clipping to 0")
             weights = np.maximum(weights, 0)
             weights = weights / np.sum(weights)
     else:
@@ -283,7 +283,7 @@ def calculate_efficient_frontier(
                         weights = np.ones(n) / n
                     
                     if np.any(weights < -1e-8):
-                        logger.warning(f"  ⚠️  Negative weights at target return {target_return:.4f}%, clipping")
+                        logger.warning(f"    Negative weights at target return {target_return:.4f}%, clipping")
                         weights = np.maximum(weights, 0)
                         weights = weights / np.sum(weights)
                 else:
@@ -479,7 +479,7 @@ def plot_efficient_frontier(
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     
-    logger.info(f"✅ Saved efficient frontier plot: {output_path}")
+    logger.info(f" Saved efficient frontier plot: {output_path}")
 
 
 def calculate_expected_returns_and_covariance(panel_df: pd.DataFrame) -> Tuple[pd.Series, pd.DataFrame]:
@@ -760,12 +760,12 @@ def main():
     
     results_file_constrained = os.path.join(RESULTS_PORTFOLIO_LONG_ONLY_DIR, "portfolio_optimization_results.csv")
     results_constrained.to_csv(results_file_constrained, index=False)
-    logger.info(f"✅ Saved constrained results: {results_file_constrained}")
+    logger.info(f" Saved constrained results: {results_file_constrained}")
     
     # Save frontier data
     frontier_file_constrained = os.path.join(RESULTS_PORTFOLIO_LONG_ONLY_DIR, "efficient_frontier.csv")
     frontier_df_constrained.to_csv(frontier_file_constrained, index=False)
-    logger.info(f"✅ Saved constrained frontier data: {frontier_file_constrained}")
+    logger.info(f" Saved constrained frontier data: {frontier_file_constrained}")
     
     # Plot - Constrained (No Short-Selling)
     plot_path_constrained = os.path.join(RESULTS_FIGURES_DIR, "portfolio", "efficient_frontier_no_shortselling.png")
@@ -843,12 +843,12 @@ def main():
     
     results_file_unconstrained = os.path.join(RESULTS_PORTFOLIO_SHORT_SELLING_DIR, "portfolio_optimization_results.csv")
     results_unconstrained.to_csv(results_file_unconstrained, index=False)
-    logger.info(f"✅ Saved unconstrained results: {results_file_unconstrained}")
+    logger.info(f" Saved unconstrained results: {results_file_unconstrained}")
     
     # Save frontier data
     frontier_file_unconstrained = os.path.join(RESULTS_PORTFOLIO_SHORT_SELLING_DIR, "efficient_frontier.csv")
     frontier_df_unconstrained.to_csv(frontier_file_unconstrained, index=False)
-    logger.info(f"✅ Saved unconstrained frontier data: {frontier_file_unconstrained}")
+    logger.info(f" Saved unconstrained frontier data: {frontier_file_unconstrained}")
     
     # Plot - Unconstrained (Short-Selling Allowed)
     plot_path_unconstrained = os.path.join(RESULTS_FIGURES_DIR, "portfolio", "efficient_frontier_with_shortselling.png")
@@ -869,19 +869,19 @@ def main():
     logger.info("="*70)
     logger.info("EFFICIENT FRONTIER GENERATION COMPLETE")
     logger.info("="*70)
-    logger.info(f"✅ No Short-Selling frontier: {plot_path_constrained}")
-    logger.info(f"✅ Short-Selling Allowed frontier: {plot_path_unconstrained}")
+    logger.info(f" No Short-Selling frontier: {plot_path_constrained}")
+    logger.info(f" Short-Selling Allowed frontier: {plot_path_unconstrained}")
     
     # Print summary
     print("\n" + "="*70)
     print("EFFICIENT FRONTIER RESULTS")
     print("="*70)
-    print("\n📊 NO SHORT-SELLING (Long-Only, Constrained):")
+    print("\n NO SHORT-SELLING (Long-Only, Constrained):")
     print(f"   Minimum-Variance: Return={min_var_return_constrained:.4f}%, Vol={min_var_vol_constrained:.4f}%")
     print(f"   Tangency: Return={tangency_return_constrained:.4f}%, Vol={tangency_vol_constrained:.4f}%")
     print(f"   Sharpe Ratio: {sharpe_constrained:.4f}")
     print(f"   Plot: {plot_path_constrained}")
-    print("\n📊 SHORT-SELLING ALLOWED (Unconstrained):")
+    print("\n SHORT-SELLING ALLOWED (Unconstrained):")
     print(f"   Minimum-Variance: Return={min_var_return_unconstrained:.4f}%, Vol={min_var_vol_unconstrained:.4f}%")
     print(f"   Tangency: Return={tangency_return_unconstrained:.4f}%, Vol={tangency_vol_unconstrained:.4f}%")
     print(f"   Sharpe Ratio: {sharpe_unconstrained:.4f}")

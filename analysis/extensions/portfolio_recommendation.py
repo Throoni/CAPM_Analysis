@@ -370,7 +370,7 @@ def run_portfolio_recommendation() -> Dict:
     with open(legacy_report, 'w') as f:
         f.write(report)
     
-    logger.info(f"✅ Saved: {report_file}")
+    logger.info(f" Saved: {report_file}")
     
     # Print summary
     print("\n" + "="*70)

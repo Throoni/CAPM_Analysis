@@ -1,16 +1,31 @@
 """
-fama_macbeth.py
+Fama-MacBeth Cross-Sectional Regression Module.
 
-Stage 5: Fama-MacBeth Cross-Sectional CAPM Test
+This module implements the Fama-MacBeth (1973) two-pass regression methodology
+to test whether beta explains cross-sectional variation in expected returns.
 
-Implements the Fama-MacBeth (1973) two-pass regression methodology to test CAPM cross-sectionally.
-Tests whether beta explains cross-sectional variation in stock returns.
+The methodology consists of two passes:
 
-Methodology:
-1. First pass: Time-series regressions (already done in Stage 4) → get betas
-2. Second pass: Monthly cross-sectional regressions → R_{i,t} = γ_{0,t} + γ_{1,t} * β_i + u_{i,t}
-3. Average coefficients across months
-4. Compute Fama-MacBeth t-statistics
+    Pass 1 (Time-Series): For each stock i, estimate beta from:
+        R_i,t - R_f = alpha_i + beta_i * (R_m,t - R_f) + epsilon_i,t
+
+    Pass 2 (Cross-Sectional): For each month t, regress returns on betas:
+        R_i,t = gamma_0,t + gamma_1,t * beta_i + u_i,t
+
+The key test statistic is the time-series average of gamma_1,t coefficients:
+    - If gamma_1 > 0 and significant: Higher beta stocks earn higher returns (CAPM holds)
+    - If gamma_0 is significantly different from R_f: Abnormal returns exist
+
+The standard errors are computed using the Fama-MacBeth approach:
+    SE(gamma) = std(gamma_t) / sqrt(T)
+
+This accounts for cross-sectional correlation in returns by using the time-series
+variation of the monthly coefficients.
+
+References
+----------
+Fama, E. F., & MacBeth, J. D. (1973). Risk, Return, and Equilibrium: 
+    Empirical Tests. Journal of Political Economy, 81(3), 607-636.
 """
 
 import os
@@ -213,7 +228,7 @@ def run_monthly_cross_sectional_regressions(
     
     monthly_coefs_df = pd.DataFrame(monthly_results)
     
-    logger.info(f"\n✅ Completed {len(monthly_coefs_df)} monthly regressions")
+    logger.info(f"\n Completed {len(monthly_coefs_df)} monthly regressions")
     logger.info(f"   Average stocks per month: {monthly_coefs_df['n_stocks'].mean():.1f}")
     logger.info(f"   Average gamma_1: {monthly_coefs_df['gamma_1'].mean():.4f}")
     logger.info(f"   Average gamma_0: {monthly_coefs_df['gamma_0'].mean():.4f}")
@@ -330,13 +345,13 @@ def compute_fama_macbeth_tstats(monthly_coefs_df: pd.DataFrame) -> Dict:
     logger.info(f"  SE: {se_gamma_1:.4f}")
     logger.info(f"  t-stat: {tstat_gamma_1:.3f}")
     logger.info(f"  p-value: {pvalue_gamma_1:.4f}")
-    logger.info(f"  {'✅ Significant' if abs(tstat_gamma_1) > 1.96 and pvalue_gamma_1 < 0.05 else '❌ Not significant'} (5% level)")
+    logger.info(f"  {' Significant' if abs(tstat_gamma_1) > 1.96 and pvalue_gamma_1 < 0.05 else ' Not significant'} (5% level)")
     
     logger.info(f"\nAverage gamma_0: {avg_gamma_0:.4f}")
     logger.info(f"  SE: {se_gamma_0:.4f}")
     logger.info(f"  t-stat: {tstat_gamma_0:.3f}")
     logger.info(f"  p-value: {pvalue_gamma_0:.4f}")
-    logger.info(f"  {'✅ Significant' if abs(tstat_gamma_0) > 1.96 and pvalue_gamma_0 < 0.05 else '❌ Not significant'} (5% level)")
+    logger.info(f"  {' Significant' if abs(tstat_gamma_0) > 1.96 and pvalue_gamma_0 < 0.05 else ' Not significant'} (5% level)")
     
     return results
 
@@ -390,7 +405,7 @@ def create_fama_macbeth_visualizations(
     legacy_gamma1_ts = os.path.join(RESULTS_FIGURES_DIR, "gamma1_timeseries.png")
     shutil.copy2(gamma1_ts_path, legacy_gamma1_ts)
     plt.close()
-    logger.info("✅ Saved: gamma1_timeseries.png")
+    logger.info(" Saved: gamma1_timeseries.png")
     
     # 2. Histogram of gamma_1
     logger.info("Creating histogram of gamma_1...")
@@ -412,7 +427,7 @@ def create_fama_macbeth_visualizations(
     legacy_gamma1_hist = os.path.join(RESULTS_FIGURES_DIR, "gamma1_histogram.png")
     shutil.copy2(gamma1_hist_path, legacy_gamma1_hist)
     plt.close()
-    logger.info("✅ Saved: gamma1_histogram.png")
+    logger.info(" Saved: gamma1_histogram.png")
     
     # 3. Beta vs Average Return Scatter
     logger.info("Creating beta vs return scatter plot...")
@@ -449,7 +464,7 @@ def create_fama_macbeth_visualizations(
     legacy_beta_return = os.path.join(RESULTS_FIGURES_DIR, "beta_vs_return_scatter.png")
     shutil.copy2(beta_return_path, legacy_beta_return)
     plt.close()
-    logger.info("✅ Saved: beta_vs_return_scatter.png")
+    logger.info(" Saved: beta_vs_return_scatter.png")
     
     # 4. Cross-country summary (optional)
     logger.info("Creating cross-country summary...")
@@ -488,9 +503,9 @@ def create_fama_macbeth_visualizations(
     legacy_fm_country = os.path.join(RESULTS_FIGURES_DIR, "fama_macbeth_by_country.png")
     shutil.copy2(fm_country_path, legacy_fm_country)
     plt.close()
-    logger.info("✅ Saved: fama_macbeth_by_country.png")
+    logger.info(" Saved: fama_macbeth_by_country.png")
     
-    logger.info("\n✅ All visualizations created successfully")
+    logger.info("\n All visualizations created successfully")
 
 
 # -------------------------------------------------------------------
@@ -524,7 +539,7 @@ def generate_fama_macbeth_report(
     # Also save to legacy location
     legacy_monthly = os.path.join(RESULTS_REPORTS_DIR, "fama_macbeth_monthly_coefficients.csv")
     monthly_coefs_df.to_csv(legacy_monthly, index=False)
-    logger.info(f"✅ Saved: {monthly_path}")
+    logger.info(f" Saved: {monthly_path}")
     
     # 2. Summary statistics - save to new organized structure
     summary_df = pd.DataFrame([tstats])
@@ -533,7 +548,7 @@ def generate_fama_macbeth_report(
     # Also save to legacy location
     legacy_summary = os.path.join(RESULTS_REPORTS_DIR, "fama_macbeth_summary.csv")
     summary_df.to_csv(legacy_summary, index=False)
-    logger.info(f"✅ Saved: {summary_path}")
+    logger.info(f" Saved: {summary_path}")
     
     # 3. Beta vs average returns - save to new organized structure
     beta_returns_path = os.path.join(RESULTS_CAPM_CROSSSECTIONAL_DIR, "beta_returns.csv")
@@ -541,9 +556,9 @@ def generate_fama_macbeth_report(
     # Also save to legacy location
     legacy_beta_returns = os.path.join(RESULTS_REPORTS_DIR, "fama_macbeth_beta_returns.csv")
     beta_avg_returns_df.to_csv(legacy_beta_returns, index=False)
-    logger.info(f"✅ Saved: {beta_returns_path}")
+    logger.info(f" Saved: {beta_returns_path}")
     
-    logger.info("\n✅ All reports generated successfully")
+    logger.info("\n All reports generated successfully")
 
 
 # -------------------------------------------------------------------
@@ -598,38 +613,38 @@ def run_fama_macbeth_test() -> Tuple[pd.DataFrame, Dict, pd.DataFrame]:
     print("\n" + "="*70)
     print("FAMA-MACBETH TEST COMPLETE")
     print("="*70)
-    print(f"\n📊 Results Summary:")
+    print(f"\n Results Summary:")
     print(f"   Number of months: {tstats['n_months']}")
     print(f"   Average stocks per month: {monthly_coefs_df['n_stocks'].mean():.1f}")
     
-    print(f"\n📈 Market Price of Risk (gamma_1):")
+    print(f"\n Market Price of Risk (gamma_1):")
     print(f"   Average: {tstats['avg_gamma_1']:.4f}")
     print(f"   Standard Error: {tstats['se_gamma_1']:.4f}")
     print(f"   t-statistic: {tstats['tstat_gamma_1']:.3f}")
     print(f"   p-value: {tstats['pvalue_gamma_1']:.4f}")
     
     if abs(tstats['tstat_gamma_1']) > 1.96 and tstats['pvalue_gamma_1'] < 0.05:
-        print(f"   ✅ SIGNIFICANT at 5% level → CAPM VALIDATED")
+        print(f"    SIGNIFICANT at 5% level → CAPM VALIDATED")
         print(f"      Higher beta → Higher return (as predicted by CAPM)")
     else:
-        print(f"   ❌ NOT SIGNIFICANT at 5% level → CAPM REJECTED")
+        print(f"    NOT SIGNIFICANT at 5% level → CAPM REJECTED")
         print(f"      Beta does not explain cross-sectional variation in returns")
     
-    print(f"\n📉 Intercept (gamma_0):")
+    print(f"\n Intercept (gamma_0):")
     print(f"   Average: {tstats['avg_gamma_0']:.4f}")
     print(f"   Standard Error: {tstats['se_gamma_0']:.4f}")
     print(f"   t-statistic: {tstats['tstat_gamma_0']:.3f}")
     print(f"   p-value: {tstats['pvalue_gamma_0']:.4f}")
     
     if abs(tstats['tstat_gamma_0']) < 1.96 or tstats['pvalue_gamma_0'] >= 0.05:
-        print(f"   ✅ NOT SIGNIFICANT → No abnormal return (CAPM well-specified)")
+        print(f"    NOT SIGNIFICANT → No abnormal return (CAPM well-specified)")
     else:
         if tstats['avg_gamma_0'] > 0:
-            print(f"   ⚠️  SIGNIFICANT POSITIVE → CAPM under-predicts returns")
+            print(f"     SIGNIFICANT POSITIVE → CAPM under-predicts returns")
         else:
-            print(f"   ⚠️  SIGNIFICANT NEGATIVE → CAPM over-predicts returns")
+            print(f"     SIGNIFICANT NEGATIVE → CAPM over-predicts returns")
     
-    print(f"\n📁 Output Files:")
+    print(f"\n Output Files:")
     print(f"   Monthly coefficients: {os.path.join(RESULTS_REPORTS_DIR, 'fama_macbeth_monthly_coefficients.csv')}")
     print(f"   Summary: {os.path.join(RESULTS_REPORTS_DIR, 'fama_macbeth_summary.csv')}")
     print(f"   Beta vs Returns: {os.path.join(RESULTS_REPORTS_DIR, 'fama_macbeth_beta_returns.csv')}")

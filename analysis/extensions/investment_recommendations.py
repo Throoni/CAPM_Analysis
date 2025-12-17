@@ -39,49 +39,49 @@ def load_all_results() -> Dict:
     capm_file = os.path.join(RESULTS_DATA_DIR, "capm_results.csv")
     if os.path.exists(capm_file):
         results['capm'] = pd.read_csv(capm_file)
-        logger.info(f"  ✅ Loaded CAPM results: {len(results['capm'])} stocks")
+        logger.info(f"   Loaded CAPM results: {len(results['capm'])} stocks")
     else:
-        logger.warning("  ⚠️  CAPM results not found")
+        logger.warning("    CAPM results not found")
     
     # Fama-MacBeth Results
     fm_file = os.path.join(RESULTS_REPORTS_DATA_DIR, "fama_macbeth_summary.csv")
     if os.path.exists(fm_file):
         results['fama_macbeth'] = pd.read_csv(fm_file)
-        logger.info("  ✅ Loaded Fama-MacBeth results")
+        logger.info("   Loaded Fama-MacBeth results")
     else:
-        logger.warning("  ⚠️  Fama-MacBeth results not found")
+        logger.warning("    Fama-MacBeth results not found")
     
     # Beta-Sorted Portfolios
     portfolios_file = os.path.join(RESULTS_REPORTS_DATA_DIR, "beta_sorted_portfolios.csv")
     if os.path.exists(portfolios_file):
         results['portfolios'] = pd.read_csv(portfolios_file)
-        logger.info("  ✅ Loaded portfolio results")
+        logger.info("   Loaded portfolio results")
     else:
-        logger.warning("  ⚠️  Portfolio results not found")
+        logger.warning("    Portfolio results not found")
     
     # Portfolio Optimization
     opt_file = os.path.join(RESULTS_REPORTS_DATA_DIR, "portfolio_optimization_results.csv")
     if os.path.exists(opt_file):
         results['optimization'] = pd.read_csv(opt_file)
-        logger.info("  ✅ Loaded optimization results")
+        logger.info("   Loaded optimization results")
     else:
-        logger.warning("  ⚠️  Optimization results not found")
+        logger.warning("    Optimization results not found")
     
     # Value Effects
     value_file = os.path.join(RESULTS_REPORTS_DATA_DIR, "value_effects_test_results.csv")
     if os.path.exists(value_file):
         results['value_effects'] = pd.read_csv(value_file)
-        logger.info("  ✅ Loaded value effects results")
+        logger.info("   Loaded value effects results")
     else:
-        logger.warning("  ⚠️  Value effects results not found")
+        logger.warning("    Value effects results not found")
     
     # Diversification Benefits
     div_file = os.path.join(RESULTS_REPORTS_DATA_DIR, "diversification_benefits.csv")
     if os.path.exists(div_file):
         results['diversification'] = pd.read_csv(div_file)
-        logger.info("  ✅ Loaded diversification results")
+        logger.info("   Loaded diversification results")
     else:
-        logger.warning("  ⚠️  Diversification results not found")
+        logger.warning("    Diversification results not found")
     
     return results
 
@@ -805,7 +805,7 @@ def run_investment_recommendations() -> Dict:
     with open(legacy_report, 'w') as f:
         f.write(report)
     
-    logger.info(f"✅ Saved: {report_file}")
+    logger.info(f" Saved: {report_file}")
     
     # Print summary
     print("\n" + "="*70)

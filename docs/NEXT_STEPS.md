@@ -1,6 +1,6 @@
 # Next Steps - CAPM Analysis Project
 
-## Current Status ✅
+## Current Status 
 
 - **Audit System:** Complete (24 modules, ~98% coverage)
 - **Tests:** 10/10 passing
@@ -9,7 +9,7 @@
 
 ---
 
-## 🔴 Priority 1: Address Critical Issues (4)
+##  Priority 1: Address Critical Issues (4)
 
 ### Issue: Hardcoded Credentials
 **Location:** `analysis/wrds_helper.py` and `analysis/riskfree_helper.py`
@@ -24,7 +24,7 @@
 
 ---
 
-## ⚠️ Priority 2: Review Warnings (46 total)
+##  Priority 2: Review Warnings (46 total)
 
 ### High Priority Warnings
 1. **Code Quality Issues (14)** - Long functions, missing docstrings
@@ -40,7 +40,7 @@
 
 ---
 
-## 🚀 Priority 3: Optional Enhancements
+##  Priority 3: Optional Enhancements
 
 ### Option A: Model Improvements (Items 16-23)
 From the roadmap, these are optional but valuable:
@@ -77,12 +77,12 @@ From the roadmap, these are optional but valuable:
 
 ---
 
-## 📋 Recommended Action Plan
+##  Recommended Action Plan
 
 ### Immediate (This Week)
-1. ✅ **Fix Critical Issues** - Move credentials to environment variables
-2. ✅ **Review High-Priority Warnings** - Address code quality issues
-3. ✅ **Document Expected Warnings** - Add notes to audit report
+1.  **Fix Critical Issues** - Move credentials to environment variables
+2.  **Review High-Priority Warnings** - Address code quality issues
+3.  **Document Expected Warnings** - Add notes to audit report
 
 ### Short Term (Next 2 Weeks)
 4. **Implement 1-2 Model Improvements** - Start with cross-validation or risk decomposition
@@ -96,7 +96,7 @@ From the roadmap, these are optional but valuable:
 
 ---
 
-## 🎯 Quick Wins (Low Effort, High Value)
+##  Quick Wins (Low Effort, High Value)
 
 1. **Fix Credentials** (30 min) - Security fix
 2. **Add Pre-commit Hooks** (1 hour) - Prevent issues before commit
@@ -105,7 +105,7 @@ From the roadmap, these are optional but valuable:
 
 ---
 
-## 💡 Decision Framework
+##  Decision Framework
 
 **If you want to:**
 - **Publish/Share:** Focus on model improvements (16-23)
@@ -115,19 +115,19 @@ From the roadmap, these are optional but valuable:
 
 ---
 
-## 📊 Current Metrics
+##  Current Metrics
 
 | Metric | Current | Target | Status |
 |--------|---------|--------|--------|
-| Audit Coverage | ~98% | 95%+ | ✅ |
-| Test Pass Rate | 100% | 95%+ | ✅ |
-| Docstring Coverage | 95.6% | 80%+ | ✅ |
-| Critical Issues | 4 | 0 | 🔴 |
-| Warnings | 46 | <20 | ⚠️ |
+| Audit Coverage | ~98% | 95%+ |  |
+| Test Pass Rate | 100% | 95%+ |  |
+| Docstring Coverage | 95.6% | 80%+ |  |
+| Critical Issues | 4 | 0 |  |
+| Warnings | 46 | <20 |  |
 
 ---
 
-## 🚦 Recommended Next Step
+##  Recommended Next Step
 
 **Start with Priority 1:** Fix the 4 critical security issues (hardcoded credentials). This is:
 - Quick to fix (30-60 minutes)

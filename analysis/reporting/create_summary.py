@@ -127,7 +127,7 @@ def create_results_summary() -> str:
         summary += f"""
 **{row['country']}:**
 - γ₁ = {row['avg_gamma_1']:.4f} (t={row['tstat_gamma_1']:.3f})
-- {'✅ Significant' if abs(row['tstat_gamma_1']) > 1.96 else '❌ Not significant'}
+- {' Significant' if abs(row['tstat_gamma_1']) > 1.96 else ' Not significant'}
 """
     
     summary += f"""
@@ -187,6 +187,6 @@ if __name__ == "__main__":
     with open(summary_path, 'w', encoding='utf-8') as f:
         f.write(summary_text)
     
-    print("✅ Summary document created:")
+    print(" Summary document created:")
     print(f"   {summary_path}")
 

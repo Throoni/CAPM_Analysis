@@ -1,9 +1,32 @@
 """
-portfolio_optimization.py
+Mean-Variance Portfolio Optimization Module.
 
-Mean-variance portfolio optimization: efficient frontier, minimum-variance portfolio,
-and optimal risky portfolio (tangency portfolio).
-This addresses assignment requirement: "Illustrate investment opportunities on a mean-variance diagram."
+This module implements Markowitz (1952) mean-variance portfolio optimization
+to construct efficient frontiers and identify optimal portfolios.
+
+Key functionalities:
+    - Efficient frontier calculation (both constrained and unconstrained)
+    - Minimum-variance portfolio identification
+    - Tangency (maximum Sharpe ratio) portfolio calculation
+    - Capital Market Line construction
+    - Diversification benefit analysis
+
+Portfolio constraints:
+    - Long-only (no short-selling): w_i >= 0 for all i
+    - Short-selling allowed: -1 <= w_i <= 1 with gross exposure limits
+    - Realistic constraints: Transaction costs, borrowing costs, position limits
+
+The optimization uses scipy.optimize.minimize with SLSQP and trust-constr methods.
+Numerical stability is ensured through:
+    - Pre-computed bounds and constraints
+    - Gradient-based optimization with multiple restarts
+    - Post-optimization constraint verification
+
+References
+----------
+Markowitz, H. (1952). Portfolio Selection. The Journal of Finance, 7(1), 77-91.
+
+Sharpe, W. F. (1966). Mutual Fund Performance. Journal of Business, 39(1), 119-138.
 """
 
 import os
@@ -97,24 +120,24 @@ def validate_units(expected_returns: pd.Series, cov_matrix: pd.DataFrame, risk_f
     # Check expected returns magnitude (should be in %)
     ret_min, ret_max = expected_returns.min(), expected_returns.max()
     if abs(ret_min) > 50 or abs(ret_max) > 50:
-        logger.warning(f"⚠️  Expected returns seem large: min={ret_min:.2f}%, max={ret_max:.2f}%")
+        logger.warning(f"  Expected returns seem large: min={ret_min:.2f}%, max={ret_max:.2f}%")
         logger.warning("   If these are in decimal form (0.01 = 1%), they should be multiplied by 100")
     
     # Check risk-free rate magnitude
     if abs(risk_free_rate) > 10:
-        logger.warning(f"⚠️  Risk-free rate seems large: {risk_free_rate:.4f}%")
+        logger.warning(f"  Risk-free rate seems large: {risk_free_rate:.4f}%")
         logger.warning("   If this is in decimal form (0.01 = 1%), it should be multiplied by 100")
     
     # Check covariance diagonal (variance) magnitude
     variances = np.diag(cov_matrix.values)
     var_min, var_max = variances.min(), variances.max()
     if var_max > 1000 or var_min < 0:
-        logger.warning(f"⚠️  Variances seem unusual: min={var_min:.4f}, max={var_max:.4f}")
+        logger.warning(f"  Variances seem unusual: min={var_min:.4f}, max={var_max:.4f}")
         logger.warning("   Variances should be in %^2 (e.g., 4.0 for 2% volatility)")
     
     # Check for negative variances (should not happen)
     if np.any(variances < 0):
-        logger.error("❌ Negative variances detected in covariance matrix!")
+        logger.error(" Negative variances detected in covariance matrix!")
         raise ValueError("Covariance matrix contains negative variances")
 
 
@@ -305,7 +328,7 @@ def select_top_15_stocks_by_market_cap(panel_df: pd.DataFrame, n_stocks: int = 1
             logger.info(f"  Selected {ticker} from {country} (market cap: {market_cap:.0f}M)")
     
     selected_series = pd.Series(selected_tickers)
-    logger.info(f"✅ Selected {len(selected_series)} stocks: {', '.join(selected_series.tolist())}")
+    logger.info(f" Selected {len(selected_series)} stocks: {', '.join(selected_series.tolist())}")
     logger.info(f"  Countries represented: {len(selected_countries)}/{len(unique_countries)}")
     
     return selected_series
@@ -638,7 +661,7 @@ def find_minimum_variance_portfolio(
         
         # Verify constraint satisfaction (should be impossible after clipping, but double-check)
         if np.any(weights < -1e-8):
-            logger.warning("  ⚠️  Negative weights detected in long-only minimum-variance portfolio, clipping to 0")
+            logger.warning("    Negative weights detected in long-only minimum-variance portfolio, clipping to 0")
             weights = np.maximum(weights, 0)
             weights = weights / np.sum(weights)
     
@@ -649,7 +672,7 @@ def find_minimum_variance_portfolio(
         
         final_gross_exp = np.sum(np.abs(weights))
         if final_gross_exp > MAX_GROSS_EXPOSURE + 1e-5:
-            logger.warning(f"  ⚠️  Constraint violation after repair: gross exposure {final_gross_exp:.6f} > {MAX_GROSS_EXPOSURE}")
+            logger.warning(f"    Constraint violation after repair: gross exposure {final_gross_exp:.6f} > {MAX_GROSS_EXPOSURE}")
             # Re-optimize with repaired weights as starting point
             logger.info("  Re-optimizing with repaired weights as starting point...")
             result_retry = minimize(objective, weights, method='trust-constr', bounds=bounds, constraints=constraints,
@@ -662,7 +685,7 @@ def find_minimum_variance_portfolio(
         is_valid, violations = validate_portfolio_weights(weights, allow_short, 
                                                           max_gross=MAX_GROSS_EXPOSURE if allow_short else None)
         if not is_valid:
-            logger.warning(f"  ⚠️  Weight validation failed: {violations}")
+            logger.warning(f"    Weight validation failed: {violations}")
     
     port_return = portfolio_return(weights, expected_returns)
     port_vol = np.sqrt(portfolio_variance(weights, cov_matrix))
@@ -799,7 +822,7 @@ def find_tangency_portfolio(
         
         # Verify constraint satisfaction (should be impossible after clipping, but double-check)
         if np.any(weights < -1e-8):
-            logger.warning("  ⚠️  Negative weights detected in long-only tangency portfolio, clipping to 0")
+            logger.warning("    Negative weights detected in long-only tangency portfolio, clipping to 0")
             weights = np.maximum(weights, 0)
             weights = weights / np.sum(weights)
     
@@ -810,7 +833,7 @@ def find_tangency_portfolio(
         
         final_gross_exp = np.sum(np.abs(weights))
         if final_gross_exp > MAX_GROSS_EXPOSURE + 1e-5:
-            logger.warning(f"  ⚠️  Constraint violation after repair: gross exposure {final_gross_exp:.6f} > {MAX_GROSS_EXPOSURE}")
+            logger.warning(f"    Constraint violation after repair: gross exposure {final_gross_exp:.6f} > {MAX_GROSS_EXPOSURE}")
             # Re-optimize with repaired weights as starting point
             logger.info("  Re-optimizing tangency with repaired weights as starting point...")
             result_retry = minimize(objective, weights, method='trust-constr', bounds=bounds, constraints=constraints,
@@ -1208,7 +1231,7 @@ def find_minimum_variance_portfolio_realistic_short(
     
     if error_flags['explanations']:
         for explanation in error_flags['explanations']:
-            logger.warning(f"  ⚠️  {explanation}")
+            logger.warning(f"    {explanation}")
     
     return weights, port_return, port_vol, error_flags
 
@@ -1517,9 +1540,9 @@ def calculate_efficient_frontier_realistic_short(
     
     logger.info(f"  Efficient frontier: {len(frontier_df)} points (out of {n_points} attempted)")
     if aggregate_flags['unrealistic_volatility_count'] > 0:
-        logger.warning(f"  ⚠️  {aggregate_flags['unrealistic_volatility_count']} portfolios with unrealistic volatility")
+        logger.warning(f"    {aggregate_flags['unrealistic_volatility_count']} portfolios with unrealistic volatility")
     if aggregate_flags['optimization_failed_count'] > 0:
-        logger.warning(f"  ⚠️  {aggregate_flags['optimization_failed_count']} optimization failures")
+        logger.warning(f"    {aggregate_flags['optimization_failed_count']} optimization failures")
     
     return frontier_df, aggregate_flags
 
@@ -1739,7 +1762,7 @@ def plot_efficient_frontier(
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     
-    logger.info(f"✅ Saved: {output_path}")
+    logger.info(f" Saved: {output_path}")
     logger.info(f"  Market index distance to efficient frontier: {min_distance:.4f}")
     logger.info(f"  CAPM status: {capm_status}")
 
@@ -1889,7 +1912,7 @@ def plot_efficient_frontier_constrained_only(
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     
-    logger.info(f"✅ Saved constrained-only plot: {output_path}")
+    logger.info(f" Saved constrained-only plot: {output_path}")
     logger.info(f"  Market index distance to efficient frontier: {min_distance:.4f}")
     logger.info(f"  CAPM status: {capm_status}")
 
@@ -2012,11 +2035,11 @@ def plot_efficient_frontier_realistic_short(
     # Add error flags and explanations
     error_text = []
     if error_flags.get('unrealistic_volatility_count', 0) > 0:
-        error_text.append(f"⚠️ {error_flags['unrealistic_volatility_count']} portfolios with unrealistic volatility")
+        error_text.append(f" {error_flags['unrealistic_volatility_count']} portfolios with unrealistic volatility")
     if error_flags.get('excessive_leverage_count', 0) > 0:
-        error_text.append(f"⚠️ {error_flags['excessive_leverage_count']} portfolios with excessive leverage")
+        error_text.append(f" {error_flags['excessive_leverage_count']} portfolios with excessive leverage")
     if error_flags.get('optimization_failed_count', 0) > 0:
-        error_text.append(f"⚠️ {error_flags['optimization_failed_count']} optimization failures")
+        error_text.append(f" {error_flags['optimization_failed_count']} optimization failures")
     
     if error_text:
         error_str = '\n'.join(error_text)
@@ -2049,7 +2072,7 @@ def plot_efficient_frontier_realistic_short(
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     
-    logger.info(f"✅ Saved realistic short-selling plot: {output_path}")
+    logger.info(f" Saved realistic short-selling plot: {output_path}")
 
 
 def plot_efficient_frontier_top15_short_selling(
@@ -2131,7 +2154,7 @@ def plot_efficient_frontier_top15_short_selling(
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     
-    logger.info(f"✅ Saved top 15 stocks efficient frontier plot: {output_path}")
+    logger.info(f" Saved top 15 stocks efficient frontier plot: {output_path}")
 
 
 def run_portfolio_optimization() -> Dict:
@@ -2199,7 +2222,7 @@ def run_portfolio_optimization() -> Dict:
     
     # Warn if volatility is unrealistically low (theoretical result from short selling)
     if min_var_vol_unconstrained < 0.1 and min_var_vol_unconstrained > 0:
-        logger.warning(f"⚠️  Unconstrained minimum-variance portfolio has unrealistically low volatility ({min_var_vol_unconstrained:.6f}%)")
+        logger.warning(f"  Unconstrained minimum-variance portfolio has unrealistically low volatility ({min_var_vol_unconstrained:.6f}%)")
         logger.warning("   This is a theoretical result from short selling - not achievable in practice.")
         logger.warning("   Sharpe ratio will be set to NaN as it's not meaningful when volatility approaches zero.")
         logger.warning("   In practice, transaction costs, margin requirements, and liquidity constraints")
@@ -2322,13 +2345,13 @@ def run_portfolio_optimization() -> Dict:
     
     results_file = os.path.join(RESULTS_REPORTS_DIR, "portfolio_optimization_results.csv")
     results_df.to_csv(results_file, index=False)
-    logger.info(f"✅ Saved: {results_file}")
+    logger.info(f" Saved: {results_file}")
     
     # Save diversification metrics
     div_df = pd.DataFrame([div_benefits])
     div_file = os.path.join(RESULTS_REPORTS_DIR, "diversification_benefits.csv")
     div_df.to_csv(div_file, index=False)
-    logger.info(f"✅ Saved: {div_file}")
+    logger.info(f" Saved: {div_file}")
     
     # Save constrained-only results to separate folder (for paper)
     # This contains only economically achievable portfolios (long-only, no short-selling)
@@ -2356,7 +2379,7 @@ def run_portfolio_optimization() -> Dict:
     })
     constrained_results_file = os.path.join(RESULTS_REPORTS_CONSTRAINED_DIR, "portfolio_optimization_results.csv")
     constrained_results_df.to_csv(constrained_results_file, index=False)
-    logger.info(f"✅ Saved constrained-only results: {constrained_results_file}")
+    logger.info(f" Saved constrained-only results: {constrained_results_file}")
     
     # Plot constrained-only efficient frontier
     constrained_plot_path = os.path.join(RESULTS_FIGURES_CONSTRAINED_DIR, "efficient_frontier.png")
@@ -2469,7 +2492,7 @@ def run_portfolio_optimization() -> Dict:
     
     realistic_results_file = os.path.join(RESULTS_REPORTS_DIR, "portfolio_optimization_realistic_short.csv")
     realistic_results_df.to_csv(realistic_results_file, index=False)
-    logger.info(f"✅ Saved realistic short-selling results: {realistic_results_file}")
+    logger.info(f" Saved realistic short-selling results: {realistic_results_file}")
     
     # Plot realistic short-selling efficient frontier
     realistic_plot_path = os.path.join(RESULTS_FIGURES_DIR, "efficient_frontier_realistic_short.png")
@@ -2525,18 +2548,18 @@ def run_portfolio_optimization() -> Dict:
             try:
                 top15_tickers = future.result(timeout=30)
             except FutureTimeoutError:
-                logger.warning("⚠️  Market cap selection timed out after 30 seconds")
+                logger.warning("  Market cap selection timed out after 30 seconds")
                 logger.warning("Skipping top 15 stocks efficient frontier calculation.")
                 top15_tickers = pd.Series(dtype=str)
             finally:
                 executor.shutdown(wait=False)
         
     except (TimeoutError, KeyboardInterrupt) as e:
-        logger.warning(f"⚠️  Market cap selection timed out or was interrupted: {e}")
+        logger.warning(f"  Market cap selection timed out or was interrupted: {e}")
         logger.warning("Skipping top 15 stocks efficient frontier calculation.")
         top15_tickers = pd.Series(dtype=str)
     except Exception as e:
-        logger.warning(f"⚠️  Error selecting top 15 stocks: {e}")
+        logger.warning(f"  Error selecting top 15 stocks: {e}")
         logger.warning("Skipping top 15 stocks efficient frontier calculation.")
         top15_tickers = pd.Series(dtype=str)
     
@@ -2587,14 +2610,14 @@ def run_portfolio_optimization() -> Dict:
         })
         top15_results_file = os.path.join(RESULTS_REPORTS_DIR, "portfolio_optimization_top15_short_selling.csv")
         top15_results_df.to_csv(top15_results_file, index=False)
-        logger.info(f"✅ Saved top 15 stocks results: {top15_results_file}")
+        logger.info(f" Saved top 15 stocks results: {top15_results_file}")
         
         # Save frontier data
         top15_frontier_file = os.path.join(RESULTS_REPORTS_DIR, "efficient_frontier_top15_short_selling.csv")
         frontier_df_top15.to_csv(top15_frontier_file, index=False)
-        logger.info(f"✅ Saved top 15 stocks frontier data: {top15_frontier_file}")
+        logger.info(f" Saved top 15 stocks frontier data: {top15_frontier_file}")
         
-        logger.info("✅ Completed efficient frontier calculation for top 15 stocks with short-selling")
+        logger.info(" Completed efficient frontier calculation for top 15 stocks with short-selling")
     else:
         logger.warning("Could not select top 15 stocks. Skipping top 15 efficient frontier calculation.")
     

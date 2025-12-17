@@ -1,14 +1,26 @@
 """
-returns_processing.py
+Returns Processing Module for CAPM Analysis.
 
-Convert raw price data into monthly excess returns ready for CAPM regressions.
+This module handles the conversion of raw price data into monthly excess returns
+suitable for Capital Asset Pricing Model (CAPM) regressions.
 
-Per methodology:
-- Returns: R_t = [(P_t - P_{t-1}) / P_{t-1}] × 100 (%) - percentage form
-- Beta benchmark: MSCI Europe index (IEUR) - single pan-European index for all countries
-- Risk-free: 3-month government bonds
-- Estimation window: Exactly 60 months per stock
-- Currency: All returns use MSCI Europe (tracks EUR-denominated European stocks)
+The processing follows standard academic methodology:
+    - Simple returns: R_t = [(P_t - P_{t-1}) / P_{t-1}] x 100 (percentage form)
+    - Market proxy: MSCI Europe Index (single pan-European benchmark)
+    - Risk-free rate: German 3-month Treasury Bill (Bund)
+    - Estimation window: 60 months (January 2018 - December 2023)
+    - Minimum observations: 59 monthly returns required per stock
+
+The module ensures data quality through:
+    - Handling of missing values and outliers
+    - Currency consistency (EUR-denominated returns)
+    - Date alignment across stocks and market indices
+    - Proper calculation of excess returns (stock return minus risk-free rate)
+
+References
+----------
+Fama, E. F., & French, K. R. (1993). Common Risk Factors in the Returns on 
+    Stocks and Bonds. Journal of Financial Economics, 33(1), 3-56.
 """
 
 import os
@@ -679,7 +691,7 @@ def create_country_panel(country: str) -> pd.DataFrame:
                 # Create DataFrame with EUR prices
                 msci_prices = pd.DataFrame({price_series_eur.name: price_series_eur})
                 msci_prices.index = price_series_eur.index
-                logger.info("✅ Successfully converted MSCI Europe prices from USD to EUR")
+                logger.info(" Successfully converted MSCI Europe prices from USD to EUR")
             else:
                 logger.error("No price data in MSCI Europe file")
                 return pd.DataFrame()
@@ -876,9 +888,9 @@ def process_all_countries() -> pd.DataFrame:
             
             if len(country_panel) > 0:
                 all_panels.append(country_panel)
-                logger.info(f"✅ {country}: {len(country_panel)} rows processed")
+                logger.info(f" {country}: {len(country_panel)} rows processed")
             else:
-                logger.warning(f"⚠️  {country}: No excess returns calculated (missing risk-free rate)")
+                logger.warning(f"  {country}: No excess returns calculated (missing risk-free rate)")
                 
         except Exception as e:
             logger.error(f"Error processing {country}: {e}")
@@ -913,7 +925,7 @@ def process_all_countries() -> pd.DataFrame:
     # Save to processed data directory
     output_path = os.path.join(DATA_PROCESSED_DIR, "returns_panel.csv")
     final_panel.to_csv(output_path, index=False)
-    logger.info(f"✅ Saved final panel to: {output_path}")
+    logger.info(f" Saved final panel to: {output_path}")
     
     return final_panel
 
@@ -937,5 +949,5 @@ if __name__ == "__main__":
         print(panel.head(10))
         print("\n" + "="*70)
     else:
-        print("\n❌ Returns processing failed - check logs for details")
+        print("\n Returns processing failed - check logs for details")
 

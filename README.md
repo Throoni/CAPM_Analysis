@@ -5,13 +5,13 @@
 [![Tests](https://img.shields.io/badge/tests-19%2F19%20passing-brightgreen)](tests/)
 [![CodeRabbit Reviews](https://img.shields.io/coderabbit/prs/github/Throoni/CAPM_Analysis?utm_source=oss&utm_medium=github&utm_campaign=Throoni%2FCAPM_Analysis&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)](https://coderabbit.ai)
 
-## 🎯 Mission: Investment Analysis for American Equity Investors
+##  Mission: Investment Analysis for American Equity Investors
 
 Empirical CAPM testing across 7 European markets with **actionable investment recommendations** for American equity investors. This analysis identifies opportunities in European equity markets, focusing on currency risk, country allocation, factor-based strategies, and portfolio construction.
 
 **Key Finding:** CAPM is rejected in European markets - beta does not explain expected returns, creating opportunities for factor-based and active strategies.
 
-📊 **[View Investment Recommendations](results/reports/Investment_Recommendations_US_Investor.md)** | 📖 **[Execution Guide](docs/EXECUTION_GUIDE.md)** | 📈 **[Methodology](docs/methodology/METHODOLOGY.md)**
+ **[View Investment Recommendations](results/reports/Investment_Recommendations_US_Investor.md)** |  **[Execution Guide](docs/EXECUTION_GUIDE.md)** |  **[Methodology](docs/methodology/METHODOLOGY.md)**
 
 ## Risk-Free Rate Data Sources
 

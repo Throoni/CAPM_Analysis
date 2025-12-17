@@ -10,7 +10,7 @@
 - **Total Warnings:** 67
 - **Total Phases:** 29
 
-⚠️ **12 critical issues require attention.**
+ **12 critical issues require attention.**
 
 ## Phase-by-Phase Results
 
@@ -240,7 +240,7 @@
 
 ## Critical Issues Summary
 
-✅ No critical issues found.
+ No critical issues found.
 
 ## Recommendations
 

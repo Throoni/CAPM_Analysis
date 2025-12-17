@@ -298,8 +298,8 @@ The Fama-MacBeth test produces:
 ### 4.3 The Key Distinction
 
 **Statistical vs. Economic Significance:**
-- **Statistical:** Beta is significantly different from zero (✓ we have this)
-- **Economic:** Beta explains cross-sectional returns (✗ we don't have this)
+- **Statistical:** Beta is significantly different from zero ( we have this)
+- **Economic:** Beta explains cross-sectional returns ( we don't have this)
 
 **Why Both Matter:**
 - Statistical significance: Beta is a real, measurable risk factor

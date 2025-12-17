@@ -58,7 +58,7 @@ def fix_stock_dates():
         
         # Check if conversion is needed
         if (current_dates == month_end_dates).all():
-            logger.info(f"  ✅ Already month-end dates - no fix needed")
+            logger.info(f"   Already month-end dates - no fix needed")
             continue
         
         # Update index to month-end
@@ -66,11 +66,11 @@ def fix_stock_dates():
         
         # Save fixed data
         df.to_csv(file_path, index=True)
-        logger.info(f"  ✅ Fixed {len(df.columns)} stocks, saved to {file_path}")
+        logger.info(f"   Fixed {len(df.columns)} stocks, saved to {file_path}")
         
         fixed_count += 1
     
-    logger.info(f"\n✅ Fixed dates for {fixed_count} stock price files")
+    logger.info(f"\n Fixed dates for {fixed_count} stock price files")
 
 
 def fix_msci_dates():
@@ -95,7 +95,7 @@ def fix_msci_dates():
         file_path = os.path.join(DATA_RAW_DIR, f"prices_indices_msci_{country}.csv")
         
         if not os.path.exists(file_path):
-            logger.warning(f"⚠️  {country} ({ticker}): File not found - {file_path}")
+            logger.warning(f"  {country} ({ticker}): File not found - {file_path}")
             continue
         
         logger.info(f"\n{country} ({ticker}):")
@@ -115,7 +115,7 @@ def fix_msci_dates():
         
         # Check if conversion is needed
         if (current_dates == month_end_dates).all():
-            logger.info(f"  ✅ Already month-end dates - no fix needed")
+            logger.info(f"   Already month-end dates - no fix needed")
             continue
         
         # Update index to month-end
@@ -129,23 +129,23 @@ def fix_msci_dates():
         extra = actual_dates_set - expected_dates_set
         
         if missing:
-            logger.warning(f"  ⚠️  Missing {len(missing)} expected dates after conversion")
+            logger.warning(f"    Missing {len(missing)} expected dates after conversion")
         if extra:
-            logger.warning(f"  ⚠️  Has {len(extra)} extra dates after conversion")
+            logger.warning(f"    Has {len(extra)} extra dates after conversion")
         
         if not missing and not extra:
-            logger.info(f"  ✅ Perfect alignment after conversion!")
+            logger.info(f"   Perfect alignment after conversion!")
         
         # Save fixed data
         prices_df = prices.to_frame()
         prices_df.to_csv(file_path, index=True)
-        logger.info(f"  ✅ Saved fixed dates to {file_path}")
+        logger.info(f"   Saved fixed dates to {file_path}")
         logger.info(f"  New date range: {prices.index.min().strftime('%Y-%m-%d')} to {prices.index.max().strftime('%Y-%m-%d')}")
         
         fixed_count += 1
     
     logger.info("\n" + "="*70)
-    logger.info(f"✅ Fixed dates for {fixed_count} MSCI index files")
+    logger.info(f" Fixed dates for {fixed_count} MSCI index files")
     logger.info("="*70)
     
     # Verify all files now
@@ -172,7 +172,7 @@ def verify_all_msci_dates():
         file_path = os.path.join(DATA_RAW_DIR, f"prices_indices_msci_{country}.csv")
         
         if not os.path.exists(file_path):
-            logger.warning(f"⚠️  {country} ({ticker}): File not found")
+            logger.warning(f"  {country} ({ticker}): File not found")
             all_ok = False
             continue
         
@@ -190,9 +190,9 @@ def verify_all_msci_dates():
         missing = expected_dates_set - actual_dates
         extra = actual_dates - expected_dates_set
         
-        status = "✅"
+        status = ""
         if not is_month_end or missing or extra:
-            status = "❌"
+            status = ""
             all_ok = False
         
         logger.info(f"\n{country} ({ticker}): {status}")
@@ -210,14 +210,14 @@ def verify_all_msci_dates():
         returns = prices.pct_change().dropna()
         logger.info(f"  Returns: {len(returns)} (expected: 59)")
         if len(returns) != 59:
-            status = "❌"
+            status = ""
             all_ok = False
     
     logger.info("\n" + "="*70)
     if all_ok:
-        logger.info("✅ All MSCI indices have correct month-end dates and alignment!")
+        logger.info(" All MSCI indices have correct month-end dates and alignment!")
     else:
-        logger.warning("⚠️  Some issues remain - check above")
+        logger.warning("  Some issues remain - check above")
     logger.info("="*70)
 
 
@@ -227,6 +227,6 @@ if __name__ == "__main__":
     fix_stock_dates()
     
     logger.info("\n" + "="*70)
-    logger.info("✅ All date fixes complete!")
+    logger.info(" All date fixes complete!")
     logger.info("="*70)
 

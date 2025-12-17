@@ -373,7 +373,7 @@ Fama, E. F., & MacBeth, J. D. (1973). Risk, return, and equilibrium: Empirical t
 **End of Chapter 7**
 """
     
-    logger.info("✅ Chapter text generated")
+    logger.info(" Chapter text generated")
     return chapter
 
 
@@ -390,7 +390,7 @@ def save_chapter(chapter_text: str) -> None:
     md_path = os.path.join(RESULTS_REPORTS_DIR, "thesis_chapter7_empirical_results.md")
     with open(md_path, 'w', encoding='utf-8') as f:
         f.write(chapter_text)
-    logger.info(f"✅ Saved Markdown: {md_path}")
+    logger.info(f" Saved Markdown: {md_path}")
     
     # Convert to LaTeX (basic conversion)
     latex_text = chapter_text
@@ -419,7 +419,7 @@ def save_chapter(chapter_text: str) -> None:
     tex_path = os.path.join(RESULTS_REPORTS_DIR, "thesis_chapter7_empirical_results.tex")
     with open(tex_path, 'w', encoding='utf-8') as f:
         f.write(latex_text)
-    logger.info(f"✅ Saved LaTeX: {tex_path}")
+    logger.info(f" Saved LaTeX: {tex_path}")
 
 
 if __name__ == "__main__":
@@ -434,8 +434,8 @@ if __name__ == "__main__":
     print("\n" + "="*70)
     print("THESIS CHAPTER 7 GENERATED SUCCESSFULLY")
     print("="*70)
-    print(f"\n📄 Files created:")
+    print(f"\n Files created:")
     print(f"   - results/reports/thesis_chapter7_empirical_results.md")
     print(f"   - results/reports/thesis_chapter7_empirical_results.tex")
-    print("\n✅ Ready for thesis insertion!")
+    print("\n Ready for thesis insertion!")
 

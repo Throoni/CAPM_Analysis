@@ -391,7 +391,7 @@ def plot_value_effect_analysis(
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     
-    logger.info(f"✅ Saved: {output_path}")
+    logger.info(f" Saved: {output_path}")
 
 
 def run_value_effects_analysis() -> Dict:
@@ -442,14 +442,14 @@ def run_value_effects_analysis() -> Dict:
     # Save results - keep in reports for now (value effects is a separate analysis)
     portfolio_file = os.path.join(RESULTS_REPORTS_DIR, "value_effects_portfolios.csv")
     portfolio_df.to_csv(portfolio_file, index=False)
-    logger.info(f"✅ Saved: {portfolio_file}")
+    logger.info(f" Saved: {portfolio_file}")
     
     # Save test results
     if test_results:
         test_df = pd.DataFrame([test_results])
         test_file = os.path.join(RESULTS_REPORTS_DIR, "value_effects_test_results.csv")
         test_df.to_csv(test_file, index=False)
-        logger.info(f"✅ Saved: {test_file}")
+        logger.info(f" Saved: {test_file}")
     
     return {
         'portfolios': portfolio_df,

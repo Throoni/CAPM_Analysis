@@ -108,7 +108,7 @@ def process_riskfree_file(
         # Ensure month-end dates
         monthly_rates.index = monthly_rates.index.to_period('M').to_timestamp('M')
         
-        logger.info(f"✅ Processed {country}: {len(monthly_rates)} months")
+        logger.info(f" Processed {country}: {len(monthly_rates)} months")
         logger.info(f"   Date range: {monthly_rates.index.min()} to {monthly_rates.index.max()}")
         logger.info(f"   Rate range: {monthly_rates.min():.4f}% to {monthly_rates.max():.4f}% (monthly)")
         
@@ -181,11 +181,11 @@ def process_all_riskfree_files(
             output_path = os.path.join(output_dir, f"riskfree_rate_{eur_country}.csv")
             german_rates.to_csv(output_path, header=['monthly_rate_pct'])
             processed_rates[eur_country] = german_rates.copy()
-            logger.info(f"   ✅ {eur_country}: Using German Bund rate")
+            logger.info(f"    {eur_country}: Using German Bund rate")
             logger.info(f"   Saved: {output_path}")
     
     logger.info("\n" + "="*70)
-    logger.info(f"✅ Processed {len(processed_rates)} countries")
+    logger.info(f" Processed {len(processed_rates)} countries")
     logger.info("="*70)
     
     return processed_rates

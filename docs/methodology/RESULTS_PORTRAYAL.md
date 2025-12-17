@@ -595,10 +595,10 @@ This document provides a comprehensive portrayal of all CAPM analysis results, i
 ### 6.5 Overall Robustness Assessment
 
 **Multiple Specifications:**
-- ✓ Subperiods: Consistent
-- ✓ Countries: Consistent
-- ✓ Portfolios: Consistent
-- ✓ Clean sample: Consistent
+-  Subperiods: Consistent
+-  Countries: Consistent
+-  Portfolios: Consistent
+-  Clean sample: Consistent
 
 **Conclusion:**
 - Results are **highly robust**

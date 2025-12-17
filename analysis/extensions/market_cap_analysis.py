@@ -398,7 +398,7 @@ def generate_market_cap_report(summary_df: pd.DataFrame) -> None:
     os.makedirs(tables_dir, exist_ok=True)
     output_file = os.path.join(tables_dir, "table7_market_cap_weighted_betas.csv")
     summary_df.to_csv(output_file, index=False)
-    logger.info(f"✅ Saved: {output_file}")
+    logger.info(f" Saved: {output_file}")
     
     # Print summary
     print("\n" + "="*70)

@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 # For EUR countries, we use Swedish data as proxy (not ideal but functional).
 FRED_SERIES_IDS = {
     "Germany": "IR3TTS01SEM156N",      # Using Swedish as proxy (German series not available in FRED)
-    "Sweden": "IR3TTS01SEM156N",       # Swedish 3-month Treasury Bill ✅ (data to 2023-12)
+    "Sweden": "IR3TTS01SEM156N",       # Swedish 3-month Treasury Bill  (data to 2023-12)
     "UnitedKingdom": "IR3TTS01SEM156N", # Using Swedish as proxy (UK series ends 2017-06)
     "Switzerland": "IR3TTS01SEM156N",   # Using Swedish as proxy (Swiss series not available in FRED)
 }
@@ -83,7 +83,7 @@ def download_fred_csv(series_id: str, timeout: int = 30) -> Optional[str]:
         logger.info(f"Downloading FRED CSV for series {series_id} from: {url}")
         response = requests.get(url, timeout=timeout)
         response.raise_for_status()
-        logger.info(f"✅ Successfully downloaded {len(response.content)} bytes")
+        logger.info(f" Successfully downloaded {len(response.content)} bytes")
         return response.text
     except requests.exceptions.RequestException as e:
         logger.error(f"Failed to download FRED CSV for series {series_id}: {e}")
@@ -158,7 +158,7 @@ def parse_fred_csv(csv_content: str, start_date: str, end_date: str) -> Optional
         # Resample to month-end (in case data is daily)
         series_monthly = series_monthly.resample('ME').last()
         
-        logger.info(f"✅ Parsed {len(series_monthly)} months of data")
+        logger.info(f" Parsed {len(series_monthly)} months of data")
         logger.info(f"   Date range: {series_monthly.index.min()} to {series_monthly.index.max()}")
         logger.info(f"   Rate range: {series_monthly.min():.4f}% to {series_monthly.max():.4f}%")
         
@@ -218,7 +218,7 @@ def fetch_riskfree_from_fred_csv(
     series = parse_fred_csv(csv_content, start_date, end_date)
     
     if series is not None:
-        logger.info(f"✅ Fetched risk-free rate for {country} from FRED CSV ({fred_source})")
+        logger.info(f" Fetched risk-free rate for {country} from FRED CSV ({fred_source})")
     
     return series
 
@@ -262,7 +262,7 @@ def merge_riskfree_rates_with_panel(
         raise FileNotFoundError(f"Returns panel not found: {panel_path}")
     
     panel = pd.read_csv(panel_path, parse_dates=['date'])
-    logger.info(f"✅ Loaded panel: {panel.shape[0]:,} rows, {panel.shape[1]} columns")
+    logger.info(f" Loaded panel: {panel.shape[0]:,} rows, {panel.shape[1]} columns")
     logger.info(f"   Countries: {panel['country'].nunique()}")
     logger.info(f"   Date range: {panel['date'].min()} to {panel['date'].max()}")
     
@@ -273,13 +273,13 @@ def merge_riskfree_rates_with_panel(
     if german_rate is None or german_rate.empty:
         raise ValueError("German Bund rate not found - required for all countries")
     
-    logger.info(f"✅ German Bund rate: {len(german_rate)} months")
+    logger.info(f" German Bund rate: {len(german_rate)} months")
     
     # All countries use German Bund rate
     riskfree_data = {}
     for country in panel['country'].unique():
         riskfree_data[country] = german_rate
-        logger.info(f"✅ {country}: Using German Bund rate ({len(german_rate)} months)")
+        logger.info(f" {country}: Using German Bund rate ({len(german_rate)} months)")
     
     # Create mapping DataFrame
     logger.info("\nCreating risk-free rate mapping...")
@@ -293,7 +293,7 @@ def merge_riskfree_rates_with_panel(
             })
     
     rf_mapping = pd.DataFrame(rf_mapping_list)
-    logger.info(f"✅ Created mapping: {len(rf_mapping)} rows")
+    logger.info(f" Created mapping: {len(rf_mapping)} rows")
     
     # Merge with panel
     logger.info("\nMerging risk-free rates with panel...")
@@ -336,7 +336,7 @@ def merge_riskfree_rates_with_panel(
     # Save merged panel
     logger.info(f"\nSaving merged panel to: {output_path}")
     panel_merged.to_csv(output_path, index=False)
-    logger.info(f"✅ Saved {len(panel_merged):,} rows to {output_path}")
+    logger.info(f" Saved {len(panel_merged):,} rows to {output_path}")
     
     return panel_merged
 
@@ -358,22 +358,22 @@ def verify_merged_panel(panel: pd.DataFrame) -> None:
     print("VERIFICATION: Merged Panel with Real Risk-Free Rates")
     print("="*70)
     
-    print(f"\n📊 Panel Summary:")
+    print(f"\n Panel Summary:")
     print(f"   Total rows: {len(panel):,}")
     print(f"   Countries: {panel['country'].nunique()}")
     print(f"   Stocks: {panel['ticker'].nunique()}")
     print(f"   Date range: {panel['date'].min()} to {panel['date'].max()}")
     
-    print(f"\n📈 Risk-Free Rates (Real Data):")
+    print(f"\n Risk-Free Rates (Real Data):")
     for country in sorted(panel['country'].unique()):
         country_data = panel[panel['country'] == country]
         rf_rates = country_data['riskfree_rate'].dropna()
         if len(rf_rates) > 0:
             print(f"   {country:15s}: {rf_rates.min():.4f}% to {rf_rates.max():.4f}% (mean: {rf_rates.mean():.4f}%)")
         else:
-            print(f"   {country:15s}: ⚠️  No data")
+            print(f"   {country:15s}:   No data")
     
-    print(f"\n✅ Data Quality Checks:")
+    print(f"\n Data Quality Checks:")
     missing_rf = panel['riskfree_rate'].isna().sum()
     missing_excess = panel[['stock_excess_return', 'market_excess_return']].isna().sum().sum()
     
@@ -381,11 +381,11 @@ def verify_merged_panel(panel: pd.DataFrame) -> None:
     print(f"   Missing excess returns: {missing_excess}")
     
     if missing_rf == 0 and missing_excess == 0:
-        print("   ✅ No missing values!")
+        print("    No missing values!")
     else:
-        print("   ⚠️  Some missing values detected")
+        print("     Some missing values detected")
     
-    print(f"\n📋 Sample Data:")
+    print(f"\n Sample Data:")
     print(panel[['date', 'country', 'ticker', 'riskfree_rate', 'stock_excess_return', 'market_excess_return']].head(10))
     
     print("\n" + "="*70)
@@ -416,7 +416,7 @@ if __name__ == "__main__":
         # Verify
         verify_merged_panel(merged_panel)
         
-        print("\n✅ Successfully merged real risk-free rates with returns panel!")
+        print("\n Successfully merged real risk-free rates with returns panel!")
         print(f"   Output: {output_path}")
         
     except Exception as e:

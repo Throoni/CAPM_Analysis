@@ -147,6 +147,6 @@ def compare_market_proxies() -> pd.DataFrame:
         # Save results
         output_file = os.path.join(RESULTS_REPORTS_DIR, "market_proxy_comparison.csv")
         comparison_df.to_csv(output_file, index=False)
-        logger.info(f"✅ Saved: {output_file}")
+        logger.info(f" Saved: {output_file}")
     
     return comparison_df

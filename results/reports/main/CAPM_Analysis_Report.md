@@ -511,11 +511,11 @@ For each country and overall, we:
 - **Difference:** 0.0523 (7.6%)
 
 **By Country:**
-- **Germany:** Market-cap weighted (0.6584) vs equal-weighted (0.6853) - difference: 3.9% ✓ Well-represented
-- **France:** Market-cap weighted (0.6874) vs equal-weighted (0.6493) - difference: 5.9% ✓ Well-represented
+- **Germany:** Market-cap weighted (0.6584) vs equal-weighted (0.6853) - difference: 3.9%  Well-represented
+- **France:** Market-cap weighted (0.6874) vs equal-weighted (0.6493) - difference: 5.9%  Well-represented
 - **Italy:** Market-cap weighted (0.6891) vs equal-weighted (0.6357) - difference: 8.4% → Moderate difference
 - **Spain:** Market-cap weighted (0.6956) vs equal-weighted (0.6230) - difference: 11.7% → Moderate difference
-- **Sweden:** Market-cap weighted (0.5935) vs equal-weighted (0.5937) - difference: 0.03% ✓ Very well-represented
+- **Sweden:** Market-cap weighted (0.5935) vs equal-weighted (0.5937) - difference: 0.03%  Very well-represented
 - **United Kingdom:** Market-cap weighted (0.7329) vs equal-weighted (0.8207) - difference: 10.7% → Moderate difference
 - **Switzerland:** Market-cap weighted (0.5907) vs equal-weighted (0.6860) - difference: 13.9% → Significant difference
 
@@ -1030,18 +1030,18 @@ This analysis provides **robust evidence** that the Capital Asset Pricing Model 
 
 **Strengths of This Analysis:**
 
-1. ✅ **Comprehensive:** Tests both time-series and cross-sectional CAPM
-2. ✅ **Robust:** Multiple robustness checks (subperiods, countries, portfolios)
-3. ✅ **Methodologically Sound:** Uses standard Fama-MacBeth methodology
-4. ✅ **Data Quality:** Extensive data validation and cleaning
-5. ✅ **Complete:** Addresses all assignment requirements
+1.  **Comprehensive:** Tests both time-series and cross-sectional CAPM
+2.  **Robust:** Multiple robustness checks (subperiods, countries, portfolios)
+3.  **Methodologically Sound:** Uses standard Fama-MacBeth methodology
+4.  **Data Quality:** Extensive data validation and cleaning
+5.  **Complete:** Addresses all assignment requirements
 
 **Weaknesses and Concerns:**
 
-1. ⚠️ **Period-Specific:** Results may be specific to 2021-2025 period
-2. ⚠️ **Data Limitations:** Market cap and B/M data may have timing issues
-3. ⚠️ **Look-Ahead Bias:** Full-sample beta estimation in Fama-MacBeth
-4. ⚠️ **Assumption Violations:** Statistical assumptions may not hold perfectly
+1.  **Period-Specific:** Results may be specific to 2021-2025 period
+2.  **Data Limitations:** Market cap and B/M data may have timing issues
+3.  **Look-Ahead Bias:** Full-sample beta estimation in Fama-MacBeth
+4.  **Assumption Violations:** Statistical assumptions may not hold perfectly
 
 **Overall Assessment:**
 

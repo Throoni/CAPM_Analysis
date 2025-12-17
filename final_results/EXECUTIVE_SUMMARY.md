@@ -57,11 +57,11 @@ Low-beta stocks outperformed by 13.5% annually on a risk-adjusted basis.
 
 ## Technical Highlights
 
-- ✅ **245 stocks** across 7 European countries
-- ✅ **Robust standard errors** (White HC0) for all regressions
-- ✅ **German 3-month Bund** as consistent risk-free rate
-- ✅ **Fama-MacBeth (1973)** two-pass methodology
-- ✅ **Mean-variance optimization** with proper constraints
+-  **245 stocks** across 7 European countries
+-  **Robust standard errors** (White HC0) for all regressions
+-  **German 3-month Bund** as consistent risk-free rate
+-  **Fama-MacBeth (1973)** two-pass methodology
+-  **Mean-variance optimization** with proper constraints
 
 ---
 

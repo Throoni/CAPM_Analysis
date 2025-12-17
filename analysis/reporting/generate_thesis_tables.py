@@ -140,7 +140,7 @@ def generate_table1_capm_timeseries() -> pd.DataFrame:
     with open(os.path.join(RESULTS_TABLES_DIR, "table1_capm_timeseries_summary.tex"), 'w') as f:
         f.write(latex)
     
-    logger.info("✅ Table 1 generated")
+    logger.info(" Table 1 generated")
     return table1
 
 
@@ -208,7 +208,7 @@ def generate_table2_fama_macbeth() -> pd.DataFrame:
     with open(os.path.join(RESULTS_TABLES_DIR, "table2_fama_macbeth_results.tex"), 'w') as f:
         f.write(latex)
     
-    logger.info("✅ Table 2 generated")
+    logger.info(" Table 2 generated")
     return table2
 
 
@@ -258,7 +258,7 @@ def generate_table3_subperiod() -> pd.DataFrame:
     with open(os.path.join(RESULTS_TABLES_DIR, "table3_subperiod_results.tex"), 'w') as f:
         f.write(latex)
     
-    logger.info("✅ Table 3 generated")
+    logger.info(" Table 3 generated")
     return table3
 
 
@@ -316,7 +316,7 @@ def generate_table4_country_level() -> pd.DataFrame:
     with open(os.path.join(RESULTS_TABLES_DIR, "table4_country_level_results.tex"), 'w') as f:
         f.write(latex)
     
-    logger.info("✅ Table 4 generated")
+    logger.info(" Table 4 generated")
     return table4
 
 
@@ -369,7 +369,7 @@ def generate_table5_beta_portfolios() -> pd.DataFrame:
     with open(os.path.join(RESULTS_TABLES_DIR, "table5_beta_sorted_portfolios.tex"), 'w') as f:
         f.write(latex)
     
-    logger.info("✅ Table 5 generated")
+    logger.info(" Table 5 generated")
     return table5
 
 
@@ -445,7 +445,7 @@ def generate_table6_descriptive() -> pd.DataFrame:
     with open(os.path.join(RESULTS_TABLES_DIR, "table6_descriptive_statistics.tex"), 'w') as f:
         f.write(latex)
     
-    logger.info("✅ Table 6 generated")
+    logger.info(" Table 6 generated")
     return table6
 
 
@@ -471,7 +471,7 @@ def generate_all_tables() -> Dict[str, pd.DataFrame]:
     tables['table5'] = generate_table5_beta_portfolios()
     tables['table6'] = generate_table6_descriptive()
     
-    logger.info("\n✅ All 6 tables generated successfully!")
+    logger.info("\n All 6 tables generated successfully!")
     logger.info(f"   Tables saved to: {RESULTS_TABLES_DIR}")
     
     return tables

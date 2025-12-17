@@ -1,19 +1,34 @@
 """
-capm_regression.py
+CAPM Time-Series Regression Module.
 
-Stage 4: CAPM Regression Estimation
+This module implements the first-pass time-series regressions for the Capital Asset
+Pricing Model (CAPM). For each stock, we estimate:
 
-Run CAPM regressions for all stocks to estimate beta, alpha, R², and statistical significance.
-Generate country-level summaries and cross-country comparisons.
+    E[R_i] - R_f = alpha_i + beta_i * (E[R_m] - R_f) + epsilon_i
 
-Regression Specification:
-- Dependent variable: E_i,t = R_i,t - R_f (stock excess return)
-- Independent variable: E_m,t = R_m,t - R_f (market excess return)
-- Model: E_i,t = α_i + β_i * E_m,t + ε_i,t
-- Observations: 59 months per stock
+where:
+    - E[R_i]: Expected return of stock i
+    - R_f: Risk-free rate (German 3-month Bund)
+    - alpha_i: Jensen's alpha (abnormal return)
+    - beta_i: Systematic risk exposure to market factor
+    - E[R_m]: Expected return of market portfolio (MSCI Europe)
 
-Note: Uses real risk-free rate data from CSV files or API sources.
-Country-specific rates are automatically fetched for each market.
+Key outputs for each stock:
+    - Beta coefficient and standard error
+    - Alpha (intercept) and standard error
+    - R-squared (explanatory power of the market factor)
+    - t-statistics and p-values for hypothesis testing
+
+The module uses robust (White heteroskedasticity-consistent) standard errors
+to account for potential violations of the OLS assumption of homoskedasticity.
+
+References
+----------
+Jensen, M. C. (1968). The Performance of Mutual Funds in the Period 1945-1964.
+    The Journal of Finance, 23(2), 389-416.
+
+Sharpe, W. F. (1964). Capital Asset Prices: A Theory of Market Equilibrium
+    under Conditions of Risk. The Journal of Finance, 19(3), 425-442.
 """
 
 import os
@@ -217,7 +232,7 @@ def run_all_capm_regressions(
     
     # Load returns panel
     panel = pd.read_csv(panel_path, parse_dates=['date'])
-    logger.info(f"✅ Loaded panel: {len(panel)} rows")
+    logger.info(f" Loaded panel: {len(panel)} rows")
     logger.info(f"   Countries: {panel['country'].nunique()}")
     logger.info(f"   Stocks: {panel['ticker'].nunique()}")
     logger.info(f"   Date range: {panel['date'].min()} to {panel['date'].max()}")
@@ -255,7 +270,7 @@ def run_all_capm_regressions(
     ]
     results_df = results_df[column_order]
     
-    logger.info(f"\n✅ Completed regressions for {len(results_df)} stocks")
+    logger.info(f"\n Completed regressions for {len(results_df)} stocks")
     logger.info(f"   Average R²: {results_df['r_squared'].mean():.4f}")
     logger.info(f"   Average beta: {results_df['beta'].mean():.4f}")
     
@@ -291,7 +306,7 @@ def validate_regression_results(results_df: pd.DataFrame) -> pd.DataFrame:
     # Check 1: Insufficient observations (vectorized boolean operation)
     insufficient_obs = results_df['n_observations'] < 59
     if insufficient_obs.any():
-        logger.warning(f"⚠️  {insufficient_obs.sum()} stocks have < 59 observations")
+        logger.warning(f"  {insufficient_obs.sum()} stocks have < 59 observations")
         results_df.loc[insufficient_obs, 'is_valid'] = False
     
     # Check 2: Very low R² (low market dependence or data errors)
@@ -300,10 +315,10 @@ def validate_regression_results(results_df: pd.DataFrame) -> pd.DataFrame:
     very_low_r2 = r_squared < 0.01
     low_r2 = r_squared < 0.05
     if very_low_r2.any():
-        logger.warning(f"⚠️  {very_low_r2.sum()} stocks have R² < 0.01 (likely data errors)")
+        logger.warning(f"  {very_low_r2.sum()} stocks have R² < 0.01 (likely data errors)")
         results_df.loc[very_low_r2, 'is_valid'] = False
     if low_r2.any():
-        logger.warning(f"⚠️  {low_r2.sum()} stocks have R² < 0.05 (very low market dependence)")
+        logger.warning(f"  {low_r2.sum()} stocks have R² < 0.05 (very low market dependence)")
         # Don't automatically invalidate, but flag for review
     
     # Check 3: Extreme beta values (possible errors)
@@ -312,26 +327,26 @@ def validate_regression_results(results_df: pd.DataFrame) -> pd.DataFrame:
     beta_abs = beta.abs()
     extreme_beta = (beta_abs > 3.0) | (beta < -1.0)
     if extreme_beta.any():
-        logger.warning(f"⚠️  {extreme_beta.sum()} stocks have extreme beta values (|beta| > 3.0 or < -1.0)")
+        logger.warning(f"  {extreme_beta.sum()} stocks have extreme beta values (|beta| > 3.0 or < -1.0)")
         results_df.loc[extreme_beta, 'is_valid'] = False
     
     # Check 4: Statistically insignificant beta (p-value > 0.05)
     insignificant_beta = results_df['pvalue_beta'] > 0.05
     if insignificant_beta.any():
-        logger.info(f"ℹ️  {insignificant_beta.sum()} stocks have statistically insignificant beta (p > 0.05)")
+        logger.info(f"ℹ  {insignificant_beta.sum()} stocks have statistically insignificant beta (p > 0.05)")
     
     # Check 5: Missing/invalid results (vectorized check)
     # Cache column selection to avoid repeated indexing
     check_cols = ['beta', 'alpha', 'r_squared']
     missing_results = results_df[check_cols].isna().any(axis=1)
     if missing_results.any():
-        logger.warning(f"⚠️  {missing_results.sum()} stocks have missing regression results")
+        logger.warning(f"  {missing_results.sum()} stocks have missing regression results")
         results_df.loc[missing_results, 'is_valid'] = False
     
     # Summary
     valid_count = results_df['is_valid'].sum()
     total_count = len(results_df)
-    logger.info(f"\n✅ Validation complete:")
+    logger.info(f"\n Validation complete:")
     logger.info(f"   Valid stocks: {valid_count}/{total_count} ({valid_count/total_count*100:.1f}%)")
     logger.info(f"   Invalid stocks: {total_count - valid_count}")
     
@@ -425,7 +440,7 @@ def create_country_summaries(results_df: pd.DataFrame) -> pd.DataFrame:
     
     summary_df = pd.DataFrame(summaries)
     
-    logger.info(f"✅ Created summaries for {len(summary_df)} countries")
+    logger.info(f" Created summaries for {len(summary_df)} countries")
     
     return summary_df
 
@@ -493,7 +508,7 @@ def generate_capm_reports(
     # Save full results
     results_path = os.path.join(RESULTS_DATA_DIR, "capm_results.csv")
     results_df.to_csv(results_path, index=False)
-    logger.info(f"✅ Saved full results: {results_path}")
+    logger.info(f" Saved full results: {results_path}")
     
     # Save country summaries to new organized structure
     summary_path = os.path.join(RESULTS_CAPM_TIMESERIES_DIR, "by_country.csv")
@@ -501,7 +516,7 @@ def generate_capm_reports(
     # Also save to legacy location
     legacy_summary = os.path.join(RESULTS_REPORTS_DIR, "capm_by_country.csv")
     country_summaries.to_csv(legacy_summary, index=False)
-    logger.info(f"✅ Saved country summaries: {summary_path}")
+    logger.info(f" Saved country summaries: {summary_path}")
     
     # Save extremes to new organized structure
     extremes_path = os.path.join(RESULTS_CAPM_TIMESERIES_DIR, "extremes.csv")
@@ -518,9 +533,9 @@ def generate_capm_reports(
     # Also save to legacy location
     legacy_extremes = os.path.join(RESULTS_REPORTS_DIR, "capm_extremes.csv")
     extremes_combined.to_csv(legacy_extremes, index=False)
-    logger.info(f"✅ Saved extremes: {extremes_path}")
+    logger.info(f" Saved extremes: {extremes_path}")
     
-    logger.info("\n✅ All reports generated successfully")
+    logger.info("\n All reports generated successfully")
 
 
 # -------------------------------------------------------------------
@@ -582,7 +597,7 @@ def create_capm_visualizations(results_df: pd.DataFrame) -> None:
     legacy_beta_hist = os.path.join(RESULTS_FIGURES_DIR, "beta_distribution_by_country.png")
     shutil.copy2(beta_hist_path, legacy_beta_hist)
     plt.close()
-    logger.info(f"✅ Saved: {beta_hist_path}")
+    logger.info(f" Saved: {beta_hist_path}")
     
     # 2. Alpha distribution by country (histogram)
     logger.info("Creating alpha distribution histograms...")
@@ -616,7 +631,7 @@ def create_capm_visualizations(results_df: pd.DataFrame) -> None:
     legacy_alpha_hist = os.path.join(RESULTS_FIGURES_DIR, "alpha_distribution_by_country.png")
     shutil.copy2(alpha_hist_path, legacy_alpha_hist)
     plt.close()
-    logger.info(f"✅ Saved: {alpha_hist_path}")
+    logger.info(f" Saved: {alpha_hist_path}")
     
     # 3. Beta vs R² scatterplot (colored by country)
     logger.info("Creating beta vs R² scatterplot...")
@@ -639,7 +654,7 @@ def create_capm_visualizations(results_df: pd.DataFrame) -> None:
     legacy_scatter = os.path.join(RESULTS_FIGURES_DIR, "beta_vs_r2_scatter.png")
     shutil.copy2(scatter_path, legacy_scatter)
     plt.close()
-    logger.info(f"✅ Saved: {scatter_path}")
+    logger.info(f" Saved: {scatter_path}")
     
     # 4. Cross-country beta comparison (box plot)
     logger.info("Creating cross-country beta comparison...")
@@ -659,7 +674,7 @@ def create_capm_visualizations(results_df: pd.DataFrame) -> None:
     legacy_boxplot = os.path.join(RESULTS_FIGURES_DIR, "beta_boxplot_by_country.png")
     shutil.copy2(boxplot_path, legacy_boxplot)
     plt.close()
-    logger.info(f"✅ Saved: {boxplot_path}")
+    logger.info(f" Saved: {boxplot_path}")
     
     # 5. Top 10 highest/lowest beta stocks
     logger.info("Creating top/bottom beta stocks chart...")
@@ -701,7 +716,7 @@ def create_capm_visualizations(results_df: pd.DataFrame) -> None:
     legacy_top_bottom = os.path.join(RESULTS_FIGURES_DIR, "top_bottom_beta_stocks.png")
     shutil.copy2(top_bottom_beta_path, legacy_top_bottom)
     plt.close()
-    logger.info(f"✅ Saved: {top_bottom_beta_path}")
+    logger.info(f" Saved: {top_bottom_beta_path}")
     
     # 6. Average beta by country (bar chart)
     logger.info("Creating average beta by country...")
@@ -724,9 +739,9 @@ def create_capm_visualizations(results_df: pd.DataFrame) -> None:
     legacy_avg_beta = os.path.join(RESULTS_FIGURES_DIR, "average_beta_by_country.png")
     shutil.copy2(avg_beta_path, legacy_avg_beta)
     plt.close()
-    logger.info(f"✅ Saved: {avg_beta_path}")
+    logger.info(f" Saved: {avg_beta_path}")
     
-    logger.info("\n✅ All visualizations created successfully")
+    logger.info("\n All visualizations created successfully")
 
 
 # -------------------------------------------------------------------
@@ -775,14 +790,14 @@ def run_full_capm_analysis(panel_path: Optional[str] = None) -> Tuple[pd.DataFra
     print("\n" + "="*70)
     print("CAPM ANALYSIS COMPLETE")
     print("="*70)
-    print(f"\n📊 Summary Statistics:")
+    print(f"\n Summary Statistics:")
     print(f"   Total stocks analyzed: {len(results_df)}")
     print(f"   Valid stocks: {results_df['is_valid'].sum()}")
     print(f"   Average R²: {results_df['r_squared'].mean():.4f}")
     print(f"   Average beta: {results_df['beta'].mean():.4f}")
     print(f"   Average alpha: {results_df['alpha'].mean():.4f}%")
     
-    print(f"\n📈 Country-Level Averages:")
+    print(f"\n Country-Level Averages:")
     # Vectorized iteration instead of iterrows (more efficient)
     for country, mean_beta, mean_alpha, mean_r2 in zip(
         country_summaries['country'],
@@ -792,7 +807,7 @@ def run_full_capm_analysis(panel_path: Optional[str] = None) -> Tuple[pd.DataFra
     ):
         print(f"   {country:15s}: Beta={mean_beta:6.3f}, Alpha={mean_alpha:6.3f}%, R²={mean_r2:.3f}")
     
-    print(f"\n📁 Output Files:")
+    print(f"\n Output Files:")
     print(f"   Results: {os.path.join(RESULTS_DATA_DIR, 'capm_results.csv')}")
     print(f"   Summaries: {os.path.join(RESULTS_REPORTS_DIR, 'capm_by_country.csv')}")
     print(f"   Extremes: {os.path.join(RESULTS_REPORTS_DIR, 'capm_extremes.csv')}")
