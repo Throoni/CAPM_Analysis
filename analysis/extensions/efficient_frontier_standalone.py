@@ -1,11 +1,31 @@
 """
-efficient_frontier_standalone.py
+Efficient Frontier Generation Module.
 
-Standalone script to generate efficient frontiers:
-1. With constraints (long-only, no short-selling)
-2. Without constraints (short-selling allowed)
+This module provides standalone functionality to compute and visualize mean-variance
+efficient frontiers under different portfolio constraints.
 
-This script can be run independently to generate both efficient frontiers.
+Two frontier types are generated:
+    1. Constrained (Long-Only): No short-selling allowed (w_i >= 0)
+       - Represents realistic investment opportunities for most investors
+       - Required for regulated investment funds and pension plans
+    
+    2. Unconstrained (Short-Selling Allowed): Weights can be negative
+       - Represents theoretical optimal portfolios
+       - Subject to gross exposure limits to prevent infinite leverage
+
+The efficient frontier represents the set of portfolios that offer:
+    - Maximum expected return for a given level of risk, or
+    - Minimum risk for a given level of expected return
+
+Key outputs:
+    - Efficient frontier curves (both constrained and unconstrained)
+    - Minimum-variance portfolio coordinates
+    - Tangency portfolio coordinates (maximum Sharpe ratio)
+    - Capital Market Line visualization
+
+References
+----------
+Markowitz, H. (1952). Portfolio Selection. The Journal of Finance, 7(1), 77-91.
 """
 
 import os

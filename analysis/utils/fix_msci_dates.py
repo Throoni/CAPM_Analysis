@@ -1,10 +1,26 @@
 """
-fix_msci_dates.py
+MSCI Index Date Alignment Module.
 
-Fix MSCI index date alignment: Convert month-start dates to month-end dates.
+This module corrects a date alignment issue in Yahoo Finance MSCI ETF data
+where dates are reported as month-start instead of month-end.
 
-Issue: yfinance returns month-start dates (2020-12-01) but we need month-end (2020-12-31)
-for proper alignment with returns panel and risk-free rates.
+Issue identified:
+    Yahoo Finance returns monthly data with month-start dates (e.g., 2020-12-01)
+    but our returns panel uses month-end dates (e.g., 2020-12-31).
+    This causes merge failures and data alignment errors.
+
+Solution:
+    Convert all MSCI index dates from month-start to month-end format
+    using pandas MonthEnd offset. This ensures proper alignment with:
+    - Stock returns panel (month-end)
+    - Risk-free rates (month-end)
+    - Exchange rates (month-end)
+
+Affected files:
+    - prices_MSCI_EUROPE.csv
+    - prices_MSCI_{Country}.csv for all country-specific indices
+
+Note: Run this script after initial data download from Yahoo Finance.
 """
 
 import os

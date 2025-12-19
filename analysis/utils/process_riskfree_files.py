@@ -1,11 +1,29 @@
 """
-process_riskfree_files.py
+Risk-Free Rate File Processing Module.
 
-Process manually provided risk-free rate files:
-- Load daily CSV files
-- Convert to monthly (month-end values)
-- Convert annual percentage to monthly percentage
-- Save processed monthly rates
+This module processes raw risk-free rate data files into the standardized
+format required for CAPM excess return calculations.
+
+Processing steps:
+    1. Load raw CSV files (daily or weekly frequency)
+    2. Parse dates and validate format
+    3. Resample to monthly frequency (month-end values)
+    4. Convert annual percentage rates to monthly:
+       monthly_rate = annual_rate / 12
+    5. Save processed files to standardized location
+
+Expected input format:
+    - CSV with date column and rate column
+    - Rates in annualized percentage form (e.g., 3.0 = 3% per year)
+    - Date formats: YYYY-MM-DD or DD/MM/YYYY
+
+Output format:
+    - Monthly CSV with columns: date, rate
+    - Rates in monthly percentage form (e.g., 0.25 = 0.25% per month)
+    - Dates as month-end (last day of each month)
+
+Note: German Bund is used as the risk-free rate for all countries since
+all returns are EUR-denominated.
 """
 
 import os

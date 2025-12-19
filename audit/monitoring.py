@@ -1,13 +1,38 @@
 """
-monitoring.py
+Analysis Pipeline Monitoring Module.
 
-Phase 12.3: Real-Time Monitoring
+This module provides monitoring capabilities for the CAPM analysis pipeline,
+enabling early detection of issues and performance tracking.
 
-Provides real-time monitoring capabilities:
-- Health checks
-- Performance monitoring
-- Error tracking
-- Alerting system
+Monitoring components:
+    1. Health Checks:
+       - Data file existence and freshness
+       - Required dependencies availability
+       - Disk space and memory availability
+
+    2. Performance Monitoring:
+       - Execution time tracking per module
+       - Memory usage profiling
+       - I/O bottleneck identification
+
+    3. Error Tracking:
+       - Exception logging and categorization
+       - Error frequency analysis
+       - Stack trace preservation
+
+    4. Alert System:
+       - Configurable thresholds for warnings
+       - Email/log notifications (configurable)
+       - Severity-based prioritization
+
+Integration:
+    Import the HealthChecker class and call check_all() before running
+    the full analysis pipeline to ensure environment readiness.
+
+Usage:
+    from audit.monitoring import HealthChecker
+    checker = HealthChecker()
+    status = checker.check_all()
 """
 
 import os

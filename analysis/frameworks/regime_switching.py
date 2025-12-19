@@ -1,15 +1,31 @@
 """
-regime_switching.py
+Regime-Switching CAPM Model Framework.
 
-Item 20: Regime-Switching Models
+This module provides a framework for implementing Markov-switching models
+that allow CAPM parameters to vary across market regimes (bull/bear markets).
 
-This module implements regime-switching models:
-- Markov-switching CAPM (bull/bear markets)
-- Structural break detection
-- Time-varying risk premiums
-- Crisis vs normal period analysis
+Model specifications:
+    State 1 (Bull Market): R_i - R_f = alpha_1 + beta_1 * (R_m - R_f) + epsilon
+    State 2 (Bear Market): R_i - R_f = alpha_2 + beta_2 * (R_m - R_f) + epsilon
 
-Note: This is a framework for future implementation.
+Key features:
+    - Markov transition probabilities between regimes
+    - Structural break detection using Chow tests
+    - Time-varying risk premium estimation
+    - Crisis period identification and separate analysis
+
+Economic motivation:
+    - Beta may be higher during market stress (flight to quality)
+    - Risk premiums may vary with business cycles
+    - CAPM parameters estimated in calm periods may not apply in crises
+
+Note: This is a framework module. Full implementation requires additional
+statistical libraries (e.g., statsmodels.tsa.regime_switching).
+
+References
+----------
+Hamilton, J. D. (1989). A New Approach to the Economic Analysis of
+    Nonstationary Time Series and the Business Cycle. Econometrica, 57(2), 357-384.
 """
 
 import logging

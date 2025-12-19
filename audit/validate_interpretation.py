@@ -1,8 +1,39 @@
 """
-validate_interpretation.py
+Interpretation and Reporting Validation Audit Module.
 
-Phase 6: Interpretation & Reporting Audit
-Validates that interpretations match results and tables/figures are accurate.
+This module ensures consistency between statistical results and their
+interpretation in reports, preventing misleading conclusions.
+
+Validations performed:
+    1. Text-Number Consistency:
+       - Claims in text match numbers in tables
+       - Correct rounding and significant figures
+       - No copy-paste errors in values
+
+    2. Statistical Inference:
+       - Significance claims match p-values
+       - Confidence levels correctly stated
+       - Economic vs. statistical significance distinguished
+
+    3. Figure Accuracy:
+       - Figures match underlying data
+       - Axes labels and scales correct
+       - Legend entries accurate
+
+    4. Table Integrity:
+       - Column headers match content
+       - Row totals/averages verified
+       - Footnotes accurate and complete
+
+    5. Conclusion Validity:
+       - Conclusions supported by evidence
+       - Limitations acknowledged
+       - Causality vs. correlation distinguished
+
+    6. Cross-Reference Checking:
+       - Table/figure numbers referenced correctly
+       - Page numbers accurate (if applicable)
+       - Internal consistency of document
 """
 
 import os

@@ -1,8 +1,48 @@
 """
-run_full_audit.py
+Comprehensive CAPM Analysis Audit Orchestrator.
 
-Main orchestrator for comprehensive CAPM analysis audit.
-Runs all audit phases and generates comprehensive report.
+This module coordinates the execution of all audit phases to ensure the
+integrity and correctness of the CAPM analysis pipeline.
+
+Audit phases:
+    Phase 1: Raw Data Validation
+        - Price data completeness and format
+        - Date range coverage
+        - Missing value patterns
+
+    Phase 2: Risk-Free Rate Validation
+        - Rate magnitude verification
+        - Currency consistency
+        - Temporal coverage
+
+    Phase 3: Processed Data Validation
+        - Returns calculation correctness
+        - Excess returns methodology
+        - Panel data structure
+
+    Phase 4: Statistical Methodology
+        - Regression assumptions (normality, homoscedasticity)
+        - Serial correlation tests
+        - Multicollinearity checks
+
+    Phase 5: Financial Calculations
+        - Beta interpretation (economic plausibility)
+        - Alpha significance testing
+        - Sharpe ratio verification
+
+    Phase 6: Results Interpretation
+        - Consistency across specifications
+        - Economic significance assessment
+        - Robustness of conclusions
+
+Output:
+    Comprehensive audit report (JSON and Markdown) with:
+    - Pass/fail status for each check
+    - Warnings and recommendations
+    - Summary statistics
+
+Usage:
+    python -m audit.run_full_audit
 """
 
 import os

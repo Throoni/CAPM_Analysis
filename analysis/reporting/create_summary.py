@@ -1,7 +1,23 @@
 """
-create_summary.py
+Results Summary Document Generation Module.
 
-Stage 7.4: Create summary document with key findings and table/figure index.
+This module creates a comprehensive summary document that consolidates
+all key findings from the CAPM analysis into an executive-level report.
+
+Summary sections:
+    1. Executive Summary: High-level conclusions
+    2. Key Findings: Bullet-point summary of main results
+    3. Statistical Highlights: Important numbers and significance
+    4. Table Index: List of all generated tables with descriptions
+    5. Figure Index: List of all generated figures with descriptions
+    6. Investment Implications: Actionable recommendations
+
+Output format: Markdown document suitable for conversion to PDF or HTML
+
+The summary is designed for:
+    - Quick reference of main findings
+    - Navigation aid to detailed results
+    - Presentation preparation support
 """
 
 import os

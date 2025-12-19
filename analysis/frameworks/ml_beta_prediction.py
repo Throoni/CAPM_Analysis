@@ -1,16 +1,41 @@
 """
-ml_beta_prediction.py
+Machine Learning Beta Prediction Framework.
 
-Item 16: Machine Learning Approaches for Beta Prediction
+This module implements machine learning approaches for predicting time-varying
+betas, potentially improving upon traditional rolling-window OLS estimation.
 
-This module implements ML-based beta prediction methods:
-- Random Forest for beta prediction
-- Neural networks for complex patterns
-- LSTM for time-series forecasting
-- XGBoost for factor importance
+Models implemented:
+    1. Random Forest Regression:
+       - Non-linear feature interactions
+       - Feature importance for interpretability
+       - Robust to outliers
 
-Note: This is a framework for future implementation.
-Install required packages: pip install scikit-learn xgboost tensorflow
+    2. Gradient Boosting (XGBoost):
+       - Sequential learning for complex patterns
+       - Built-in feature selection
+       - State-of-the-art prediction accuracy
+
+    3. Neural Networks:
+       - Deep learning for high-dimensional features
+       - Ability to capture non-linear relationships
+       - Requires careful hyperparameter tuning
+
+    4. LSTM Networks:
+       - Long Short-Term Memory for sequences
+       - Captures temporal dependencies in beta
+       - Suitable for regime-switching patterns
+
+Feature engineering:
+    - Lagged returns and volatility
+    - Macro indicators (yield curve, VIX)
+    - Firm characteristics (size, B/M, momentum)
+
+Model validation:
+    - Walk-forward cross-validation
+    - Out-of-sample R-squared comparison
+    - Economic significance tests
+
+Note: This is a framework module. Requires scikit-learn, xgboost, tensorflow.
 """
 
 import logging

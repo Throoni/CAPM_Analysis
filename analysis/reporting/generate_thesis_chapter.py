@@ -1,9 +1,34 @@
 """
-generate_thesis_chapter.py
+Thesis Chapter Generation Module.
 
-Stage 7.3: Generate complete thesis chapter text.
+This module generates a complete empirical results chapter suitable for
+inclusion in an academic thesis or research paper.
 
-Creates formatted chapter document in Markdown and LaTeX formats.
+Chapter structure:
+    1. Introduction and Research Questions
+    2. Data and Methodology
+    3. Descriptive Statistics
+    4. CAPM Regression Results
+    5. Fama-MacBeth Cross-Sectional Tests
+    6. Robustness Checks
+    7. Portfolio Optimization Results
+    8. Conclusions and Investment Implications
+
+Output formats:
+    - Markdown: For web rendering and easy editing
+    - LaTeX: For direct inclusion in thesis documents
+
+Content generation:
+    - Automatic table and figure references
+    - Statistical significance highlighting
+    - Economic interpretation of coefficients
+    - Comparison with prior literature findings
+
+The generated text follows academic writing conventions:
+    - Passive voice where appropriate
+    - Precise statistical language
+    - Proper citation placeholders
+    - Table and figure numbering
 """
 
 import os

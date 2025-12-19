@@ -1,8 +1,29 @@
 """
-value_effects.py
+Value Effect Analysis Module.
 
-Analyze value effects (book-to-market ratios) and their relationship with alphas.
-This addresses assignment requirement: "Focus on the alpha parameters. Can you find any evidence of value-effect?"
+This module investigates the relationship between book-to-market ratios and
+CAPM alphas to test for the presence of value effects in European equity markets.
+
+The value effect hypothesis (Fama & French, 1992):
+    - High book-to-market (value) stocks earn higher risk-adjusted returns
+    - This manifests as positive alphas for value stocks in CAPM regressions
+    - If present, indicates CAPM mis-specification (beta alone insufficient)
+
+Analysis approach:
+    1. Fetch book-to-market ratios from Yahoo Finance
+    2. Sort stocks into quintile portfolios by B/M ratio
+    3. Compare average alphas across B/M quintiles
+    4. Test statistical significance of alpha differences
+
+Key outputs:
+    - B/M quintile portfolio alphas and t-statistics
+    - Visualization of alpha vs B/M relationship
+    - Statistical tests for monotonic alpha pattern
+
+References
+----------
+Fama, E. F., & French, K. R. (1992). The Cross-Section of Expected Stock Returns.
+    The Journal of Finance, 47(2), 427-465.
 """
 
 import os

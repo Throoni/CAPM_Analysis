@@ -1,15 +1,37 @@
 """
-cross_validation.py
+Cross-Validation and Out-of-Sample Testing Framework.
 
-Item 21: Cross-Validation and Out-of-Sample Testing
+This module implements rigorous validation techniques to assess the robustness
+and predictive accuracy of CAPM parameter estimates.
 
-This module implements cross-validation frameworks:
-- K-fold cross-validation for beta estimation
-- Walk-forward analysis
-- Out-of-sample prediction accuracy
-- Model stability over time
+Validation methods:
+    1. K-Fold Cross-Validation:
+       - Split time series into K folds
+       - Estimate beta on K-1 folds, test on holdout
+       - Report average prediction error and variance
 
-Note: This is a framework for future implementation.
+    2. Walk-Forward Analysis:
+       - Rolling window estimation (e.g., 36 months)
+       - Predict next period return using current beta
+       - Assess forecast accuracy over time
+
+    3. Out-of-Sample R-squared:
+       - Train on first half of sample
+       - Test prediction accuracy on second half
+       - Compare to in-sample R-squared for overfitting
+
+    4. Model Stability Tests:
+       - Chow test for structural breaks
+       - CUSUM tests for parameter stability
+       - Rolling beta standard error analysis
+
+Performance metrics:
+    - Mean Absolute Error (MAE)
+    - Root Mean Squared Error (RMSE)
+    - Out-of-sample R-squared
+    - Direction accuracy (sign of returns)
+
+Note: This is a framework module for validation extensibility.
 """
 
 import logging

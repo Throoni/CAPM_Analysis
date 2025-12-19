@@ -1,23 +1,32 @@
 """
-universe.py
+Stock Universe Management Module.
 
-Tools to load and summarize the full European stock universe
-for the CAPM project.
+This module handles the loading and validation of the European stock universe
+used throughout the CAPM analysis.
 
-Assumes the universe is defined in a CSV with columns:
+Universe file format (CSV):
+    - country: Country name (Germany, France, UK, etc.)
+    - asset_type: Either "stock" or "index"
+    - ticker_yf: Yahoo Finance ticker symbol
+    - currency: Trading currency (EUR, GBP, CHF)
+    - local_index_name: Local market index name (e.g., "DAX 40")
+    - msci_ticker: MSCI index ticker for the country
 
-- country
-- asset_type        ("stock" or "index")
-- ticker_yf         (Yahoo Finance ticker)
-- currency          (EUR, SEK, GBP, CHF)
-- local_index_name  (e.g., "DAX 40", "CAC 40")
-- msci_ticker       (index ticker, e.g. ^GDAXI, ^FCHI)
+Key functions:
+    load_stock_universe() -> pd.DataFrame
+        Load and validate the complete universe file
 
-This module:
-- Loads the CSV
-- Validates required columns
-- Normalizes text fields
-- Provides a summary function
+    get_stocks_by_country(country: str) -> List[str]
+        Get all stock tickers for a specific country
+
+    get_universe_summary() -> Dict
+        Summary statistics of the universe
+
+Validation checks:
+    - Required columns present
+    - No duplicate tickers
+    - Valid country names
+    - Consistent currency per country
 """
 
 import os

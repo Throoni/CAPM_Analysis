@@ -1,8 +1,34 @@
 """
-fix_extreme_betas.py
+Extreme Beta Detection and Correction Module.
 
-Script to identify and fix extreme beta values caused by data errors.
-Scans all stocks for extreme returns (>100% monthly) and fixes or filters problematic data points.
+This module identifies and corrects extreme beta estimates that may result
+from data errors or corporate events (splits, mergers, delistings).
+
+Detection criteria:
+    - Monthly returns exceeding +/- 100% (likely data errors)
+    - Beta estimates outside the range [-1, 5] (economically implausible)
+    - Abnormal R-squared values (< 0.01 or > 0.99)
+
+Correction methods:
+    1. Price data correction:
+       - Identify and remove erroneous price spikes
+       - Adjust for unannotated stock splits
+       - Interpolate across data gaps
+
+    2. Return winsorization:
+       - Cap extreme returns at specified percentiles
+       - Maintains sample size while reducing outlier impact
+
+    3. Stock exclusion:
+       - Flag stocks with persistent data quality issues
+       - Exclude from final analysis sample
+
+Output:
+    - Diagnostic report of identified issues
+    - Corrected price/returns data files
+    - Updated CAPM results with clean sample
+
+Note: Run this module after initial data download to ensure data quality.
 """
 
 import os

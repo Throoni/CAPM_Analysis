@@ -1,15 +1,40 @@
 """
-performance_attribution.py
+Performance Attribution Analysis Framework.
 
-Item 22: Performance Attribution
+This module implements Brinson-style performance attribution to decompose
+portfolio returns into component contributions.
 
-This module implements performance attribution analysis:
-- Decompose returns into factor contributions
-- Active vs passive return decomposition
-- Sector allocation effects
-- Stock selection effects
+Attribution methodology:
+    Total Active Return = Allocation Effect + Selection Effect + Interaction
 
-Note: This is a framework for future implementation.
+    1. Allocation Effect:
+       - Return from overweighting/underweighting sectors vs benchmark
+       - sum[(w_p,s - w_b,s) * R_b,s]
+
+    2. Selection Effect:
+       - Return from stock selection within sectors
+       - sum[w_b,s * (R_p,s - R_b,s)]
+
+    3. Interaction Effect:
+       - Combined allocation and selection
+       - sum[(w_p,s - w_b,s) * (R_p,s - R_b,s)]
+
+Additional decompositions:
+    - Factor attribution (market, size, value, momentum)
+    - Currency attribution for international portfolios
+    - Time-series attribution (contribution over time)
+
+Output reports:
+    - Period-by-period attribution summary
+    - Cumulative contribution analysis
+    - Statistical significance of active returns
+
+Note: This is a framework module for portfolio analysis extensibility.
+
+References
+----------
+Brinson, G. P., Hood, L. R., & Beebower, G. L. (1986). Determinants of
+    Portfolio Performance. Financial Analysts Journal, 42(4), 39-44.
 """
 
 import logging

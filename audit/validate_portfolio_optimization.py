@@ -1,8 +1,35 @@
 """
-validate_portfolio_optimization.py
+Portfolio Optimization Validation Audit Module.
 
-Validates portfolio optimization analysis (efficient frontier, minimum-variance portfolio, tangency portfolio).
-Checks calculation correctness, constraint satisfaction, and result reasonableness.
+This module validates the mean-variance portfolio optimization implementation
+to ensure mathematical correctness and constraint satisfaction.
+
+Validations performed:
+    1. Efficient Frontier:
+       - Convexity of the frontier (decreasing marginal returns)
+       - Minimum variance at left endpoint
+       - Maximum return at right endpoint
+       - Smooth curve (no discontinuities)
+
+    2. Minimum-Variance Portfolio:
+       - Weights sum to 1 (full investment)
+       - Constraint satisfaction (long-only if applicable)
+       - Variance is minimum achievable
+
+    3. Tangency Portfolio:
+       - Maximum Sharpe ratio on frontier
+       - Correct risk-free rate used
+       - Weights sum to 1
+
+    4. Constraint Verification:
+       - Long-only: All weights >= 0
+       - Short-selling: Gross exposure within limits
+       - Weight bounds respected
+
+    5. Economic Reasonableness:
+       - Sharpe ratio in plausible range
+       - No extreme concentration
+       - Diversification benefits evident
 """
 
 import os

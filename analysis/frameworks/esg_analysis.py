@@ -1,16 +1,40 @@
 """
-esg_analysis.py
+ESG and Sustainability Factor Analysis Framework.
 
-Item 19: ESG and Sustainability Factors
+This module provides a framework for integrating Environmental, Social, and
+Governance (ESG) factors into the CAPM analysis.
 
-This module implements ESG (Environmental, Social, Governance) analysis:
-- ESG scores as risk factors
-- Carbon footprint as risk measure
-- Sustainability-adjusted returns
-- Green vs brown stock analysis
+Analysis components:
+    1. ESG as Risk Factor:
+       - Test if ESG score explains cross-sectional return variation
+       - Augmented CAPM: R_i = alpha + beta*R_m + gamma*ESG_i + epsilon
 
-Note: This is a framework for future implementation.
-Requires ESG data from providers like MSCI, Sustainalytics, or Refinitiv.
+    2. Carbon Risk Analysis:
+       - Carbon footprint as systematic risk measure
+       - Stranded asset risk premium estimation
+       - Transition risk beta estimation
+
+    3. Sustainability-Adjusted Performance:
+       - ESG-adjusted alpha calculation
+       - Green portfolio vs brown portfolio comparison
+       - Sustainability momentum effects
+
+    4. Regulatory Risk Assessment:
+       - Impact of ESG disclosure requirements
+       - EU Taxonomy compliance effects
+       - Climate stress testing framework
+
+Data requirements:
+    - ESG scores from MSCI, Sustainalytics, or Refinitiv
+    - Carbon emissions data (Scope 1, 2, 3)
+    - Green/brown classification
+
+Note: This is a framework module. Implementation requires ESG data subscriptions.
+
+References
+----------
+Pastor, L., Stambaugh, R. F., & Taylor, L. A. (2021). Sustainable Investing
+    in Equilibrium. Journal of Financial Economics, 142(2), 550-571.
 """
 
 import logging

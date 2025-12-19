@@ -1,9 +1,26 @@
 """
-generate_thesis_tables.py
+Publication-Ready Table Generation Module.
 
-Stage 7.1: Generate publication-ready tables for thesis chapter.
+This module generates formatted tables suitable for academic publications,
+including both CSV exports and LaTeX-formatted outputs.
 
-Creates all 6 tables in both CSV and LaTeX formats with proper formatting.
+Tables generated:
+    1. Descriptive Statistics: Sample characteristics by country
+    2. CAPM Regression Results: Beta, alpha, R-squared by country
+    3. Fama-MacBeth Results: Cross-sectional test statistics
+    4. Portfolio Statistics: Efficient frontier characteristics
+    5. Robustness Results: Subperiod and sensitivity analysis
+    6. Investment Recommendations: Summary of findings
+
+Output formats:
+    - CSV: Machine-readable format for further analysis
+    - LaTeX: Publication-ready tables with proper formatting
+      (booktabs style, appropriate decimal places, significance stars)
+
+The LaTeX output follows standard academic conventions:
+    - Three-line table format (toprule, midrule, bottomrule)
+    - Significance indicators: * p<0.10, ** p<0.05, *** p<0.01
+    - Standard errors in parentheses
 """
 
 import os

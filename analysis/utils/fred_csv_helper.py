@@ -1,14 +1,29 @@
 """
-fred_csv_helper.py
+FRED CSV Direct Download Helper Module.
 
-Download FRED CSV files directly (no API key required) and merge
-actual risk-free rates with the returns panel.
+This module downloads risk-free rate data directly from FRED (Federal Reserve
+Economic Data) CSV endpoints without requiring an API key.
 
-FRED CSV URLs:
-- German Bund: https://fred.stlouisfed.org/data/MMNRNDD.csv
-- Swedish 3m: https://fred.stlouisfed.org/data/MNRNSE.csv
-- UK 3m: https://fred.stlouisfed.org/data/MMNRNUK.csv
-- Swiss 3m: https://fred.stlouisfed.org/data/MMNRNCH.csv
+Data sources:
+    - German 3-month Bund: FRED series MMNRNDD
+    - UK 3-month Treasury Bill: FRED series MMNRNUK
+    - Swiss 3-month Government Bond: FRED series MMNRNCH
+
+The module handles:
+    - Direct HTTP download of CSV files from fred.stlouisfed.org
+    - Date parsing and frequency conversion (daily to monthly)
+    - Missing value interpolation for minor gaps
+    - Merging with returns panel for excess return calculations
+
+Rate conversion:
+    - FRED provides annualized rates in percentage form
+    - Converted to monthly: monthly_rate = annual_rate / 12
+
+Usage:
+    df = download_fred_csv('MMNRNDD')  # German Bund
+    merged = merge_riskfree_with_panel(panel_df, rates_df)
+
+Note: FRED CSV endpoints may change. Verify URLs if downloads fail.
 """
 
 import logging

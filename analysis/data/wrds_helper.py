@@ -1,8 +1,26 @@
 """
-wrds_helper.py
+WRDS Database Connection Helper Module.
 
-Utility functions to connect to WRDS and fetch sample data.
-Stage 1: basic connection + a tiny smoke test for comp_global_daily.
+This module provides utility functions for connecting to the Wharton Research
+Data Services (WRDS) database and fetching financial data.
+
+WRDS databases used:
+    - comp_global_daily: Compustat Global daily stock data
+    - crsp: Center for Research in Security Prices (US stocks)
+    - ibes: I/B/E/S analyst estimates
+
+Authentication:
+    - Requires WRDS account credentials
+    - Credentials loaded from environment variables (WRDS_USERNAME, WRDS_PASSWORD)
+    - Alternatively, uses .pgpass file for passwordless authentication
+
+Usage:
+    conn = get_wrds_connection()
+    df = conn.raw_sql("SELECT * FROM comp_global_daily LIMIT 10")
+    conn.close()
+
+Note: WRDS access requires institutional subscription. This module is optional
+for users without WRDS access - Yahoo Finance data is used as primary source.
 """
 
 import os

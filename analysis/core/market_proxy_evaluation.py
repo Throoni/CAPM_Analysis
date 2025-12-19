@@ -1,8 +1,29 @@
 """
-market_proxy_evaluation.py
+Market Proxy Evaluation Module.
 
-Evaluate whether country-specific MSCI indices improve R² compared to MSCI Europe.
-This helps determine if the market proxy choice is optimal.
+This module evaluates whether alternative market proxies improve the explanatory
+power of CAPM regressions compared to the baseline MSCI Europe Index.
+
+The Roll (1977) critique highlights that CAPM tests are sensitive to market
+proxy choice. This module empirically tests whether:
+    - Country-specific MSCI indices (e.g., MSCI Germany) improve R-squared
+    - Local market indices (e.g., DAX) provide better explanatory power
+    - A value-weighted European portfolio outperforms MSCI Europe
+
+Methodology:
+    For each stock, estimate CAPM with alternative market proxies:
+        R_i - R_f = alpha + beta * (R_m - R_f) + epsilon
+
+    Compare R-squared across specifications to identify the best market proxy.
+
+Output:
+    Comparative table of R-squared values by country and market proxy choice.
+
+References
+----------
+Roll, R. (1977). A Critique of the Asset Pricing Theory's Tests Part I:
+    On Past and Potential Testability of the Theory.
+    Journal of Financial Economics, 4(2), 129-176.
 """
 
 import os

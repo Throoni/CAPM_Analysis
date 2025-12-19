@@ -1,15 +1,41 @@
 """
-risk_decomposition.py
+Risk Decomposition and Analysis Framework.
 
-Item 23: Risk Decomposition
+This module implements comprehensive risk decomposition to understand
+the sources of portfolio volatility and tail risk.
 
-This module implements risk decomposition analysis:
-- Systematic vs idiosyncratic risk breakdown
-- Factor risk contributions
-- Tail risk measures (VaR, CVaR)
-- Risk budgeting
+Risk decomposition components:
+    1. Systematic vs Idiosyncratic:
+       - Total Variance = Beta^2 * Var(R_m) + Var(epsilon)
+       - R-squared represents systematic risk proportion
+       - 1 - R-squared represents diversifiable risk
 
-Note: This is a framework for future implementation.
+    2. Factor Risk Contributions:
+       - Marginal contribution to risk (MCTR)
+       - Component contribution to risk (CCTR)
+       - Risk budgeting across factors
+
+    3. Tail Risk Measures:
+       - Value at Risk (VaR): Maximum loss at confidence level
+       - Conditional VaR (CVaR/ES): Expected loss beyond VaR
+       - Maximum Drawdown analysis
+
+    4. Stress Testing:
+       - Historical scenario analysis (2008, 2020)
+       - Hypothetical stress scenarios
+       - Factor shock propagation
+
+Risk budgeting framework:
+    - Equal risk contribution portfolios
+    - Risk parity allocation
+    - Maximum diversification portfolios
+
+Note: This is a framework module for risk management extensibility.
+
+References
+----------
+Menchero, J., & Davis, B. (2011). Risk Contribution Is Exposure Times
+    Volatility Times Correlation. Journal of Portfolio Management, 37(2), 74-81.
 """
 
 import logging

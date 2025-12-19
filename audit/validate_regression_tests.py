@@ -1,13 +1,38 @@
 """
-validate_regression_tests.py
+Automated Regression Testing Audit Module.
 
-Phase 12.1: Automated Regression Testing Audit
+This module implements regression testing to detect unintended changes
+in analysis results when code or data is modified.
 
-Validates regression testing:
-- Baseline result storage
-- Result comparison
-- Change detection
-- Trend tracking
+Regression testing workflow:
+    1. Baseline Storage:
+       - Store known-good results as reference
+       - Version-controlled baseline files
+       - Metadata about baseline creation
+
+    2. Result Comparison:
+       - Compare current results to baseline
+       - Tolerance thresholds for numerical differences
+       - Exact matching for categorical results
+
+    3. Change Detection:
+       - Flag differences exceeding tolerance
+       - Categorize changes (improvement, regression, neutral)
+       - Alert on unexpected result changes
+
+    4. Trend Tracking:
+       - Historical result tracking over time
+       - Drift detection in key metrics
+       - Visualization of trends
+
+Benefits:
+    - Catch bugs early before they affect conclusions
+    - Document intentional changes
+    - Maintain reproducibility across code versions
+
+Usage:
+    python -m audit.validate_regression_tests --update-baseline  # Set new baseline
+    python -m audit.validate_regression_tests  # Compare to baseline
 """
 
 import os

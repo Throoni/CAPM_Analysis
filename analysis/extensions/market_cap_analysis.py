@@ -1,8 +1,27 @@
 """
-market_cap_analysis.py
+Market Capitalization Analysis Module.
 
-Calculate market-capitalization weighted average betas and compare to equal-weighted averages.
-This addresses assignment requirement: "What is the market value weighted average of the betas?"
+This module calculates market-capitalization weighted statistics and compares
+them to equal-weighted averages to assess the impact of size on CAPM parameters.
+
+Key calculations:
+    1. Market-cap weighted average beta: sum(w_i * beta_i) where w_i = cap_i / sum(cap)
+    2. Equal-weighted average beta: mean(beta_i)
+    3. Comparison of the two approaches
+
+Economic interpretation:
+    - Market-cap weighted beta reflects the systematic risk of the market portfolio
+    - If cap-weighted beta differs from equal-weighted, large-cap stocks have
+      different risk characteristics than small-cap stocks
+    - Theory predicts market-cap weighted beta should equal 1.0
+
+Data source: Yahoo Finance for real-time market capitalizations
+Fallback: Equal weighting if market cap data unavailable
+
+References
+----------
+Roll, R. (1977). A Critique of the Asset Pricing Theory's Tests.
+    Journal of Financial Economics, 4(2), 129-176.
 """
 
 import os

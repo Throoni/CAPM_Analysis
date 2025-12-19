@@ -1,8 +1,34 @@
 """
-validate_results.py
+Results Validation Audit Module.
 
-Phase 5: Results Validation Audit
-Validates beta values, R-squared, Fama-MacBeth results, and portfolio results.
+This module validates the output results of the CAPM analysis to ensure
+they are economically plausible and statistically sound.
+
+Results validated:
+    1. Beta Estimates:
+       - Range check: typically [0, 3] for most stocks
+       - Average beta near 1.0 (market portfolio property)
+       - Significance rate assessment
+
+    2. R-Squared Values:
+       - Range check: [0, 1]
+       - Distribution assessment (not all near 0 or 1)
+       - Cross-country comparison
+
+    3. Fama-MacBeth Results:
+       - Gamma_0 interpretation (risk-free rate proxy)
+       - Gamma_1 interpretation (market risk premium)
+       - Standard error reasonableness
+
+    4. Portfolio Results:
+       - Sharpe ratio plausibility
+       - Efficient frontier convexity
+       - Tangency portfolio weights sum to 1
+
+Economic plausibility checks:
+    - Market risk premium positive (historically ~5-8% p.a.)
+    - High-beta stocks have higher average returns
+    - Diversification reduces portfolio risk
 """
 
 import os

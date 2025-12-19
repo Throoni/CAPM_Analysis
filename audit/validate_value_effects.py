@@ -1,8 +1,34 @@
 """
-validate_value_effects.py
+Value Effects Validation Audit Module.
 
-Validates value effects analysis (book-to-market ratios and alpha relationships).
-Checks data quality, portfolio formation, and statistical test correctness.
+This module validates the value effects analysis that tests for the
+relationship between book-to-market ratios and CAPM alphas.
+
+Validations performed:
+    1. Book-to-Market Data Quality:
+       - B/M ratios from reliable source (Yahoo Finance)
+       - Positive values only (negative B/M excluded)
+       - Reasonable range (typically 0.1 to 3.0)
+
+    2. Portfolio Formation:
+       - Correct quintile sorting methodology
+       - Sufficient stocks per quintile
+       - Balanced distribution across quintiles
+
+    3. Alpha Calculation:
+       - Alphas correctly extracted from CAPM regressions
+       - Statistical significance properly assessed
+       - Consistent sample across B/M quintiles
+
+    4. Statistical Tests:
+       - Monotonic relationship test
+       - High-minus-low portfolio significance
+       - Fama-French factor comparison (if applicable)
+
+    5. Economic Interpretation:
+       - Value premium direction (value > growth expected)
+       - Magnitude assessment
+       - Comparison with prior literature
 """
 
 import os

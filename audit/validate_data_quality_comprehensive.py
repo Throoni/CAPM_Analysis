@@ -1,15 +1,41 @@
 """
-validate_data_quality_comprehensive.py
+Comprehensive Data Quality Audit Module.
 
-Comprehensive Data Quality Audit
+This module performs extensive data quality validation across all data sources
+to ensure the integrity and reliability of inputs to the CAPM analysis.
 
-Performs extensive data quality checks to ensure:
-- Data integrity and correctness
-- Date alignment consistency
-- Missing data patterns
-- Extreme value detection
-- Currency consistency
-- Data completeness
+Quality dimensions assessed:
+    1. Data Integrity:
+       - No duplicate records
+       - Consistent data types
+       - Valid value ranges
+
+    2. Date Alignment:
+       - All datasets use same date convention (month-end)
+       - No gaps in time series
+       - Consistent date format (YYYY-MM-DD)
+
+    3. Missing Data Analysis:
+       - Missing value patterns (random vs. systematic)
+       - Impact assessment on sample size
+       - Imputation recommendations
+
+    4. Extreme Value Detection:
+       - Statistical outliers (> 3 standard deviations)
+       - Economically implausible values
+       - Potential data entry errors
+
+    5. Currency Consistency:
+       - All returns in EUR
+       - Exchange rate application verification
+       - Cross-border consistency checks
+
+    6. Completeness Metrics:
+       - Observation counts by country
+       - Coverage percentage by time period
+       - Cross-sectional completeness
+
+Output: Detailed quality report with pass/fail indicators and recommendations.
 """
 
 import os

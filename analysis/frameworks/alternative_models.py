@@ -1,15 +1,36 @@
 """
-alternative_models.py
+Alternative Asset Pricing Models Framework.
 
-Item 17: Alternative Asset Pricing Models
+This module provides frameworks for asset pricing models beyond the standard CAPM,
+allowing comparison of explanatory power across different theoretical approaches.
 
-This module implements alternative asset pricing models:
-- Arbitrage Pricing Theory (APT)
-- Intertemporal CAPM (ICAPM)
-- Consumption CAPM (CCAPM)
-- Behavioral Asset Pricing Models
+Models implemented:
+    1. Arbitrage Pricing Theory (APT):
+       E[R_i] = R_f + b_1*lambda_1 + b_2*lambda_2 + ... + b_k*lambda_k
+       Multiple factors extracted via PCA or pre-specified
 
-Note: This is a framework for future implementation.
+    2. Intertemporal CAPM (ICAPM):
+       Adds state variables capturing changes in investment opportunities
+       E[R_i] = R_f + beta_m*E[R_m-R_f] + beta_h*E[R_h-R_f]
+
+    3. Consumption CAPM (CCAPM):
+       E[R_i] = R_f + beta_c * lambda_c
+       Risk measured by consumption growth covariance
+
+    4. Fama-French Three-Factor Model:
+       E[R_i] = R_f + beta*MKT + s*SMB + h*HML
+
+Comparison metrics:
+    - Adjusted R-squared across models
+    - GRS test for joint significance of alphas
+    - Information criteria (AIC, BIC)
+
+Note: This is a framework module for extensibility.
+
+References
+----------
+Ross, S. A. (1976). The Arbitrage Theory of Capital Asset Pricing.
+    Journal of Economic Theory, 13(3), 341-360.
 """
 
 import logging

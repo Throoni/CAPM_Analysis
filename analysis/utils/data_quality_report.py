@@ -1,10 +1,31 @@
 """
-data_quality_report.py
+Data Quality Report Generation Module.
 
-Generate comprehensive data quality report.
+This module generates comprehensive data quality diagnostics for all data
+sources used in the CAPM analysis pipeline.
 
-Provides summary statistics, missing data patterns, extreme value flags,
-and data completeness metrics for all data sources.
+Quality checks performed:
+    1. Completeness:
+       - Percentage of non-missing observations per stock
+       - Date coverage gaps identification
+       - Cross-country data availability comparison
+
+    2. Extreme Values:
+       - Monthly returns exceeding +/- 50% flagged
+       - Price spikes suggesting data errors
+       - Zero-return sequences (possible stale prices)
+
+    3. Consistency:
+       - Currency consistency per country
+       - Date alignment across datasets
+       - Risk-free rate coverage matching returns panel
+
+    4. Summary Statistics:
+       - Mean, standard deviation, min, max per variable
+       - Skewness and kurtosis for normality assessment
+       - Cross-sectional correlation matrix
+
+Output: Markdown report with tables and flagged issues for manual review.
 """
 
 import os

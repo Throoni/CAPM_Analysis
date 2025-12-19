@@ -1,11 +1,34 @@
 """
-verify_issues.py
+Issue Verification and Diagnosis Module.
 
-Comprehensive verification script for CAPM analysis issues:
-1. Beta significance discrepancy (84.3% vs 95.9%)
-2. Extreme betas verification (ATO.PA and III.L)
-3. Currency mismatch assessment (USD MSCI indexes vs local currency stocks)
-4. Count discrepancy (n=38 vs n=34 for France)
+This module provides detailed investigation of specific issues identified
+during the CAPM analysis, with root cause analysis and resolution tracking.
+
+Issues investigated:
+    1. Beta Significance Discrepancy:
+       - Compare beta significance rates across different calculations
+       - Identify potential causes (sample size, outliers, methodology)
+
+    2. Extreme Beta Values:
+       - Investigate stocks with beta > 2 or beta < 0
+       - Determine if due to data errors or genuine high/low risk
+
+    3. Currency Alignment:
+       - Verify all returns are in consistent currency (EUR)
+       - Check exchange rate application methodology
+
+    4. Sample Count Discrepancies:
+       - Reconcile stock counts across different analysis stages
+       - Identify stocks dropped and reasons for exclusion
+
+Each issue investigation includes:
+    - Detailed diagnostic output
+    - Data-driven root cause analysis
+    - Recommended resolution steps
+    - Verification of fix effectiveness
+
+Usage:
+    python -m audit.verify_issues
 """
 
 import os

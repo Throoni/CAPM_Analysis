@@ -1,8 +1,37 @@
 """
-check_assumptions.py
+CAPM and Statistical Assumption Verification Module.
 
-Phase 4.3: Assumption Violations
-Checks CAPM and statistical assumptions.
+This module tests the key assumptions underlying CAPM regression analysis
+and flags potential violations that may affect inference validity.
+
+Statistical assumptions tested:
+    1. Normality of Residuals:
+       - Jarque-Bera test for normality
+       - Q-Q plot generation
+       - Skewness and kurtosis assessment
+
+    2. Homoscedasticity:
+       - Breusch-Pagan test for heteroscedasticity
+       - White's test for general heteroscedasticity
+       - Residual vs. fitted plots
+
+    3. No Serial Correlation:
+       - Durbin-Watson statistic
+       - Ljung-Box test for autocorrelation
+       - ACF/PACF analysis of residuals
+
+    4. No Multicollinearity:
+       - VIF (Variance Inflation Factor) for multi-factor models
+       - Correlation matrix of regressors
+
+    5. Linearity:
+       - RESET test for functional form
+       - Residual plots inspection
+
+Interpretation guidance:
+    - Violations flagged with severity levels
+    - Recommendations for robust alternatives (HAC standard errors, etc.)
+    - Impact assessment on coefficient reliability
 """
 
 import os

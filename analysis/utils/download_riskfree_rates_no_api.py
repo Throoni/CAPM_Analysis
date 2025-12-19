@@ -1,15 +1,30 @@
 """
-download_riskfree_rates_no_api.py
+Risk-Free Rate Data Acquisition Module.
 
-Download 3-month government bond rates from FRED CSV files (no API key required)
-and merge with returns panel.
+This module downloads 3-month government bond yields from the Federal Reserve
+Economic Data (FRED) database without requiring an API key.
 
-RESEARCH-BASED APPROACH:
-1. Tests multiple FRED series ID patterns for each country
-2. Downloads CSV files directly from FRED
-3. Handles EUR countries (use German Bund rate)
-4. Converts rates to monthly format
-5. Merges with returns panel
+Data acquisition strategy:
+    1. Direct CSV download from FRED public endpoints
+    2. Multiple series ID patterns tested for each country
+    3. Automatic fallback to German Bund for all EUR-denominated countries
+    4. Conversion from annual to monthly rates
+
+Supported countries and their primary sources:
+    - Germany: German 3-month Treasury Bill (FRED: IR3TIB01DEM156N)
+    - France, Italy, Spain, Netherlands: Use German Bund (EUR zone)
+    - UK: UK 3-month Treasury Bill (FRED: IR3TIB01GBM156N)
+    - Switzerland: Swiss 3-month Government Bond
+
+Rate conventions:
+    - All rates are annualized percentages from original sources
+    - Converted to monthly rates: monthly_rate = annual_rate / 12
+    - Final output in percentage form (e.g., 0.25 means 0.25% per month)
+
+References
+----------
+Federal Reserve Bank of St. Louis. FRED Economic Data.
+    https://fred.stlouisfed.org/
 """
 
 import logging

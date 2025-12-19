@@ -1,8 +1,25 @@
 """
-investment_recommendations.py
+Investment Recommendations Module for US-Based Investors.
 
-Generate investment recommendations specifically for American equity investors.
-Focuses on currency risk, country allocation, sector implications, and factor-based strategies.
+This module synthesizes all CAPM analysis results into actionable investment
+recommendations tailored for American equity investors seeking European exposure.
+
+Key considerations addressed:
+    - Currency risk: EUR/USD exchange rate implications
+    - Country allocation: Optimal weights across European markets
+    - Factor exposure: Beta-based portfolio construction
+    - Risk management: Diversification benefits and hedging strategies
+
+The recommendations integrate findings from:
+    - Time-series CAPM regressions (individual stock betas)
+    - Fama-MacBeth cross-sectional tests (market risk premium)
+    - Mean-variance optimization (efficient portfolios)
+    - Robustness checks (stability of findings)
+
+Output format: Comprehensive markdown report with executive summary,
+detailed analysis, and specific portfolio recommendations.
+
+Disclaimer: For educational purposes only. Not financial advice.
 """
 
 import os

@@ -1,15 +1,40 @@
 """
-behavioral_factors.py
+Behavioral Finance Factors Framework.
 
-Item 18: Behavioral Finance Factors
+This module implements behavioral finance factors that may explain anomalies
+in asset pricing not captured by traditional risk-based models.
 
-This module implements behavioral finance factors:
-- Sentiment indicators
-- Overreaction/underreaction measures
-- Momentum and reversal effects
-- Disposition effect proxies
+Behavioral factors implemented:
+    1. Sentiment Indicators:
+       - Investor sentiment surveys (e.g., AAII, Investors Intelligence)
+       - Put/call ratios and VIX-based measures
+       - Retail trading activity proxies
 
-Note: This is a framework for future implementation.
+    2. Overreaction/Underreaction:
+       - Winner/loser portfolios (DeBondt & Thaler, 1985)
+       - Post-earnings announcement drift (PEAD)
+       - Long-term reversal effects
+
+    3. Momentum Effects:
+       - Price momentum (Jegadeesh & Titman, 1993)
+       - Earnings momentum
+       - Industry momentum
+
+    4. Disposition Effect:
+       - Capital gains overhang
+       - Tax-loss selling pressure
+
+Economic motivation:
+    - Behavioral biases may cause persistent mispricings
+    - These factors may explain CAPM alphas
+    - Integration with factor models improves explanatory power
+
+Note: This is a framework module for extensibility.
+
+References
+----------
+Barberis, N., & Thaler, R. (2003). A Survey of Behavioral Finance.
+    Handbook of the Economics of Finance, 1, 1053-1128.
 """
 
 import logging

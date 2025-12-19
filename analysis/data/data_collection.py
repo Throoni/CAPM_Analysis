@@ -1,8 +1,29 @@
 """
-data_collection.py
+Data Collection Module for European Equity Prices.
 
-Module for collecting stock and index price data by country from Yahoo Finance.
-Downloads monthly prices for all stocks and indices in the universe, organized by country.
+This module orchestrates the download of historical price data for all stocks
+and indices in the analysis universe from Yahoo Finance.
+
+Data collection workflow:
+    1. Load stock universe from CSV configuration
+    2. Download monthly adjusted close prices by country
+    3. Download MSCI Europe index prices (market benchmark)
+    4. Save raw price data to CSV files organized by country
+
+File organization:
+    data/raw/prices/
+        prices_{country}.csv - Individual stock prices per country
+        prices_MSCI_EUROPE.csv - Market index prices
+
+Data quality measures:
+    - Automatic retry on failed downloads
+    - Logging of missing tickers and data gaps
+    - Date range validation (2018-01-01 to 2023-12-31)
+    - Adjusted close prices used (accounts for splits and dividends)
+
+Usage:
+    Run as standalone script: python -m analysis.data.data_collection
+    Or import: from analysis.data.data_collection import collect_all_data
 """
 
 import os

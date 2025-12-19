@@ -1,24 +1,30 @@
 """
-riskfree_helper.py
+Risk-Free Rate Processing Module.
 
-Functions to fetch and process risk-free rates (3-month government bonds)
-for CAPM analysis.
+This module handles the retrieval and processing of risk-free rates for CAPM
+excess return calculations.
 
-Per methodology:
-- All countries use German 3-month Bund (EUR) as the risk-free rate
-- Since all stock returns and market returns are converted to EUR,
-  all countries should use the same EUR risk-free rate (German Bund)
-- Interest rates are percentages and should NOT be multiplied by exchange rates
+Methodological Note:
+    All countries in this analysis use the German 3-month Bund (EUR) as the
+    risk-free rate. This ensures consistency since:
+    - All stock returns are converted to EUR
+    - MSCI Europe index returns are EUR-denominated
+    - Using a single risk-free rate avoids currency mismatch in excess returns
 
-Data Sources (in order of preference):
-1. CSV files (processed risk-free rate files, primary source)
-2. ECB API - For EUR countries (free, no API key required)
-3. FRED API - For all countries (free, requires API key)
-4. WRDS - For academic users with WRDS access
-5. Yahoo Finance - Limited availability (fallback)
+Data source hierarchy (in order of preference):
+    1. Local CSV files: Pre-downloaded and verified data (primary)
+    2. ECB API: European Central Bank data warehouse (EUR countries)
+    3. FRED API: Federal Reserve Economic Data (requires API key)
+    4. WRDS: Wharton Research Data Services (academic access)
+    5. Yahoo Finance: Limited coverage (fallback only)
 
-Note: System requires real data - CSV files are available for all countries.
-No placeholder values are used.
+Rate format:
+    - Input: Annualized percentage (e.g., 3.0 means 3% per year)
+    - Output: Monthly percentage (e.g., 0.25 means 0.25% per month)
+    - Conversion: monthly_rate = annual_rate / 12
+
+Important: Interest rates are already in percentage form and should NOT be
+adjusted for exchange rates - only asset returns require currency conversion.
 """
 
 import logging

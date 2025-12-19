@@ -1,8 +1,34 @@
 """
-validate_raw_data.py
+Raw Data Validation Audit Module.
 
-Phase 1.1: Raw Data Validation
-Validates raw price data, index data, and risk-free rate files.
+This module validates the raw input data files before they enter the
+CAPM analysis pipeline, catching data issues at the source.
+
+Data sources validated:
+    1. Stock Price Files (prices_{country}.csv):
+       - Column structure (date, ticker columns)
+       - Date range coverage (2018-2023)
+       - Positive price values
+       - No excessive missing data
+
+    2. MSCI Index Files (prices_MSCI_*.csv):
+       - Complete date coverage
+       - Reasonable price levels
+       - Monotonic dates (no duplicates)
+
+    3. Risk-Free Rate Files:
+       - Rate magnitude (typically 0-10% annually)
+       - Complete coverage for analysis period
+       - Proper date alignment
+
+Validation checks:
+    - File existence and readability
+    - Required columns present
+    - Data type correctness
+    - Value range plausibility
+    - Temporal completeness
+
+Output: Validation report with specific issues and file locations.
 """
 
 import os

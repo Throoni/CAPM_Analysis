@@ -1,7 +1,37 @@
 """
-validate_sharpe_ratios.py
+Sharpe Ratio Validation Audit Module.
 
-Focused audit on Sharpe ratio calculations and justification.
+This module provides focused validation of Sharpe ratio calculations used
+in portfolio optimization and performance evaluation.
+
+Sharpe ratio formula:
+    SR = (R_p - R_f) / sigma_p
+
+    Where:
+    - R_p: Portfolio return (annualized)
+    - R_f: Risk-free rate (annualized)
+    - sigma_p: Portfolio standard deviation (annualized)
+
+Validations performed:
+    1. Calculation Correctness:
+       - Correct risk-free rate subtraction
+       - Proper annualization (monthly to annual)
+       - Consistent time periods
+
+    2. Risk-Free Rate Verification:
+       - Actual rate used, not zero
+       - Same rate as in CAPM regressions
+       - Appropriate for investment period
+
+    3. Return and Volatility Consistency:
+       - Returns match those used elsewhere
+       - Volatility calculation method documented
+       - Sample period alignment
+
+    4. Economic Plausibility:
+       - Sharpe ratios typically in range [-1, 3]
+       - Comparison with market benchmarks
+       - Flag unusually high values
 """
 
 import os

@@ -1,8 +1,34 @@
 """
-check_data_leakage.py
+Data Leakage Detection Audit Module.
 
-Phase 4.2: Data Leakage Checks
-Verifies no look-ahead bias or future information leakage.
+This module verifies that no look-ahead bias or future information leakage
+has occurred in the CAPM analysis, which would invalidate conclusions.
+
+Leakage types checked:
+    1. Look-Ahead Bias:
+       - Betas estimated before they are used
+       - No future returns in estimation window
+       - Proper train/test split if applicable
+
+    2. Survivorship Bias:
+       - Delisted stocks properly handled
+       - Sample includes failures, not just survivors
+       - Universe defined at beginning of period
+
+    3. Data Snooping:
+       - Results not cherry-picked from multiple attempts
+       - Out-of-sample validation performed
+       - Pre-registration of methodology (conceptual)
+
+    4. Temporal Alignment:
+       - All data aligned to same point in time
+       - No mixing of different date conventions
+       - Proper lag structure in regressions
+
+Detection methods:
+    - Date order verification in all datasets
+    - Cross-reference of estimation and evaluation periods
+    - Statistical tests for information advantage
 """
 
 import os

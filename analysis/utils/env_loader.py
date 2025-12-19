@@ -1,12 +1,27 @@
 """
-env_loader.py
+Environment Variable Loader Module.
 
-Utility module to load environment variables from .env file.
-This ensures credentials are loaded automatically when the package is imported.
+This module provides secure loading of environment variables from a .env file,
+enabling credential management for external API access.
+
+Supported environment variables:
+    - WRDS_USERNAME: Wharton Research Data Services username
+    - WRDS_PASSWORD: WRDS password (optional, can use .pgpass)
+    - FRED_API_KEY: Federal Reserve Economic Data API key
+
+Security considerations:
+    - .env file should be listed in .gitignore
+    - Never commit credentials to version control
+    - Use read-only API keys where possible
 
 Usage:
     from analysis.utils.env_loader import load_env
-    load_env()  # Loads .env file if it exists
+    load_env()  # Automatically loads .env from project root
+
+Fallback behavior:
+    - If .env file not found, silently continues
+    - If python-dotenv not installed, skips loading
+    - Environment variables can be set manually in shell
 """
 
 import os

@@ -1,8 +1,26 @@
 """
-portfolio_recommendation.py
+Portfolio Recommendation Synthesis Module.
 
-Synthesize all findings and make portfolio recommendation (active vs passive).
-This addresses assignment requirement: "Based on your analysis, make a portfolio recommendation to your boss."
+This module synthesizes all CAPM analysis findings into a coherent investment
+recommendation, specifically addressing the active vs. passive management decision.
+
+Decision framework:
+    1. CAPM Validity: If gamma_1 significant, systematic risk is priced
+    2. Alpha Evidence: If significant alphas exist, active management may add value
+    3. Market Efficiency: If alphas are random noise, passive indexing preferred
+    4. Cost Consideration: Active management must overcome fee hurdle
+
+Recommendation outputs:
+    - Primary recommendation: Active vs. Passive strategy
+    - Supporting evidence from each analysis component
+    - Risk-adjusted performance expectations
+    - Implementation suggestions (ETFs, individual stocks, etc.)
+
+The recommendation considers:
+    - Statistical significance of findings
+    - Economic magnitude of potential alpha
+    - Transaction costs and management fees
+    - Investor risk tolerance and investment horizon
 """
 
 import os

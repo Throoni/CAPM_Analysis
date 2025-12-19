@@ -1,8 +1,34 @@
 """
-validate_riskfree_rates.py
+Risk-Free Rate Validation Audit Module.
 
-Phase 1.2: Risk-Free Rate Validation
-Validates risk-free rate data, conversion formulas, and consistency.
+This module validates the risk-free rate data used in CAPM excess return
+calculations to ensure correctness and consistency.
+
+Validations performed:
+    1. Data Source Verification:
+       - German 3-month Bund used for all EUR calculations
+       - Data sourced from reliable provider (FRED, ECB)
+       - No placeholder or synthetic values
+
+    2. Rate Magnitude Checks:
+       - Annual rates typically in range [-1%, 10%]
+       - Monthly rates = annual rates / 12
+       - No extreme outliers or sign errors
+
+    3. Conversion Formula Verification:
+       - Annual to monthly: R_monthly = R_annual / 12
+       - Percentage handling: 3.0 means 3%, not 300%
+       - Consistent units throughout
+
+    4. Temporal Coverage:
+       - Complete coverage for analysis period (2018-2023)
+       - No missing months
+       - Proper date alignment with returns
+
+    5. Cross-Dataset Consistency:
+       - Same risk-free rate used in all calculations
+       - Consistent between CAPM regressions and Sharpe ratios
+       - Currency consistency (EUR throughout)
 """
 
 import os

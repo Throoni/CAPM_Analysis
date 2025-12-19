@@ -1,8 +1,37 @@
 """
-validate_statistical_methodology.py
+Statistical Methodology Validation Audit Module.
 
-Phase 3: Statistical Methodology Audit
-Validates CAPM regression and Fama-MacBeth implementation.
+This module validates the implementation of statistical methods used in the
+CAPM analysis, ensuring correct application of econometric techniques.
+
+Methods validated:
+    1. Time-Series CAPM Regression:
+       - OLS implementation correctness
+       - Standard error calculation (robust vs. classical)
+       - R-squared interpretation
+       - Degrees of freedom handling
+
+    2. Fama-MacBeth Two-Pass Procedure:
+       - First pass: Time-series beta estimation
+       - Second pass: Cross-sectional risk premium
+       - Standard error correction (Shanken, 1992)
+       - Correct averaging across periods
+
+    3. Statistical Inference:
+       - t-statistic calculation
+       - p-value interpretation
+       - Confidence interval construction
+       - Multiple testing considerations
+
+    4. Robustness Checks:
+       - HAC standard errors (Newey-West)
+       - Subperiod stability tests
+       - Rolling window estimation
+
+References
+----------
+Fama, E. F., & MacBeth, J. D. (1973). Risk, Return, and Equilibrium:
+    Empirical Tests. Journal of Political Economy, 81(3), 607-636.
 """
 
 import os

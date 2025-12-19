@@ -1,8 +1,34 @@
 """
-validate_financial_calculations.py
+Financial Calculations Validation Audit Module.
 
-Phase 2: Financial Calculations Audit
-Validates return calculations, risk-free rate conversion, and excess returns.
+This module audits the correctness of core financial calculations that form
+the foundation of the CAPM analysis.
+
+Calculations validated:
+    1. Return Calculations:
+       - Simple returns: R_t = (P_t - P_{t-1}) / P_{t-1}
+       - Log returns verification: ln(P_t / P_{t-1})
+       - Correct use of adjusted close prices
+
+    2. Risk-Free Rate Processing:
+       - Annual to monthly conversion: R_f_monthly = R_f_annual / 12
+       - Percentage interpretation (3.0 = 3%, not 300%)
+       - Consistent units across calculations
+
+    3. Excess Return Calculation:
+       - R_excess = R_stock - R_f
+       - Market excess return: R_m - R_f
+       - Sign and magnitude verification
+
+    4. Currency Conversion:
+       - Local currency to EUR conversion
+       - Exchange rate application methodology
+       - No double-conversion errors
+
+Verification approach:
+    - Recalculate sample values from raw data
+    - Compare against stored processed data
+    - Flag discrepancies exceeding tolerance
 """
 
 import os

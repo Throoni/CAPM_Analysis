@@ -1,21 +1,31 @@
 """
-yf_helper.py
+Yahoo Finance Data Download Helper Module.
 
-Helper functions for downloading price data from Yahoo Finance (yfinance).
+This module provides robust functions for downloading historical price data
+from Yahoo Finance using the yfinance library.
 
-Core function:
-- download_monthly_prices(tickers, start, end)
+Key features:
+    - Single-ticker download approach for reliability
+    - Automatic retry logic for transient failures
+    - Clean DataFrame output (dates as index, tickers as columns)
+    - Comprehensive error logging
 
-This function:
-- Accepts a list of tickers (or a single string)
-- Downloads monthly prices from Yahoo Finance, ONE TICKER AT A TIME
-- Returns a clean DataFrame:
-    - index: dates
-    - columns: tickers
+Function signature:
+    download_monthly_prices(tickers, start, end) -> pd.DataFrame
 
-It is intentionally conservative and robust:
-- If a ticker has no usable data, it is skipped
-- We log all failures and keep all successes
+Data handling:
+    - Downloads adjusted close prices (accounts for splits/dividends)
+    - Resamples to month-end frequency
+    - Handles missing data gracefully (skip and log)
+    - Returns empty DataFrame on complete failure
+
+Rate limiting:
+    - Sequential downloads to avoid API throttling
+    - Configurable delay between requests
+    - Progress logging for long downloads
+
+Note: Yahoo Finance data is unofficial and may have gaps. For production
+systems, consider premium data providers (Bloomberg, Refinitiv).
 """
 
 import logging
